@@ -28,9 +28,9 @@
 namespace gint {
 
 struct version {
-    static int constexpr major{VERSION_MAJOR};
-    static int constexpr minor{VERSION_MINOR};
-    static int constexpr patch{VERSION_PATCH};
+    static int constexpr major{gint_VERSION_MAJOR};
+    static int constexpr minor{gint_VERSION_MINOR};
+    static int constexpr patch{gint_VERSION_PATCH};
 
     // Return the version as a string
     static std::string version_string();
