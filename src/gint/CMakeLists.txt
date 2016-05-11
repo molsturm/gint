@@ -31,7 +31,7 @@ drb_target_link_libraries(RELEASE gint ${GINT_DEPENDENCIES_RELEASE})
 
 # set the installation property for these targets:
 install(TARGETS ${gint_TARGETS}
-	EXPORT GscfTargets
+	EXPORT GintTargets
 	DESTINATION lib 
 	COMPONENT library
 )
@@ -48,13 +48,13 @@ install(FILES "${CMAKE_CURRENT_BINARY_DIR}/version_defs.hh"
 )
 
 # Export the target specifications for gint.
-export(EXPORT GscfTargets
+export(EXPORT GintTargets
 	FILE "${gint_BINARY_DIR}/gintTargets.cmake"
 	NAMESPACE Upstream::
 )
 
 # and install them appropriately:
-install(EXPORT GscfTargets
+install(EXPORT GintTargets
 	FILE "gintTargets.cmake"
 	NAMESPACE Upstream::
 	DESTINATION "${PackageModuleLocation}/gint"
