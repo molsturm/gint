@@ -19,7 +19,7 @@
 # We need sturmint version 0.0.0
 find_package(sturmint 0.0.0 REQUIRED CONFIG 
 	PATHS 
-	${CMAKE_SOURCE_DIR}/../sturmint/build
+	${PROJECT_SOURCE_DIR}/../sturmint/build
 )
 # Now we found the library. Most of the times that's it and we are done.
 # But if we got the sturmint from a build directory, then it is very
@@ -59,7 +59,7 @@ foreach(target ${sturmint_DEBUG_TARGET} ${sturmint_RELEASE_TARGET})
 		${sturmint_config_dir}/../src/
 		PATHS
 		$ENV{sturmint_INCLUDE_DIR}
-		${CMAKE_SOURCE_DIR}/../sturmint/src
+		${PROJECT_SOURCE_DIR}/../sturmint/src
 		DOC "sturmint header include directory"
 	)
 
