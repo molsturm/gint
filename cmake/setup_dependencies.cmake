@@ -24,7 +24,7 @@ set(GINT_DEFINITIONS_RELEASE "")
 ##################
 #-- linalgwrap --#
 ##################
-if (TARGET ${linalgwrap_DEBUG_TARGET} OR TARGET ${linalgwrap_RELEASE_TARGET})
+if (TARGET "${linalgwrap_DEBUG_TARGET}" OR TARGET "${linalgwrap_RELEASE_TARGET}")
 	# If the targets are already defined elsewhere, we are done:
 	message(STATUS "Using linalgwrap library provided by build environment.")
 else()
@@ -47,7 +47,7 @@ endforeach()
 #-- sturmint --#
 ################
 
-if (TARGET ${sturmint_DEBUG_TARGET} OR TARGET ${sturmint_RELEASE_TARGET})
+if (TARGET "${sturmint_DEBUG_TARGET}" OR TARGET "${sturmint_RELEASE_TARGET}")
 	message(STATUS "Using sturmint library provided by build environment.")
 else()
 	include(cmake/findSturmint.cmake)
