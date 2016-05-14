@@ -41,6 +41,12 @@ public:
   /** \brief Clone the expression */
   lazy_matrix_expression_ptr_type clone() const override;
 
+  /** \brief Get the identifier of the integral */
+  std::string id() const { return m_core_ptr->id(); }
+
+  /** \brief Get the friendly name of the integral */
+  std::string name() const { return base_type::name(); }
+
 private:
   //! The inner integral core object:
   linalgwrap::SubscriptionPointer<const core_type> m_core_ptr;
@@ -53,6 +59,9 @@ private:
 template <typename StoredMatrix>
 Integral<StoredMatrix>::Integral(const core_type& c)
       : m_core_ptr{linalgwrap::make_subscription(c, "Integral")} {
+  // Pass name onto base.
+  base_type::name(c.name());
+
   // TODO The description string should probably be more specific here ...
   assert_dbg(false, linalgwrap::ExcNotImplemented());
 }
