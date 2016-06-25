@@ -8,6 +8,8 @@
 #include <type_traits>
 #include <vector>
 
+#include "atomic/cs_dummy.hh"
+
 namespace gint {
 
 typedef enum {
@@ -22,15 +24,16 @@ template <typename StoredMatrix, OrbitalType otype>
 class IntegralLookup {
 public:
   typedef StoredMatrix stored_matrix_type;
-
+  
   // TODO I feel that these typedefs do not quite belong here ...
   //! The real type underlying the scalar type:
   typedef typename stored_matrix_type::scalar_type scalar_type;
   typedef typename linalgwrap::RealTypeOf<scalar_type>::type real_type;
   // end todo
 
+  typedef DummyIntegrals integral_collection_type;
   typedef Integral<stored_matrix_type> integral_matrix_type;
-
+ 
   static_assert(!linalgwrap::IsComplexScalar<
                       typename stored_matrix_type::scalar_type>::value ||
                       (otype == COMPLEX_MOLECULAR),
@@ -39,10 +42,8 @@ public:
 
   /** \name Construct an IntegralLookup object for a particular basis, which
    *  is referred to by the \t basistype_name string */
-  IntegralLookup(const std::string& basistype_name);
-
   IntegralLookup(const std::string& basistype_name,
-                 const linalgwrap::ParameterMap& parameters);
+                 const linalgwrap::ParameterMap& parameters = linalgwrap::ParameterMap());
 
   /** Return a particular integral, given a name */
   integral_matrix_type operator()(const std::string& integral_name);
@@ -55,7 +56,8 @@ public:
 
 private:
   // TODO this is dummy.
-  IntegralCoreBase<stored_matrix_type> dummy_integral_core;
+  integral_collection_type m_integral_collection;
+  IntegralCoreBase<stored_matrix_type> dummy_integral_core;  
 };
 
 //

@@ -16,10 +16,12 @@ public:
         lazy_matrix_expression_ptr_type;
   typedef IntegralCoreBase<stored_matrix_type> core_type;
 
+  //TODO: Provide implementations for the Big Five.
+  
   /** \brief Construct a two-electron intregral from
    *  some Integral core type
    */
-  Integral(std::shared_ptr<const core_type> c);
+  Integral(std::unique_ptr<const core_type> c);
 
   /** \brief Number of rows of the matrix */
   size_type n_rows() const override;
@@ -49,7 +51,7 @@ public:
 
 private:
   //! The inner integral core object:
-  std::shared_ptr<const core_type> m_core_ptr;
+  std::unique_ptr<const core_type> m_core_ptr;
 };
 
 //
@@ -57,7 +59,7 @@ private:
 //
 
 template <typename StoredMatrix>
-Integral<StoredMatrix>::Integral(std::shared_ptr<const core_type> c)
+Integral<StoredMatrix>::Integral(std::unique_ptr<const core_type> c)
       : m_core_ptr{std::move(c)} {
   // Pass name onto base.
   base_type::name(m_core_ptr->name());
