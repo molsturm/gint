@@ -19,7 +19,7 @@ public:
   /** \brief Construct a two-electron intregral from
    *  some Integral core type
    */
-  Integral(const core_type& c);
+  Integral(std::shared_ptr<const core_type> c);
 
   /** \brief Number of rows of the matrix */
   size_type n_rows() const override;
@@ -49,7 +49,7 @@ public:
 
 private:
   //! The inner integral core object:
-  linalgwrap::SubscriptionPointer<const core_type> m_core_ptr;
+  std::shared_ptr<const core_type> m_core_ptr;
 };
 
 //
@@ -57,10 +57,10 @@ private:
 //
 
 template <typename StoredMatrix>
-Integral<StoredMatrix>::Integral(const core_type& c)
-      : m_core_ptr{linalgwrap::make_subscription(c, "Integral")} {
+Integral<StoredMatrix>::Integral(std::shared_ptr<const core_type> c)
+      : m_core_ptr{std::move(c)} {
   // Pass name onto base.
-  base_type::name(c.name());
+  base_type::name(m_core_ptr->name());
 
   // TODO The description string should probably be more specific here ...
   assert_dbg(false, linalgwrap::ExcNotImplemented());

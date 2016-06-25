@@ -2,6 +2,7 @@
 #include "Integral.hh"
 #include <complex>
 #include <linalgwrap/LazyMatrixExpression.hh>
+#include <linalgwrap/ParameterMap.hh>
 #include <linalgwrap/type_utils.hh>
 #include <string>
 #include <type_traits>
@@ -30,8 +31,8 @@ public:
 
   typedef Integral<stored_matrix_type> integral_matrix_type;
 
-  static_assert(linalgwrap::IsComplexScalar<
-                      typename stored_matrix_type::scalar_type>::value &&
+  static_assert(!linalgwrap::IsComplexScalar<
+                      typename stored_matrix_type::scalar_type>::value ||
                       (otype == COMPLEX_MOLECULAR),
                 "The StoredMatrix should only have a complex scalar type if "
                 "the OrbitalType is COMPLEX_MOLECULAR");
@@ -40,15 +41,17 @@ public:
    *  is referred to by the \t basistype_name string */
   IntegralLookup(const std::string& basistype_name);
 
+  IntegralLookup(const std::string& basistype_name,
+                 const linalgwrap::ParameterMap& parameters);
+
   /** Return a particular integral, given a name */
   integral_matrix_type operator()(const std::string& integral_name);
 
   /** Return an integral matrix representing a linear combination of
    *  a list of integrals. */
-  auto operator()(const std::vector<scalar_type>& coefficients,
-                  const std::vector<std::string>& integral_names)
-        // TODO be more clever to figure out the type using decltype syntax here
-        -> linalgwrap::LazyMatrixSum<stored_matrix_type>;
+  integral_matrix_type operator()(
+        const std::vector<scalar_type>& coefficients,
+        const std::vector<std::string>& integral_names);
 
 private:
   // TODO this is dummy.
@@ -63,6 +66,7 @@ template <typename StoredMatrix, OrbitalType otype>
 IntegralLookup<StoredMatrix, otype>::IntegralLookup(
       const std::string& basistype_name)
       : dummy_integral_core{} {
+  assert_dbg(false, linalgwrap::ExcNotImplemented());
   // TODO this dummy stuff;
   std::string local(basistype_name);
 }
@@ -71,40 +75,19 @@ template <typename StoredMatrix, OrbitalType otype>
 typename IntegralLookup<StoredMatrix, otype>::integral_matrix_type
 IntegralLookup<StoredMatrix, otype>::operator()(
       const std::string& integral_name) {
+  assert_dbg(false, linalgwrap::ExcNotImplemented());
   // TODO this dummy stuff;
   std::string local(integral_name);
   return Integral<stored_matrix_type>{dummy_integral_core};
 }
 
 template <typename StoredMatrix, OrbitalType otype>
-auto IntegralLookup<StoredMatrix, otype>::operator()(
+typename IntegralLookup<StoredMatrix, otype>::integral_matrix_type
+IntegralLookup<StoredMatrix, otype>::operator()(
       const std::vector<scalar_type>& coefficients,
-      const std::vector<std::string>& integral_names)
-      -> linalgwrap::LazyMatrixSum<stored_matrix_type> {
-  assert_greater_than(0, coefficients.size());
-  assert_size(coefficients.size(), integral_names.size());
-
-  // Iterators to the beginning of vectors:
-  auto itcoeff = std::begin(coefficients);
-  auto itname = std::begin(integral_names);
-
-  // Note that we have at least one element due to assert_greater_then
-  // hence these iterators will always point to an actual element.
-
-  // Lookup the first integral name:
-  auto integral0 = (*this)(*itname);
-
-  // TODO get rid of the assumption that the result of the linear combination
-  // is a lazy matrix sum?
-
-  // Construct the sum:
-  linalgwrap::LazyMatrixSum<stored_matrix_type> sum{std::move(integral0),
-                                                    *itcoeff};
-
-  for (; itcoeff != std::end(coefficients); ++itcoeff, ++itname) {
-    sum += (*itcoeff) * (*itname);
-  }
-
-  return sum;
+      const std::vector<std::string>& integral_names) {
+  assert_dbg(false, linalgwrap::ExcNotImplemented());
+  return Integral<stored_matrix_type>{dummy_integral_core};
 }
-}
+
+}  // namespace gint
