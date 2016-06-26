@@ -20,33 +20,47 @@ public:
     /** \brief Construct a two-electron intregral from
    *  some Integral core type
    */
-  Integral(std::unique_ptr<const core_type> c);
-  Integral(const Integral& I);
-  Integral& operator=(const Integral& I);
+  Integral(std::unique_ptr<core_type> c) : m_core_ptr{std::move(c)} {
+    assert_dbg(m_core_ptr!=nullptr,linalgwrap::ExcInvalidPointer());
+  }
+  Integral(const Integral& I) : Integral{I.m_core_ptr->clone()} {}
+  Integral& operator=(const Integral& I){
+     m_core_ptr = I.m_core_ptr->clone();
+     assert_dbg(m_core_ptr!=nullptr,linalgwrap::ExcInvalidPointer());     
+  }
 
   Integral(Integral&&) = default;
   Integral& operator=(Integral&& ) = default;
   ~Integral() = default;
   
   /** \brief Number of rows of the matrix */
-  size_type n_rows() const override;
+  size_type n_rows() const override { return m_core_ptr->n_rows(); }
 
   /** \brief Number of columns of the matrix  */
-  size_type n_cols() const override;
+  size_type n_cols() const override { return m_core_ptr->n_cols(); }
 
   /** \brief Multiplication with a stored matrix */
-  stored_matrix_type operator*(const stored_matrix_type& m) const override;
-
+  stored_matrix_type operator*(const stored_matrix_type& X) const override {
+    return m_core_ptr->operator*(X);
+  }
+  
   /** \brief return an element of the matrix    */
-  scalar_type operator()(size_type row, size_type col) const override;
+  scalar_type operator()(size_type row, size_type col) const override
+  {
+    return m_core_ptr->operator()(row,col);
+  }
 
   /** \brief Update the internal data of all objects in this expression
    *         given the ParameterMap
    * */
-  void update(const linalgwrap::ParameterMap& p) override;
+  void update(const linalgwrap::ParameterMap& p) override {
+    m_core_ptr->update(p);
+  }
 
   /** \brief Clone the expression */
-  lazy_matrix_expression_ptr_type clone() const override;
+  lazy_matrix_expression_ptr_type clone() const override {
+    return lazy_matrix_expression_ptr_type(new Integral<StoredMatrix>(*this));
+  }
 
   /** \brief Get the identifier of the integral */
   std::string id() const { return m_core_ptr->id(); }
@@ -54,68 +68,11 @@ public:
   /** \brief Get the friendly name of the integral */
   std::string name() const { return m_core_ptr->name(); }
 
+    //! The inner integral core object:
+  std::unique_ptr<core_type> m_core_ptr;
 private:
-  //! The inner integral core object:
-  std::unique_ptr<const core_type> m_core_ptr;
+
 };
 
-//
-// --------------------------------------------------
-//
-
-template <typename StoredMatrix>
-Integral<StoredMatrix>::Integral(std::unique_ptr<const core_type> c)
-      : m_core_ptr{std::move(c)} {
-  assert_dbg(c,linalgwrap::ExcInvalidPointer());
-}
-
-template <typename StoredMatrix>
-Integral<StoredMatrix>::Integral(const Integral<StoredMatrix>& I)
-  : Integral{I.m_core_ptr->clone()} {}
-
-template <typename StoredMatrix>
-Integral<StoredMatrix>& Integral<StoredMatrix>::operator=(const Integral<StoredMatrix>& I){
-  m_core_ptr = I.m_core_ptr->clone();
-}
-
-template <typename StoredMatrix>
-typename Integral<StoredMatrix>::size_type Integral<StoredMatrix>::n_rows()
-      const {
-  assert_dbg(false, linalgwrap::ExcNotImplemented());
-  return 0;
-}
-
-template <typename StoredMatrix>
-typename Integral<StoredMatrix>::size_type Integral<StoredMatrix>::n_cols()
-      const {
-  assert_dbg(false, linalgwrap::ExcNotImplemented());
-  return 0;
-}
-
-template <typename StoredMatrix>
-typename Integral<StoredMatrix>::stored_matrix_type Integral<StoredMatrix>::
-operator*(const stored_matrix_type& m) const {
-  assert_dbg(false, linalgwrap::ExcNotImplemented());
-  return m;
-}
-
-template <typename StoredMatrix>
-typename Integral<StoredMatrix>::scalar_type Integral<StoredMatrix>::operator()(
-      size_type row, size_type col) const {
-  assert_dbg(false, linalgwrap::ExcNotImplemented());
-  return 0. * (row - col);
-}
-
-template <typename StoredMatrix>
-void Integral<StoredMatrix>::update(const linalgwrap::ParameterMap&) {
-  assert_dbg(false, linalgwrap::ExcNotImplemented());
-}
-
-template <typename StoredMatrix>
-typename Integral<StoredMatrix>::lazy_matrix_expression_ptr_type
-Integral<StoredMatrix>::clone() const {
-  // return a copy enwrapped in the pointer type
-  return lazy_matrix_expression_ptr_type(new Integral<StoredMatrix>(*this));
-}
 
 }  // namespace gint
