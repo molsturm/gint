@@ -6,7 +6,6 @@
 #include "../Integral.hh"
 #include "../IntegralCoreBase.hh"
 
-
 namespace gint {
 namespace atomic {
 namespace cs_dummy {
@@ -14,7 +13,8 @@ namespace cs_dummy {
   using namespace sturmint::atomic::cs_dummy;
 
   template <typename StoredMatrix> class OverlapIntegralCore;
-
+  template <typename StoredMatrix> class NuclearAttractionIntegralCore;
+  template <typename StoredMatrix> class  KineticIntegralCore;
   
   //TODO: This has OrbitalType COMPLEX_ATOMIC. Decide how to multiplex wrt OrbitalType later.
   template <typename StoredMatrix> class IntegralCollection {
@@ -29,7 +29,7 @@ namespace cs_dummy {
     Atomic integral_calculator;
     integral_matrix_type
       nuclear_attraction_matrix, overlap_matrix,
-      kinetic_energy_matrix, J_matrix, K_matrix;
+      kinetic_matrix, J_matrix, K_matrix;
 
     IntegralCollection(const linalgwrap::ParameterMap& parameters);
     integral_matrix_type operator()(const std::string& integral_name);
@@ -49,9 +49,9 @@ namespace cs_dummy {
     n_max{parameters.at<int>("n_max")},
     l_max{parameters.at<int>("l_max")},
     integral_calculator{n_max,l_max},
-    nuclear_attraction_matrix(0),
+    nuclear_attraction_matrix{make_unique<NuclearAttractionIntegralCore<stored_matrix_type>>(integral_calculator,k_exponent)},
     overlap_matrix{make_unique<OverlapIntegralCore<stored_matrix_type>>(integral_calculator)},
-    kinetic_energy_matrix(0),
+    kinetic_matrix{make_unique<KineticIntegralCore<stored_matrix_type>>(integral_calculator,k_exponent)},
     J_matrix(0),
     K_matrix(0)
   {
@@ -63,7 +63,7 @@ namespace cs_dummy {
   {
     if(integral_name == "nuclear_attraction") return nuclear_attraction_matrix;
     if(integral_name == "overlap")            return overlap_matrix;
-    if(integral_name == "kinetic")            return kinetic_energy_matrix;
+    if(integral_name == "kinetic")            return kinetic_matrix;
     if(integral_name == "coulomb")            return J_matrix;
     if(integral_name == "exchange")           return K_matrix;
 
@@ -74,7 +74,72 @@ namespace cs_dummy {
   // ----------------------------------------------------------------------
   //			    INTEGRAL CORES
   // ----------------------------------------------------------------------
+template <typename StoredMatrix>
+class NuclearAttractionIntegralCore: public IntegralCoreBase<StoredMatrix> {
+public:
+  typedef IntegralCoreBase<StoredMatrix>    base_type;
+  typedef StoredMatrix             stored_matrix_type;
+  typedef typename base_type::size_type     size_type;
+  typedef typename base_type::scalar_type scalar_type;
+  typedef sturmint::real_t                  real_type;
+  
+  /** \brief Multiplication with a stored matrix */
+  stored_matrix_type operator*(const stored_matrix_type& X) const override {
+    using namespace sturmint::orbital_index;
+    typedef nlmbasis::quantum_numbers_t nlm_t;
+    
+    assert_size(n_cols(),X.n_rows());
 
+    stored_matrix_type AX(n_rows(), X.n_cols(),false);
+
+    // TODO: n,l,m -> m,l,n
+    for(size_t i=0;i<n_rows();i++){
+      nlm_t nlm = nlmbasis::quantum_numbers_from_index(i);
+      int8_t n = nlm.n;
+      
+      for(size_type j=0;j<n_cols();j++) // TODO: make this work on vectors instead.
+	                               // Also TODO: Make the memory layout more friendly to operator application on many vectors.
+	AX(i,j) = (-m_k/n)*X(i,j);
+    }
+
+    return AX;
+  }
+
+  /** \brief return an element of the matrix    */
+  scalar_type operator()(size_type row, size_type col) const override {
+    using sturmint::orbital_index::nlmbasis;
+    const nlm_t mui = nlmbasis::quantum_numbers_from_index(row),
+                muj = nlmbasis::quantum_numbers_from_index(col);
+
+    return m_k*m_integral_calculator.nuclear_attraction(mui,muj);
+  }  
+
+
+  NuclearAttractionIntegralCore(const Atomic& integral_calculator, real_type k) : m_k(k), m_integral_calculator(integral_calculator) { }
+
+  /** \brief Number of rows of the matrix */
+  size_type n_rows() const override { return m_integral_calculator.n_bas(); }
+
+  /** \brief Number of columns of the matrix  */
+  size_type n_cols() const override { return m_integral_calculator.n_bas(); }
+  
+  /** \brief Clone the expression */
+  std::unique_ptr<base_type> clone() const override {
+    return std::unique_ptr<base_type>(new NuclearAttractionIntegralCore(*this));
+  }
+
+  /** \brief Get the identifier of the integral */
+  std::string id()   const override { return "atomic/cs_dummy/nuclear_attraction"; }
+
+  /** \brief Get the friendly name of the integral */
+  std::string name() const override { return "Nuclear attraction operator"; }
+
+private:
+  const real_type m_k;
+  const Atomic&   m_integral_calculator;
+};
+
+  
 template <typename StoredMatrix>
 class OverlapIntegralCore: public IntegralCoreBase<StoredMatrix> {
 public:
@@ -82,6 +147,7 @@ public:
   typedef StoredMatrix             stored_matrix_type;
   typedef typename base_type::size_type     size_type;
   typedef typename base_type::scalar_type scalar_type;
+  typedef sturmint::real_t real_type;
 
   /** \brief Multiplication with a stored matrix */
   stored_matrix_type operator*(const stored_matrix_type& X) const override {
@@ -119,7 +185,6 @@ public:
     return m_integral_calculator.overlap(mui,muj);
   }  
 
-
   OverlapIntegralCore(const Atomic& integral_calculator) : m_integral_calculator(integral_calculator) { }
 
   /** \brief Number of rows of the matrix */
@@ -137,12 +202,84 @@ public:
   std::string id()   const override { return "atomic/cs_dummy/overlap"; }
 
   /** \brief Get the friendly name of the integral */
-  std::string name() const override { return "Overlap integral"; }
+  std::string name() const override { return "Overlap operator"; }
 
 private:
   const Atomic& m_integral_calculator;
 };
 
+
+template <typename StoredMatrix>
+class KineticIntegralCore: public IntegralCoreBase<StoredMatrix> {
+public:
+    typedef IntegralCoreBase<StoredMatrix>    base_type;
+    typedef StoredMatrix             stored_matrix_type;
+    typedef typename base_type::size_type     size_type;
+    typedef typename base_type::scalar_type scalar_type;
+    typedef sturmint::real_t                  real_type;
+
+    /** \brief Multiplication with a stored matrix */
+    stored_matrix_type operator*(const stored_matrix_type& X) const override {
+      using namespace sturmint::orbital_index;
+      typedef nlmbasis::quantum_numbers_t nlm_t;
+    
+      assert_size(n_cols(),X.n_rows());
+
+      stored_matrix_type AX(n_rows(), X.n_cols(),false);
+      const int nmax = m_integral_calculator.nmax1;
+
+      // TODO: n,l,m -> m,l,n
+      for(size_t i=0;i<n_rows();i++){
+	nlm_t nlm = nlmbasis::quantum_numbers_from_index(i);
+	int8_t n = nlm.n, l = nlm.l, m = nlm.m;
+      
+	size_t i_nminus = nlmbasis::index(nlm_t(n-1,l,m)), i_nplus = nlmbasis::index(nlm_t(n+1,l,m));
+
+	double T_nnl = -0.5L*m_integral_calculator.overlap(n,n+1,l); // Kinetic is symmetric in n,np
+
+	for(size_type j=0;j<n_cols();j++) // TODO: make this work on vectors instead.
+	  // Also TODO: Make the memory layout more friendly to operator application on many vectors.
+	  AX(i,j) = m_k*m_k*((n>1)*T_nnl*X(i_nminus,j)  + 0.5L*X(i,j) + (n<nmax)*T_nnl*X(i_nplus,j));
+      }
+
+      return AX;
+    }
+
+    /** \brief return an element of the matrix    */
+    scalar_type operator()(size_type row, size_type col) const override {
+      using sturmint::orbital_index::nlmbasis;
+      const nlm_t mui = nlmbasis::quantum_numbers_from_index(row),
+	muj = nlmbasis::quantum_numbers_from_index(col);
+
+      return m_k*m_k*m_integral_calculator.kinetic(mui,muj);
+    }  
+
+    KineticIntegralCore(const Atomic& integral_calculator, real_type k) : m_k(k), m_integral_calculator(integral_calculator) { }
+
+    /** \brief Number of rows of the matrix */
+    size_type n_rows() const override { return m_integral_calculator.n_bas(); }
+
+    /** \brief Number of columns of the matrix  */
+    size_type n_cols() const override { return m_integral_calculator.n_bas(); }
+  
+    /** \brief Clone the expression */
+    std::unique_ptr<base_type> clone() const override {
+      return std::unique_ptr<base_type>(new KineticIntegralCore(*this));
+    }
+
+    /** \brief Get the identifier of the integral */
+    std::string id()   const override { return "atomic/cs_dummy/kinetic"; }
+
+    /** \brief Get the friendly name of the integral */
+    std::string name() const override { return "Kinetic energy operator"; }
+
+  private:
+    real_type m_k;
+    const Atomic& m_integral_calculator;
+  };
+
+
+  
   
 } // namespace cs_dummy
 } // namespace atomic
