@@ -1,4 +1,5 @@
 #pragma once
+#include "make_unique.hh"	// TODO: This should live in common
 #include "IntegralCoreBase.hh"
 #include <linalgwrap/LazyMatrix_i.hh>
 #include <linalgwrap/SubscriptionPointer.hh>
@@ -16,13 +17,17 @@ public:
         lazy_matrix_expression_ptr_type;
   typedef IntegralCoreBase<stored_matrix_type> core_type;
 
-  //TODO: Provide implementations for the Big Five.
-  
-  /** \brief Construct a two-electron intregral from
+    /** \brief Construct a two-electron intregral from
    *  some Integral core type
    */
   Integral(std::unique_ptr<const core_type> c);
+  Integral(const Integral& I);
+  Integral& operator=(const Integral& I);
 
+  Integral(Integral&&) = default;
+  Integral& operator=(Integral&& ) = default;
+  ~Integral() = default;
+  
   /** \brief Number of rows of the matrix */
   size_type n_rows() const override;
 
@@ -47,7 +52,7 @@ public:
   std::string id() const { return m_core_ptr->id(); }
 
   /** \brief Get the friendly name of the integral */
-  std::string name() const { return base_type::name(); }
+  std::string name() const { return m_core_ptr->name(); }
 
 private:
   //! The inner integral core object:
@@ -61,11 +66,16 @@ private:
 template <typename StoredMatrix>
 Integral<StoredMatrix>::Integral(std::unique_ptr<const core_type> c)
       : m_core_ptr{std::move(c)} {
-  // Pass name onto base.
-  base_type::name(m_core_ptr->name());
+  assert_dbg(c,linalgwrap::ExcInvalidPointer());
+}
 
-  // TODO The description string should probably be more specific here ...
-  assert_dbg(false, linalgwrap::ExcNotImplemented());
+template <typename StoredMatrix>
+Integral<StoredMatrix>::Integral(const Integral<StoredMatrix>& I)
+  : Integral{I.m_core_ptr->clone()} {}
+
+template <typename StoredMatrix>
+Integral<StoredMatrix>& Integral<StoredMatrix>::operator=(const Integral<StoredMatrix>& I){
+  m_core_ptr = I.m_core_ptr->clone();
 }
 
 template <typename StoredMatrix>

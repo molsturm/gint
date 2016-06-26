@@ -1,4 +1,5 @@
 #pragma once
+#include <linalgwrap/Exceptions.hh>
 #include <sturmint/harmonic/OrbitalIndex.hh>
 #include <sturmint/atomic/cs_dummy/cs_atomic.hh>
 #include <linalgwrap/ParameterMap.hh>
@@ -23,11 +24,12 @@ namespace cs_dummy {
     
     static std::string id, name;
     
-    integral_matrix_type nuclear_attraction_matrix, overlap_matrix,  kinetic_energy_matrix, J_matrix, K_matrix;
-
     double k_exponent;
     int    n_max, l_max;
     Atomic integral_calculator;
+    integral_matrix_type
+      nuclear_attraction_matrix, overlap_matrix,
+      kinetic_energy_matrix, J_matrix, K_matrix;
 
     IntegralCollection(const linalgwrap::ParameterMap& parameters);
     integral_matrix_type operator()(const std::string& integral_name);
@@ -47,13 +49,17 @@ namespace cs_dummy {
     n_max{parameters.at<int>("n_max")},
     l_max{parameters.at<int>("l_max")},
     integral_calculator{n_max,l_max},
-    overlap_matrix{make_unique<OverlapIntegralCore<stored_matrix_type>>(integral_calculator)}
+    nuclear_attraction_matrix(0),
+    overlap_matrix{make_unique<OverlapIntegralCore<stored_matrix_type>>(integral_calculator)},
+    kinetic_energy_matrix(0),
+    J_matrix(0),
+    K_matrix(0)
   {
     
   }
 
   template <typename StoredMatrix>
-  Integral<StoredMatrix> IntegralCollection<StoredMatrix>::operator()(const std::string& integral_name)
+  Integral<StoredMatrix >IntegralCollection<StoredMatrix>::operator()(const std::string& integral_name)
   {
     if(integral_name == "nuclear_attraction") return nuclear_attraction_matrix;
     if(integral_name == "overlap")            return overlap_matrix;
@@ -61,7 +67,8 @@ namespace cs_dummy {
     if(integral_name == "coulomb")            return J_matrix;
     if(integral_name == "exchange")           return K_matrix;
 
-    assert_dbg(false, ExcNotImplemented());
+    assert_dbg(false, linalgwrap::ExcNotImplemented());
+    return Integral<StoredMatrix>(nullptr);
   }
 
   // ----------------------------------------------------------------------
@@ -95,7 +102,7 @@ public:
 
       double m_nnl = m_integral_calculator.overlap(n,n+1,l); // Overlap is symmetric in n,np
 
-      for(int j=0;j<n_cols();j++) // TODO: make this work on vectors instead.
+      for(size_type j=0;j<n_cols();j++) // TODO: make this work on vectors instead.
 	                          // Also TODO: Make the memory layout more friendly to operator application on many vectors.
 	AX(i,j) = (n>1)*m_nnl*X(i_nminus,j)  + X(i,j) + (n<nmax)*m_nnl*X(i_nplus,j);
     }
@@ -106,7 +113,8 @@ public:
   /** \brief return an element of the matrix    */
   scalar_type operator()(size_type row, size_type col) const override {
     using sturmint::orbital_index::nlmbasis;
-    const nlm_t mui = quantum_numbers_from_index(row), muj = quantum_numbers_from_index(col);
+    const nlm_t mui = nlmbasis::quantum_numbers_from_index(row),
+                muj = nlmbasis::quantum_numbers_from_index(col);
 
     return m_integral_calculator.overlap(mui,muj);
   }  
