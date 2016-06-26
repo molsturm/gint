@@ -1,5 +1,6 @@
 #pragma once
 #include <linalgwrap/Subscribable.hh>
+#include <linalgwrap/ParameterMap.hh>
 
 namespace gint {
 
@@ -23,7 +24,7 @@ public:
   virtual scalar_type operator()(size_type row, size_type col) const = 0;
 
   /** \brief Clone the expression */
-  virtual std::unique_ptr<base_type> clone() const = 0;
+  virtual std::unique_ptr<IntegralCoreBase> clone() const = 0;
 
   /** \brief Update the internal data of all objects in this expression
    *         given the ParameterMap

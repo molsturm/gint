@@ -31,7 +31,7 @@ public:
   typedef typename linalgwrap::RealTypeOf<scalar_type>::type real_type;
   // end todo
 
-  typedef DummyIntegrals integral_collection_type;
+  typedef atomic::cs_dummy::IntegralCollection<stored_matrix_type> integral_collection_type;
   typedef Integral<stored_matrix_type> integral_matrix_type;
  
   static_assert(!linalgwrap::IsComplexScalar<
@@ -57,7 +57,6 @@ public:
 private:
   // TODO this is dummy.
   integral_collection_type m_integral_collection;
-  IntegralCoreBase<stored_matrix_type> dummy_integral_core;  
 };
 
 //
@@ -66,21 +65,17 @@ private:
 
 template <typename StoredMatrix, OrbitalType otype>
 IntegralLookup<StoredMatrix, otype>::IntegralLookup(
-      const std::string& basistype_name)
-      : dummy_integral_core{} {
-  assert_dbg(false, linalgwrap::ExcNotImplemented());
-  // TODO this dummy stuff;
-  std::string local(basistype_name);
+   const std::string& basistype_name,
+   const linalgwrap::ParameterMap& parameters)
+  : m_integral_collection{parameters} {
+  assert_dbg(basistype_name=="atomic/cs_dummy", linalgwrap::ExcNotImplemented());
 }
 
 template <typename StoredMatrix, OrbitalType otype>
 typename IntegralLookup<StoredMatrix, otype>::integral_matrix_type
 IntegralLookup<StoredMatrix, otype>::operator()(
       const std::string& integral_name) {
-  assert_dbg(false, linalgwrap::ExcNotImplemented());
-  // TODO this dummy stuff;
-  std::string local(integral_name);
-  return Integral<stored_matrix_type>{dummy_integral_core};
+  return m_integral_collection(integral_name);
 }
 
 template <typename StoredMatrix, OrbitalType otype>
@@ -89,7 +84,7 @@ IntegralLookup<StoredMatrix, otype>::operator()(
       const std::vector<scalar_type>& coefficients,
       const std::vector<std::string>& integral_names) {
   assert_dbg(false, linalgwrap::ExcNotImplemented());
-  return Integral<stored_matrix_type>{dummy_integral_core};
+  return m_integral_collection("Not implemented");
 }
 
 }  // namespace gint
