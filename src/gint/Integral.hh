@@ -1,6 +1,6 @@
 #pragma once
-#include "make_unique.hh"	// TODO: This should live in common
 #include "IntegralCoreBase.hh"
+#include "make_unique.hh"
 #include <linalgwrap/LazyMatrix_i.hh>
 #include <linalgwrap/SubscriptionPointer.hh>
 
@@ -17,22 +17,29 @@ public:
         lazy_matrix_expression_ptr_type;
   typedef IntegralCoreBase<stored_matrix_type> core_type;
 
-    /** \brief Construct a two-electron intregral from
-   *  some Integral core type
-   */
+  /** \name Constructor, destructor and assignment */
+  ///@{
+  /** Construct from unique pointer of the integral core.
+   *
+   * \note That we need a pointer here, since we pass implementations
+   * of the core_type */
+
   Integral(std::unique_ptr<core_type> c) : m_core_ptr{std::move(c)} {
-    assert_dbg(m_core_ptr!=nullptr,linalgwrap::ExcInvalidPointer());
+    assert_dbg(m_core_ptr != nullptr, linalgwrap::ExcInvalidPointer());
   }
+
   Integral(const Integral& I) : Integral{I.m_core_ptr->clone()} {}
-  Integral& operator=(const Integral& I){
-     m_core_ptr = I.m_core_ptr->clone();
-     assert_dbg(m_core_ptr!=nullptr,linalgwrap::ExcInvalidPointer());     
+
+  Integral& operator=(const Integral& I) {
+    m_core_ptr = I.m_core_ptr->clone();
+    assert_dbg(m_core_ptr != nullptr, linalgwrap::ExcInternalError());
   }
 
   Integral(Integral&&) = default;
-  Integral& operator=(Integral&& ) = default;
+  Integral& operator=(Integral&&) = default;
   ~Integral() = default;
-  
+  ///@}
+
   /** \brief Number of rows of the matrix */
   size_type n_rows() const override { return m_core_ptr->n_rows(); }
 
@@ -43,11 +50,10 @@ public:
   stored_matrix_type operator*(const stored_matrix_type& X) const override {
     return m_core_ptr->operator*(X);
   }
-  
+
   /** \brief return an element of the matrix    */
-  scalar_type operator()(size_type row, size_type col) const override
-  {
-    return m_core_ptr->operator()(row,col);
+  scalar_type operator()(size_type row, size_type col) const override {
+    return m_core_ptr->operator()(row, col);
   }
 
   /** \brief Update the internal data of all objects in this expression
@@ -68,11 +74,16 @@ public:
   /** \brief Get the friendly name of the integral */
   std::string name() const { return m_core_ptr->name(); }
 
-    //! The inner integral core object:
-  std::unique_ptr<core_type> m_core_ptr;
 private:
-
+  //! The inner integral core object:
+  std::unique_ptr<core_type> m_core_ptr;
 };
 
+template <typename IntegralCore, typename... Args>
+Integral<typename IntegralCore::stored_matrix_type> make_integral(
+      Args&&... args) {
+  typedef typename IntegralCore::stored_matrix_type stored_matrix_type;
+  return Integral<stored_matrix_type>(make_unique<IntegralCore>(args...));
+}
 
 }  // namespace gint
