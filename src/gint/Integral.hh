@@ -6,6 +6,11 @@
 
 namespace gint {
 
+DefException1(ExcInvalidIntegralParameters, std::string,
+              << "An invalid set of parameters for the integral evaluation was "
+                 "encountered:"
+              << arg1);
+
 template <typename StoredMatrix>
 class Integral : public linalgwrap::LazyMatrix_i<StoredMatrix> {
 public:
@@ -41,18 +46,26 @@ public:
   ///@}
 
   /** \brief Number of rows of the matrix */
-  size_type n_rows() const override { return m_core_ptr->n_rows(); }
+  size_type n_rows() const override {
+    assert_dbg(m_core_ptr != nullptr, linalgwrap::ExcInternalError());
+    return m_core_ptr->n_rows();
+  }
 
   /** \brief Number of columns of the matrix  */
-  size_type n_cols() const override { return m_core_ptr->n_cols(); }
+  size_type n_cols() const override {
+    assert_dbg(m_core_ptr != nullptr, linalgwrap::ExcInternalError());
+    return m_core_ptr->n_cols();
+  }
 
   /** \brief Multiplication with a stored matrix */
   stored_matrix_type operator*(const stored_matrix_type& X) const override {
+    assert_dbg(m_core_ptr != nullptr, linalgwrap::ExcInternalError());
     return m_core_ptr->operator*(X);
   }
 
   /** \brief return an element of the matrix    */
   scalar_type operator()(size_type row, size_type col) const override {
+    assert_dbg(m_core_ptr != nullptr, linalgwrap::ExcInternalError());
     return m_core_ptr->operator()(row, col);
   }
 
@@ -60,6 +73,7 @@ public:
    *         given the ParameterMap
    * */
   void update(const linalgwrap::ParameterMap& p) override {
+    assert_dbg(m_core_ptr != nullptr, linalgwrap::ExcInternalError());
     m_core_ptr->update(p);
   }
 
@@ -69,10 +83,16 @@ public:
   }
 
   /** \brief Get the identifier of the integral */
-  std::string id() const { return m_core_ptr->id(); }
+  std::string id() const {
+    assert_dbg(m_core_ptr != nullptr, linalgwrap::ExcInternalError());
+    return m_core_ptr->id();
+  }
 
   /** \brief Get the friendly name of the integral */
-  std::string name() const { return m_core_ptr->name(); }
+  std::string name() const {
+    assert_dbg(m_core_ptr != nullptr, linalgwrap::ExcInternalError());
+    return m_core_ptr->name();
+  }
 
 private:
   //! The inner integral core object:

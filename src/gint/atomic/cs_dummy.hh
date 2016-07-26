@@ -81,10 +81,25 @@ template <typename StoredMatrix>
 IntegralCollection<StoredMatrix>::IntegralCollection(
       const linalgwrap::ParameterMap& parameters)
       : k_exponent{parameters.at<double>("k_exponent")},
-        Z_charge{parameters.at<double>("Z_charge")},
         n_max{parameters.at<int>("n_max")},
         l_max{parameters.at<int>("l_max")},
-        integral_calculator{n_max, l_max} {}
+        Z_charge{parameters.at<double>("Z_charge")},
+        integral_calculator{n_max, l_max} {
+  assert_throw(n_max > 0,
+               ExcInvalidIntegralParameters(
+                     "Maximum principle quantum number (" +
+                     std::to_string(n_max) + ") needs to be greater 0."));
+  assert_throw(l_max >= 0, ExcInvalidIntegralParameters(
+                                 "Maximum angular momentum quantum number (" +
+                                 std::to_string(l_max) +
+                                 ") needs to be greater or equal 0."));
+  assert_throw(l_max < n_max,
+               ExcInvalidIntegralParameters(
+                     "Maximum angular momentum (" + std::to_string(l_max) +
+                     ") needs to be smaller than maximum principle "
+                     "quantum number (" +
+                     std::to_string(n_max) + ")."));
+}
 
 template <typename StoredMatrix>
 Integral<StoredMatrix> IntegralCollection<StoredMatrix>::operator()(
