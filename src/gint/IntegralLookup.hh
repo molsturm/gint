@@ -33,7 +33,7 @@ public:
   // end todo
 
   static_assert(otype == COMPLEX_ATOMIC,
-                "Currently only COMPLEX_ATOMIC is hard coded.");
+                "Currently COMPLEX_ATOMIC is hard coded.");
   typedef atomic::cs_dummy::IntegralCollection<stored_matrix_type>
         integral_collection_type;
   typedef Integral<stored_matrix_type> integral_matrix_type;
