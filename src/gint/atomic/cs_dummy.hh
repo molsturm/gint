@@ -169,7 +169,8 @@ public:
     const nlm_t mui = nlmbasis::quantum_numbers_from_index(row),
                 muj = nlmbasis::quantum_numbers_from_index(col);
 
-    return k * m_integral_calculator.nuclear_attraction(mui, muj);
+    // nuclear_attraction returns -1/n (iff mui == muj) and else 0
+    return (Z * k) * m_integral_calculator.nuclear_attraction(mui, muj);
   }
 
   NuclearAttractionIntegralCore(const Atomic& integral_calculator, real_type k,
@@ -219,22 +220,31 @@ public:
     const int nmax = m_integral_calculator.nmax1;
 
     // TODO: n,l,m -> m,l,n
-    for (size_t i = 0; i < n_rows(); i++) {
+    for (size_t i = 0; i < n_rows(); ++i) {
+      // In row i only columns equivalent to the same l and m, but
+      // main quantum number equal to n-1,n or n+1 contain a non-zero
+
       nlm_t nlm = nlmbasis::quantum_numbers_from_index(i);
       int8_t n = nlm.n, l = nlm.l, m = nlm.m;
-
       size_t i_nminus = nlmbasis::index(nlm_t(n - 1, l, m)),
              i_nplus = nlmbasis::index(nlm_t(n + 1, l, m));
+      // Note: i_nminus is an invalid index if l >= n-1 and n>0
+      //       i_nplus is only a valid index if n < nmax
 
-      double m_nnl = m_integral_calculator.overlap(
-            n, n + 1, l);  // Overlap is symmetric in n,np
+      // Overlap is symmetric in n,nplus bzw. n,nminus
+      // and is 1 if main quantum numbers agree
+      double S_lnnplus = m_integral_calculator.overlap(l, n, n + 1);
+      double S_lnnminus = m_integral_calculator.overlap(l, n, n - 1);
 
-      for (size_type j = 0; j < AX.n_cols();
-           j++)  // TODO: make this work on vectors instead.
-                 // Also TODO: Make the memory layout more friendly to operator
-                 // application on many vectors.
-        AX(i, j) = ((n > 1) ? m_nnl * X(i_nminus, j) : 0) + X(i, j) +
-                   ((n < nmax) ? m_nnl * X(i_nplus, j) : 0);
+      for (size_type j = 0; j < X.n_cols(); ++j) {
+        // TODO: make this work on vectors instead.
+        // TODO: Make the memory layout more friendly to operator
+        // application on many vectors.
+        AX(i, j) =
+              ((n > 1) && (l < n - 1) ? S_lnnminus * X(i_nminus, j) : 0.L)  //
+              + X(i, j)                                                     //
+              + ((n < nmax) ? S_lnnplus * X(i_nplus, j) : 0.L);
+      }
     }
 
     return AX;
@@ -295,23 +305,32 @@ public:
     const int nmax = m_integral_calculator.nmax1;
 
     // TODO: n,l,m -> m,l,n
-    for (size_t i = 0; i < n_rows(); i++) {
+    for (size_t i = 0; i < n_rows(); ++i) {
+      // In row i only columns equivalent to the same l and m, but
+      // main quantum number equal to n-1,n or n+1 contain a non-zero
+
       nlm_t nlm = nlmbasis::quantum_numbers_from_index(i);
       int8_t n = nlm.n, l = nlm.l, m = nlm.m;
-
       size_t i_nminus = nlmbasis::index(nlm_t(n - 1, l, m)),
              i_nplus = nlmbasis::index(nlm_t(n + 1, l, m));
+      // Note: i_nminus is an invalid index if l >= n-1 and n>0
+      //       i_nplus is only a valid index if n < nmax
 
-      double T_nnl = -0.5L *
-                     m_integral_calculator.overlap(
-                           n, n + 1, l);  // Kinetic is symmetric in n,np
+      // Kinetic is symmetric in n,nplus bzw. n,nminus
+      // and is 0.5L*k^2 if main quantum numbers agree
+      double T_lnnplus =
+            -0.5L * k * k * m_integral_calculator.overlap(l, n, n + 1);
+      double T_lnnminus =
+            -0.5L * k * k * m_integral_calculator.overlap(l, n, n - 1);
 
-      for (size_type j = 0; j < AX.n_cols();
-           j++) {  // TODO: make this work on vectors instead.
-        AX(i, j) = ((n > 1) ? T_nnl * X(i_nminus, j) : 0) + 0.5L * X(i, j) +
-                   ((n < nmax) ? T_nnl * X(i_nplus, j) : 0);
-
-        AX(i, j) *= k * k;
+      for (size_type j = 0; j < X.n_cols(); ++j) {
+        // TODO: make this work on vectors instead.
+        // TODO: Make the memory layout more friendly to operator
+        // application on many vectors.
+        AX(i, j) =
+              ((n > 1) && (l < n - 1) ? T_lnnminus * X(i_nminus, j) : 0.L)  //
+              + 0.5L * k * k * X(i, j)                                      //
+              + ((n < nmax) ? T_lnnplus * X(i_nplus, j) : 0.L);
       }
     }
 
