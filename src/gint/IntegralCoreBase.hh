@@ -1,14 +1,15 @@
 #pragma once
-#include <linalgwrap/Subscribable.hh>
 #include <linalgwrap/ParameterMap.hh>
+#include <linalgwrap/Subscribable.hh>
 
 namespace gint {
 
+// TODO we might want to be able to make subscriptions to this thing
 template <typename StoredMatrix>
-class IntegralCoreBase : public linalgwrap::Subscribable { // TODO: Is subscribability necessary / desirable
+class IntegralCoreBase /* : public linalgwrap::Subscribable */ {
 public:
   typedef StoredMatrix stored_matrix_type;
-  typedef typename stored_matrix_type::size_type   size_type;
+  typedef typename stored_matrix_type::size_type size_type;
   typedef typename stored_matrix_type::scalar_type scalar_type;
 
   /** \brief Number of rows of the matrix */
@@ -29,8 +30,8 @@ public:
   /** \brief Update the internal data of all objects in this expression
    *         given the ParameterMap
    * */
-  virtual void update(const linalgwrap::ParameterMap& p) {}
-  
+  virtual void update(const linalgwrap::ParameterMap&) {}
+
   /** Friendly name of the integral */
   virtual std::string name() const = 0;
 

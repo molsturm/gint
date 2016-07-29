@@ -1,0 +1,130 @@
+#include "../../linalgwrap/tests/NumComp.hh"  // TODO This is so quick and dirty ...
+#include <catch.hpp>
+#include <gint/IntegralLookup.hh>
+#include <linalgwrap/ParameterMap.hh>
+#include <linalgwrap/SmallVector.hh>
+#include <rapidcheck.h>
+
+namespace gint {
+namespace tests {
+
+TEST_CASE("Quick atomic cs_dummy test", "[quicktest]") {
+  typedef double scalar_type;
+  typedef linalgwrap::SmallMatrix<scalar_type> stored_matrix_type;
+  typedef linalgwrap::SmallVector<scalar_type> vector_type;
+  const OrbitalType otype = COMPLEX_ATOMIC;
+  typedef gint::IntegralLookup<stored_matrix_type, otype> int_lookup_type;
+  typedef typename int_lookup_type::integral_matrix_type int_term_type;
+
+  // Setup parameters for the integral library
+  linalgwrap::ParameterMap intparams;
+  intparams.update_copy("k_exponent", 1.0);
+  intparams.update_copy("Z_charge", 4.0);
+  intparams.update_copy("n_max", 3);
+  intparams.update_copy("l_max", 2);
+
+  // Setup integral lookup:
+  const std::string basis_type("atomic/cs_dummy");
+  int_lookup_type integrals(basis_type, intparams);
+
+  // Obtain integral objects:
+  int_term_type S_bb = integrals("overlap");
+  int_term_type T_bb = integrals("kinetic");
+  int_term_type V0_bb = integrals("nuclear_attraction");
+  int_term_type J_bb = integrals("coulomb");
+  int_term_type K_bb = integrals("exchange");
+
+  // Reference data:
+  stored_matrix_type Sref{
+        {1, -0.5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},             // row1
+        {-0.5, 1, 0, 0, 0, -0.5, 0, 0, 0, 0, 0, 0, 0, 0},          // row2
+        {0, 0, 1, 0, 0, 0, -(1 / sqrt(6.)), 0, 0, 0, 0, 0, 0, 0},  // row3
+        {0, 0, 0, 1, 0, 0, 0, -(1 / sqrt(6.)), 0, 0, 0, 0, 0, 0},  // row4
+        {0, 0, 0, 0, 1, 0, 0, 0, -(1 / sqrt(6.)), 0, 0, 0, 0, 0},  // row5
+        {0, -0.5, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0},             // row6
+        {0, 0, -(1 / sqrt(6.)), 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0},  // row7
+        {0, 0, 0, -(1 / sqrt(6.)), 0, 0, 0, 1, 0, 0, 0, 0, 0, 0},  // row8
+        {0, 0, 0, 0, -(1 / sqrt(6.)), 0, 0, 0, 1, 0, 0, 0, 0, 0},  // row9
+        {0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0},                // row10
+        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0},                // row11
+        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0},                // row12
+        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0},                // row13
+        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}                 // row14
+  };
+
+  stored_matrix_type V0ref{
+        {-4., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.},       // 1
+        {0., -2., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.},       // 2
+        {0., 0., -2., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.},       // 3
+        {0., 0., 0., -2., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.},       // 4
+        {0., 0., 0., 0., -2., 0., 0., 0., 0., 0., 0., 0., 0., 0.},       // 5
+        {0., 0., 0., 0., 0., -4. / 3., 0., 0., 0., 0., 0., 0., 0., 0.},  // 6
+        {0., 0., 0., 0., 0., 0., -4. / 3., 0., 0., 0., 0., 0., 0., 0.},  // 7
+        {0., 0., 0., 0., 0., 0., 0., -4. / 3., 0., 0., 0., 0., 0., 0.},  // 8
+        {0., 0., 0., 0., 0., 0., 0., 0., -4. / 3., 0., 0., 0., 0., 0.},  // 9
+        {0., 0., 0., 0., 0., 0., 0., 0., 0., -4. / 3., 0., 0., 0., 0.},  // 10
+        {0., 0., 0., 0., 0., 0., 0., 0., 0., 0., -4. / 3., 0., 0., 0.},  // 11
+        {0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., -4. / 3., 0., 0.},  // 12
+        {0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., -4. / 3., 0.},  // 13
+        {0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., -4. / 3.}   // 14
+  };
+
+  stored_matrix_type Tref{
+        {0.5, 0.25, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},              // row1
+        {0.25, 0.5, 0, 0, 0, 0.25, 0, 0, 0, 0, 0, 0, 0, 0},           // row2
+        {0, 0, 0.5, 0, 0, 0, (0.5 / sqrt(6.)), 0, 0, 0, 0, 0, 0, 0},  // row3
+        {0, 0, 0, 0.5, 0, 0, 0, (0.5 / sqrt(6.)), 0, 0, 0, 0, 0, 0},  // row4
+        {0, 0, 0, 0, 0.5, 0, 0, 0, (0.5 / sqrt(6.)), 0, 0, 0, 0, 0},  // row5
+        {0, 0.25, 0, 0, 0, 0.5, 0, 0, 0, 0, 0, 0, 0, 0},              // row6
+        {0, 0, (0.5 / sqrt(6.)), 0, 0, 0, 0.5, 0, 0, 0, 0, 0, 0, 0},  // row7
+        {0, 0, 0, (0.5 / sqrt(6.)), 0, 0, 0, 0.5, 0, 0, 0, 0, 0, 0},  // row8
+        {0, 0, 0, 0, (0.5 / sqrt(6.)), 0, 0, 0, 0.5, 0, 0, 0, 0, 0},  // row9
+        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0.5, 0, 0, 0, 0},                 // row10
+        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.5, 0, 0, 0},                 // row11
+        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.5, 0, 0},                 // row12
+        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.5, 0},                 // row13
+        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.5}                  // row14
+  };
+
+  // Comparator functor
+  typedef linalgwrap::tests::NumComp NumComp;
+  double thresh = 1e-12;
+
+  // Test generator
+  auto make_test = [](const int_term_type& integral,
+                      const stored_matrix_type& ref, const double& thresh) {
+    // TODO use matrix generated by rapidcheck instead of a vector here!
+    auto test = [&] {
+      auto vdata = *rc::gen::container<std::vector<scalar_type>>(
+                          integral.n_cols(), rc::gen::arbitrary<scalar_type>())
+                          .as("Vector data");
+      vector_type vec(vdata);
+
+      RC_ASSERT(NumComp::is_equal_matrix((integral * vec), (ref * vec), thresh,
+                                         true, true));
+    };
+    return test;
+  };
+
+  SECTION("Test overlap") {
+    CHECK(NumComp::is_equal_matrix(S_bb, Sref, thresh));
+    CHECK(rc::check("Test application of overlap",
+                    make_test(S_bb, Sref, thresh)));
+  }
+
+  SECTION("Test nuclear attraction") {
+    CHECK(NumComp::is_equal_matrix(V0_bb, V0ref, thresh));
+    CHECK(rc::check("Test application of nuclear attraction",
+                    make_test(V0_bb, V0ref, thresh)));
+  }
+
+  SECTION("Test kinetic") {
+    CHECK(NumComp::is_equal_matrix(T_bb, Tref, thresh));
+    CHECK(rc::check("Test application of kinetic",
+                    make_test(T_bb, Tref, thresh)));
+  }
+  // TODO check J and K
+}
+
+}  // namespace tests
+}  // namespace gint
