@@ -104,11 +104,13 @@ public:
 
   /** \brief return an element of the matrix    */
   scalar_type operator()(size_type row, size_type col) const override {
-    using sturmint::orbital_index::nlmbasis;
-    const nlm_t mui = nlmbasis::quantum_numbers_from_index(row),
-                muj = nlmbasis::quantum_numbers_from_index(col);
-
-    return k*m_integral_calculator.nuclear_attraction(mui,muj);
+    if(row!=col) return 0;
+    else {
+      using sturmint::orbital_index::nlmbasis;
+      
+      const nlm_t mui = nlmbasis::quantum_numbers_from_index(row);
+      return row==col? (-Z*k)/mui.n : 0;
+    }
   }  
 
 
