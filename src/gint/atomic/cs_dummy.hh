@@ -301,7 +301,7 @@ public:
   
   /** \brief Multiplication with a stored matrix */
   // J_{b1,q} = J_{b1,b2} X_{b2,q} = J_{b1,b2,b3,b4} X_{b2,q} Cocc_{b3,p} Cocc_{b4,p} = J_{b1,b2,b3,b4} X_{b2,q} D_{b3,b4}
-  // K_{b1,q} = K_{b1,b2} X_{b2,q} = J_{b1,b2,b3,b4} X_{b3,q} Cocc_{b2,p} Cocc_{b4,p} = J_{b1,b2,b3,b4} X_{b2,q} D_{b3,b4}
+  // K_{b1,q} = K_{b1,b2} X_{b2,q} = J_{b1,b3,b2,b4} X_{b2,q} Cocc_{b3,p} Cocc_{b4,p} = J_{b1,b3,b2,b4} X_{b2,q} D_{b3,b4}
   stored_matrix_type operator*(const stored_matrix_type& X) const override {
     using namespace sturmint::orbital_index;
     assert_size(n_cols(),X.n_rows());
@@ -311,7 +311,7 @@ public:
     const int n_max = m_integral_calculator.nmax1;
     const stored_matrix_type &Cocc(*coefficients_occupied);
 
-    cout << "\nCalculating "<<(exchange?"exchange":"coulomb")<<" integral application.\n";
+    //    cout << "\nCalculating "<<(exchange?"exchange":"coulomb")<<" integral application.\n";
     for(size_t b1=0;b1<n_rows();b1++){ // TODO: Mål, om det bliver hurtigere / nemmere at OpenMP'e, af at iterere over b1q samlet.
       nlm_t nlm1 = nlmbasis::quantum_numbers_from_index(b1);
       int8_t /*n1 = nlm1.n, */l1 = nlm1.l, m1 = nlm1.m;
@@ -325,18 +325,18 @@ public:
 
 	  for(size_t b3=0;b3<n_rows();b3++){
 	    nlm_t nlm3 = nlmbasis::quantum_numbers_from_index(b3);
-	    int8_t n3 = nlm3.n, l3 = nlm3.l, m3 = nlm3.m;
-	    cout << "b3 = " << b3 << " = index(" << vector<int>{n3,l3,m3} << ")\n";
+	    int8_t /*n3 = nlm3.n, l3 = nlm3.l,*/ m3 = nlm3.m;
+	    //	    cout << "b3 = " << b3 << " = index(" << vector<int>{n3,l3,m3} << ")\n";
 
 	    // TODO: Exchange? Da!	    
 	    int8_t m4 = m3-m2+m1;
 	    int l_parity = (l1+l2)&1, m_parity = (m1+m2)&1;
 	    int l_min    = max(l_parity, ::abs(m4)+((m_parity+l_parity)&1)); // TODO: Check!!
-	    cout << "\t{l_parity,m_parity,l_min} = " << vector<int>{l_parity,m_parity,l_min} << endl;
+	    //	    cout << "\t{l_parity,m_parity,l_min} = " << vector<int>{l_parity,m_parity,l_min} << endl;
 	    
 	    int B2 = exchange? b3 : b2; // Swap b2 and b3 if computing exchange 
 	    int B3 = exchange? b2 : b3;
-	    real_type X_bq = X(B2,q);
+	    real_type X_bq = X(b2,q); // TODO: switch b,B again?
 	    
 	    for(int8_t l4=l_min;l4<=l_max;l4+=2){
 	      //		int8_t lmin = max(abs(m2-m1)+(m_parity-l_parity), max(abs(l1-l2),abs(l3-l4))); // l >= |m2-m1| && l >= |l1-l2| && l >= |l3-l4| && (-1)^l = (-1)^(l1+l2)
@@ -346,10 +346,10 @@ public:
 		// TODO: Ide: Shell-pairs grupperet efter (m2-m1) og l-paritet. Mål: contiguous dot-product.
 		// TODO: Alle atomic/cs implementationer er fuldstændig ens bortset fra repulsion-operationerne.
 		int b4 = nlmbasis::index(nlm_t{n4,l4,m4});
-		cout << "\tb4 = " << b4 << " = index(" << vector<int>{n4,l4,m4} << ")\n";
+		//		cout << "\tb4 = " << b4 << " = index(" << vector<int>{n4,l4,m4} << ")\n";
 		  
 		for(size_t p=0;p<Cocc.n_cols();p++)
-		  sum += sturmint::atomic::cs_dummy::repulsion[b4+norb*(b3+norb*(b2+norb*b1))]*Cocc(B3,p)*Cocc(b4,p)*X_bq;
+		  sum += sturmint::atomic::cs_dummy::repulsion[b4+norb*(B3+norb*(B2+norb*b1))]*Cocc(b3,p)*Cocc(b4,p)*X_bq;
 	      }
 	    }
 	  }
@@ -364,6 +364,7 @@ public:
 
   /** \brief return an element of the matrix    */
   // J_{b1,b2} = J_{b1,b2,b3,b4} Cocc_{b3,p} Cocc_{b4,p} = J_{b1,b2,b3,b4} D_{b3,b4}
+  // K_{b1,b2} = J_{b1,b3,b2,b4} Cocc_{b3,p} Cocc_{b4,p} = J_{b1,b2,b3,b4} D_{b3,b4}
   scalar_type operator()(size_type b1, size_type b2) const override {
     using namespace sturmint::atomic;
     using namespace sturmint::orbital_index;
@@ -374,25 +375,25 @@ public:
       
     nlm_t nlm1 = nlmbasis::quantum_numbers_from_index(b1);
     nlm_t nlm2 = nlmbasis::quantum_numbers_from_index(b2);
-    int8_t n1 = nlm1.n, l1 = nlm1.l, m1 = nlm1.m;
-    int8_t n2 = nlm2.n, l2 = nlm2.l, m2 = nlm2.m;
+    int8_t /*n1 = nlm1.n,*/ l1 = nlm1.l, m1 = nlm1.m;
+    int8_t /*n2 = nlm2.n, */ l2 = nlm2.l, m2 = nlm2.m;
 
     real_type sum = 0;
 
-    cout << "\nCalculating "<<(exchange?"exchange":"coulomb")<<" integral element ("<<b1<<","<<b2<<").\n"
-	 << "{n1,l1,m1} = " << vector<int>{n1,l1,m1} << "; {n2,l2,m2} = " << vector<int>{n2,l2,m2} << ";\n";
+    //    cout << "\nCalculating "<<(exchange?"exchange":"coulomb")<<" integral element ("<<b1<<","<<b2<<").\n"
+    //	 << "{n1,l1,m1} = " << vector<int>{n1,l1,m1} << "; {n2,l2,m2} = " << vector<int>{n2,l2,m2} << ";\n";
     
     for(size_t b3=0;b3<n_rows();b3++){
       nlm_t nlm3 = nlmbasis::quantum_numbers_from_index(b3);
-      int8_t n3 = nlm3.n, l3 = nlm3.l, m3 = nlm3.m;
+      int8_t /*n3 = nlm3.n, l3 = nlm3.l,*/ m3 = nlm3.m;
 
       int8_t m4 = m3-m2+m1;
       int l_parity = (l1+l2)&1, m_parity = (m1+m2)&1;
       int l_min    = max(l_parity, ::abs(m4)+((m_parity+l_parity)&1)); // TODO: Check!!
-      cout << "b3 = " << b3 << " = index(" << vector<int>{n3,l3,m3} << ")\n";      
-      cout << "\t{l_parity,m_parity,l_min} = " << vector<int>{l_parity,m_parity,l_min} << endl;
+      //      cout << "b3 = " << b3 << " = index(" << vector<int>{n3,l3,m3} << ")\n";      
+      //      cout << "\t{l_parity,m_parity,l_min} = " << vector<int>{l_parity,m_parity,l_min} << endl;
 
-      //      int B2 = exchange? b3 : b2; // Swap b2 and b3 if computing exchange // TODO: Check
+      int B2 = exchange? b3 : b2; // Swap b2 and b3 if computing exchange // TODO: Check
       int B3 = exchange? b2 : b3;
 
       for(int8_t l4=l_min;l4<=l_max;l4+=2){
@@ -404,10 +405,10 @@ public:
 	// contiguous in memory.
 	for(int8_t n4=l4+1;n4<=n_max;n4++){ 
 	  int b4 = nlmbasis::index(nlm_t{n4,l4,m4});
-	  cout << "\tb4 = " << b4 << " = index(" << vector<int>{n4,l4,m4} << ")\n";
+	  //	  cout << "\tb4 = " << b4 << " = index(" << vector<int>{n4,l4,m4} << ")\n";
 
 	  for(size_t p=0;p<Cocc.n_cols();p++)
-	    sum += cs_dummy::repulsion[b4+norb*(b3+norb*(b2+norb*b1))]*Cocc(B3,p)*Cocc(b4,p);
+	    sum += cs_dummy::repulsion[b4+norb*(B3+norb*(B2+norb*b1))]*Cocc(b3,p)*Cocc(b4,p);
 	}
       }
     }
