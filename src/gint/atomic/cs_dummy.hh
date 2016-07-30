@@ -156,7 +156,7 @@ public:
     assert_size(n_cols(),X.n_rows());
 
     stored_matrix_type AX(n_rows(), X.n_cols(),false);
-    const int nmax = m_integral_calculator.nmax1;
+    const int nmax = S_integral_calculator.nmax1;
 
     // TODO: n,l,m -> m,l,n
     for(size_t i=0;i<n_rows();i++){
@@ -165,10 +165,10 @@ public:
       
       size_t i_nminus = nlmbasis::index(nlm_t(n-1,l,m)), i_nplus = nlmbasis::index(nlm_t(n+1,l,m));
 
-      double S_nnl = m_integral_calculator.overlap(n,n+1,l); // Overlap is symmetric in n,np
+      double S_nnl = S_integral_calculator.overlap(n,n+1,l); // Overlap is symmetric in n,np
 
       for(size_type j=0;j<AX.n_cols();j++) // TODO: make this work on vectors instead.
-	AX(i,j) = ((n>l)?     S_nnl*X(i_nminus,j) : 0)
+	AX(i,j) = ((n>l+1)?   S_nnl*X(i_nminus,j) : 0)
 	        +             X(i,j)
    	        + ((n<nmax)?  S_nnl*X(i_nplus,j) : 0);
     }
@@ -182,16 +182,16 @@ public:
     const nlm_t mui = nlmbasis::quantum_numbers_from_index(row),
                 muj = nlmbasis::quantum_numbers_from_index(col);
 
-    return m_integral_calculator.overlap(mui,muj);
+    return S_integral_calculator.overlap(mui,muj);
   }  
 
-  OverlapIntegralCore(const Atomic& integral_calculator) : m_integral_calculator(integral_calculator) { }
+  OverlapIntegralCore(const Atomic& integral_calculator) : S_integral_calculator(integral_calculator) { }
 
   /** \brief Number of rows of the matrix */
-  size_type n_rows() const override { return m_integral_calculator.n_bas(); }
+  size_type n_rows() const override { return S_integral_calculator.n_bas(); }
 
   /** \brief Number of columns of the matrix  */
-  size_type n_cols() const override { return m_integral_calculator.n_bas(); }
+  size_type n_cols() const override { return S_integral_calculator.n_bas(); }
   
   /** \brief Clone the expression */
   std::unique_ptr<base_type> clone() const override {
@@ -205,7 +205,7 @@ public:
   std::string name() const override { return "Overlap operator"; }
 
 private:
-  const Atomic& m_integral_calculator;
+  const Atomic& S_integral_calculator;
 };
 
 
@@ -228,7 +228,7 @@ public:
     assert_size(n_cols(),X.n_rows());
 
     stored_matrix_type AX(n_rows(), X.n_cols(),false);
-    const int nmax = m_integral_calculator.nmax1;
+    const int nmax = S_integral_calculator.nmax1;
 
     // TODO: n,l,m -> m,l,n
     for(size_t i=0;i<n_rows();i++){
@@ -236,10 +236,10 @@ public:
       int8_t n = nlm.n, l = nlm.l, m = nlm.m;
       
       size_t i_nminus = nlmbasis::index(nlm_t(n-1,l,m)), i_nplus = nlmbasis::index(nlm_t(n+1,l,m));
-      double T_nnl = -0.5L*m_integral_calculator.overlap(n,n+1,l); // Kinetic is symmetric in n1,n2
+      double T_nnl = -0.5L*S_integral_calculator.overlap(n,n+1,l); // Kinetic is symmetric in n1,n2
 
       for(size_type j=0;j<AX.n_cols();j++) { 
-	AX(i,j) = ( (n>1)?    T_nnl*X(i_nminus,j) : 0 )
+	AX(i,j) = ( (n>l+1)?  T_nnl*X(i_nminus,j) : 0 )
 	        +    0.5L*X(i,j)
 	        + ( (n<nmax)? T_nnl*X(i_nplus,j) : 0 );
 
@@ -258,17 +258,17 @@ public:
       mui = nlmbasis::quantum_numbers_from_index(row),
       muj = nlmbasis::quantum_numbers_from_index(col);
 
-    return k*k*m_integral_calculator.kinetic(mui,muj);
+    return k*k*S_integral_calculator.kinetic(mui,muj);
   }  
 
   KineticIntegralCore(const Atomic& integral_calculator, real_type k)
-    : k(k), m_integral_calculator(integral_calculator) { }
+    : k(k), S_integral_calculator(integral_calculator) { }
 
   /** \brief Number of rows of the matrix */
-  size_type n_rows() const override { return m_integral_calculator.n_bas(); }
+  size_type n_rows() const override { return S_integral_calculator.n_bas(); }
 
   /** \brief Number of columns of the matrix  */
-  size_type n_cols() const override { return m_integral_calculator.n_bas(); }
+  size_type n_cols() const override { return S_integral_calculator.n_bas(); }
   
   /** \brief Clone the expression */
   std::unique_ptr<base_type> clone() const override {
@@ -282,7 +282,7 @@ public:
   std::string name() const override { return "Kinetic energy operator"; }
 
 private:
-  const Atomic& m_integral_calculator;
+  const Atomic& S_integral_calculator;
 };
 
 template <typename StoredMatrix>
@@ -307,8 +307,8 @@ public:
     assert_size(n_cols(),X.n_rows());
       
     stored_matrix_type AX(n_rows(), X.n_cols(),true);
-    const int l_max = m_integral_calculator.lmax1;
-    const int n_max = m_integral_calculator.nmax1;
+    const int l_max = S_integral_calculator.lmax1;
+    const int n_max = S_integral_calculator.nmax1;
     const stored_matrix_type &Cocc(*coefficients_occupied);
 
     //    cout << "\nCalculating "<<(exchange?"exchange":"coulomb")<<" integral application.\n";
@@ -369,8 +369,8 @@ public:
     using namespace sturmint::atomic;
     using namespace sturmint::orbital_index;
     
-    const int l_max = m_integral_calculator.lmax1;
-    const int n_max = m_integral_calculator.nmax1;
+    const int l_max = S_integral_calculator.lmax1;
+    const int n_max = S_integral_calculator.nmax1;
     const stored_matrix_type &Cocc(*coefficients_occupied);
       
     nlm_t nlm1 = nlmbasis::quantum_numbers_from_index(b1);
@@ -415,7 +415,7 @@ public:
     return sum;
   }
 	
-  ERICore(const Atomic& integral_calculator, bool exchange, real_type k) : exchange(exchange), k(k), m_integral_calculator(integral_calculator) { }
+  ERICore(const Atomic& integral_calculator, bool exchange, real_type k) : exchange(exchange), k(k), S_integral_calculator(integral_calculator) { }
 
   /** \brief Update the internal data of all objects in this expression
    *         given the ParameterMap                                     */
@@ -426,10 +426,10 @@ public:
   }
 
   /** \brief Number of rows of the matrix */
-  size_type n_rows() const override { return m_integral_calculator.n_bas(); }
+  size_type n_rows() const override { return S_integral_calculator.n_bas(); }
 
   /** \brief Number of columns of the matrix  */
-  size_type n_cols() const override { return m_integral_calculator.n_bas(); }
+  size_type n_cols() const override { return S_integral_calculator.n_bas(); }
   
   /** \brief Clone the expression */
   std::unique_ptr<base_type> clone() const override {
@@ -443,7 +443,7 @@ public:
   std::string name() const override { return std::string("Electron Repulsion Integrals, ")+(exchange?"Exchange":"Coulomb")+" operator"; }
 
 private:
-  const Atomic& m_integral_calculator;
+  const Atomic& S_integral_calculator;
 };
   
   
