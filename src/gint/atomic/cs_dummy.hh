@@ -273,12 +273,11 @@ public:
       // T is symmetric in n1,n2 and has the same sparsity pattern as the
       // overlap matrix S.
       size_t i_nminus = nlmbasis::index(nlm_t(n - 1, l, m)),
-             i_nplus  = nlmbasis::index(nlm_t(n + 1, l, m));
+             i_nplus = nlmbasis::index(nlm_t(n + 1, l, m));
       double T_nnl = -0.5L * S_integral_calculator.overlap(n, n + 1, l);
 
       for (size_type j = 0; j < AX.n_cols(); j++) {
-        AX(i, j) = ((n > l + 1) ? T_nnl * X(i_nminus, j) : 0)
-	           + 0.5L * X(i, j) +
+        AX(i, j) = ((n > l + 1) ? T_nnl * X(i_nminus, j) : 0) + 0.5L * X(i, j) +
                    ((n < nmax) ? T_nnl * X(i_nplus, j) : 0);
 
         AX(i, j) *= k * k;
@@ -323,8 +322,7 @@ private:
 
 template <typename StoredMatrix>
 class ERICore : public IntegralCoreBase<StoredMatrix> {
-  std::shared_ptr<StoredMatrix> coefficients_occupied_ptr;
-
+  std::shared_ptr<const StoredMatrix> coefficients_occupied_ptr;
 public:
   typedef IntegralCoreBase<StoredMatrix> base_type;
   typedef StoredMatrix stored_matrix_type;
@@ -345,7 +343,7 @@ public:
     assert_size(n_cols(), X.n_rows());
     assert_dbg(coefficients_occupied_ptr != nullptr,
                linalgwrap::ExcInvalidPointer());
-    
+
     stored_matrix_type AX(n_rows(), X.n_cols(), true);
     const int l_max = S_integral_calculator.lmax1;
     const int n_max = S_integral_calculator.nmax1;
@@ -370,16 +368,16 @@ public:
             nlm_t nlm3 = nlmbasis::quantum_numbers_from_index(b3);
             int8_t /*n3 = nlm3.n, l3 = nlm3.l,*/ m3 = nlm3.m;
             //	    cout << "b3 = " << b3 << " = index(" <<
-            //vector<int>{n3,l3,m3} << ")\n";
+            // vector<int>{n3,l3,m3} << ")\n";
 
             // TODO: Exchange? Da!
             int8_t m4 = m3 - m2 + m1;
-            int l_parity = (l1 + l2) & 1,
-	        m_parity = (m1 + m2) & 1;
-            int l_min = max(l_parity,
-			    ::abs(m4) + ((m_parity + l_parity) & 1));  // TODO: Check!!
+            int l_parity = (l1 + l2) & 1, m_parity = (m1 + m2) & 1;
+            int l_min = max(
+                  l_parity,
+                  ::abs(m4) + ((m_parity + l_parity) & 1));  // TODO: Check!!
             //	    cout << "\t{l_parity,m_parity,l_min} = " <<
-            //vector<int>{l_parity,m_parity,l_min} << endl;
+            // vector<int>{l_parity,m_parity,l_min} << endl;
 
             int B2 =
                   exchange ? b3 : b2;  // Swap b2 and b3 if computing exchange
@@ -388,7 +386,8 @@ public:
 
             for (int8_t l4 = l_min; l4 <= l_max; l4 += 2) {
               //		int8_t lmin =
-              //max(abs(m2-m1)+(m_parity-l_parity), max(abs(l1-l2),abs(l3-l4)));
+              // max(abs(m2-m1)+(m_parity-l_parity),
+              // max(abs(l1-l2),abs(l3-l4)));
               //// l >= |m2-m1| && l >= |l1-l2| && l >= |l3-l4| && (-1)^l =
               //(-1)^(l1+l2)
               //		int8_t lmax = min(l1+l2,l3+l4);
@@ -403,7 +402,7 @@ public:
                 // bortset fra repulsion-operationerne.
                 int b4 = nlmbasis::index(nlm_t{n4, l4, m4});
                 //		cout << "\tb4 = " << b4 << " = index(" <<
-                //vector<int>{n4,l4,m4} << ")\n";
+                // vector<int>{n4,l4,m4} << ")\n";
 
                 for (size_t p = 0; p < Cocc.n_cols(); p++)
                   sum += sturmint::atomic::cs_dummy::repulsion
@@ -434,7 +433,7 @@ public:
     assert_greater(b2, n_cols());
     assert_dbg(coefficients_occupied_ptr != nullptr,
                linalgwrap::ExcInvalidPointer());
-    
+
     const int l_max = S_integral_calculator.lmax1;
     const int n_max = S_integral_calculator.nmax1;
     const stored_matrix_type& Cocc(*coefficients_occupied_ptr);
@@ -449,7 +448,7 @@ public:
     //    cout << "\nCalculating "<<(exchange?"exchange":"coulomb")<<" integral
     //    element ("<<b1<<","<<b2<<").\n"
     //	 << "{n1,l1,m1} = " << vector<int>{n1,l1,m1} << "; {n2,l2,m2} = " <<
-    //vector<int>{n2,l2,m2} << ";\n";
+    // vector<int>{n2,l2,m2} << ";\n";
 
     for (size_t b3 = 0; b3 < n_rows(); b3++) {
       nlm_t nlm3 = nlmbasis::quantum_numbers_from_index(b3);
@@ -457,8 +456,9 @@ public:
 
       int8_t m4 = m3 - m2 + m1;
       int l_parity = (l1 + l2) & 1, m_parity = (m1 + m2) & 1;
-      int l_min = max(l_parity,
-		      ::abs(m4) + ((m_parity + l_parity) & 1));  // TODO: Check!!
+      int l_min =
+            max(l_parity,
+                ::abs(m4) + ((m_parity + l_parity) & 1));  // TODO: Check!!
       //      cout << "b3 = " << b3 << " = index(" << vector<int>{n3,l3,m3} <<
       //      ")\n";
       //      cout << "\t{l_parity,m_parity,l_min} = " <<
@@ -472,7 +472,7 @@ public:
 
       for (int8_t l4 = l_min; l4 <= l_max; l4 += 2) {
         //		int8_t lmin = max(abs(m2-m1)+(m_parity-l_parity),
-        //max(abs(l1-l2),abs(l3-l4))); // l >= |m2-m1| && l >= |l1-l2| && l >=
+        // max(abs(l1-l2),abs(l3-l4))); // l >= |m2-m1| && l >= |l1-l2| && l >=
         //|l3-l4| && (-1)^l = (-1)^(l1+l2)
         //		int8_t lmax = min(l1+l2,l3+l4);
 
@@ -482,7 +482,7 @@ public:
         for (int8_t n4 = l4 + 1; n4 <= n_max; n4++) {
           int b4 = nlmbasis::index(nlm_t{n4, l4, m4});
           //	  cout << "\tb4 = " << b4 << " = index(" <<
-          //vector<int>{n4,l4,m4} << ")\n";
+          // vector<int>{n4,l4,m4} << ")\n";
 
           for (size_t p = 0; p < Cocc.n_cols(); p++)
             sum += cs_dummy::repulsion[b4 +
@@ -509,9 +509,8 @@ public:
     if (!map.exists(occ_coeff_key)) return;
 
     // Get coefficients as pointer. // TODO: Doesn't compile
-    //    coefficients_occupied_ptr = map.at_ptr<stored_matrix_type>(occ_coeff_key);
-    // Copying for now
-    coefficients_occupied_ptr = make_shared<stored_matrix_type>(map.at<stored_matrix_type>("coefficients_occupied"));
+    coefficients_occupied_ptr =
+      map.at_ptr<stored_matrix_type>(occ_coeff_key);
 
     // We will contract the coefficient row index over the number of
     // basis functions.
