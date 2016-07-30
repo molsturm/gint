@@ -178,18 +178,21 @@ TEST_CASE("Quick atomic cs_dummy test", "[quicktest]") {
   map.update_copy("coefficients_occupied", coeffref_bo);
 
   SECTION("Test overlap") {
+    CHECK(S_bb.is_symmetric());
     CHECK(NumComp::is_equal_matrix(S_bb, Sref, thresh, true, verbose_throw));
     CHECK(rc::check("Test application of overlap",
                     make_test(S_bb, Sref, thresh, verbose_throw)));
   }
 
   SECTION("Test nuclear attraction") {
+    CHECK(V0_bb.is_symmetric());
     CHECK(NumComp::is_equal_matrix(V0_bb, V0ref, thresh, true, verbose_throw));
     CHECK(rc::check("Test application of nuclear attraction",
                     make_test(V0_bb, V0ref, thresh, verbose_throw)));
   }
 
   SECTION("Test kinetic") {
+    CHECK(T_bb.is_symmetric());
     CHECK(NumComp::is_equal_matrix(T_bb, Tref, thresh, true, verbose_throw));
     CHECK(rc::check("Test application of kinetic",
                     make_test(T_bb, Tref, thresh, verbose_throw)));
@@ -197,6 +200,7 @@ TEST_CASE("Quick atomic cs_dummy test", "[quicktest]") {
 
   SECTION("Test coulomb") {
     J_bb.update(map);
+    CHECK(J_bb.is_symmetric());
     CHECK(NumComp::is_equal_matrix(J_bb, Jref_for_coeff, thresh, true,
                                    verbose_throw));
     CHECK(rc::check("Test application of coulomb",
@@ -205,6 +209,7 @@ TEST_CASE("Quick atomic cs_dummy test", "[quicktest]") {
 
   SECTION("Test coulomb") {
     K_bb.update(map);
+    CHECK(K_bb.is_symmetric());
     CHECK(NumComp::is_equal_matrix(K_bb, Kref_for_coeff, thresh, true,
                                    verbose_throw));
     CHECK(rc::check("Test application of exchange",
