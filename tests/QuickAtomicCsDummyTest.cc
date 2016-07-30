@@ -1,4 +1,5 @@
 #include "../../linalgwrap/tests/NumComp.hh"  // TODO This is so quick and dirty ...
+#include "SturmianData.hh"
 #include <catch.hpp>
 #include <gint/IntegralLookup.hh>
 #include <linalgwrap/ParameterMap.hh>
@@ -15,6 +16,7 @@ TEST_CASE("Quick atomic cs_dummy test", "[quicktest]") {
   const OrbitalType otype = COMPLEX_ATOMIC;
   typedef gint::IntegralLookup<stored_matrix_type, otype> int_lookup_type;
   typedef typename int_lookup_type::integral_matrix_type int_term_type;
+  typedef SturmianData<stored_matrix_type> data;
 
   // Setup parameters for the integral library
   linalgwrap::ParameterMap intparams;
@@ -33,138 +35,6 @@ TEST_CASE("Quick atomic cs_dummy test", "[quicktest]") {
   int_term_type V0_bb = integrals("nuclear_attraction");
   int_term_type J_bb = integrals("coulomb");
   int_term_type K_bb = integrals("exchange");
-
-  // Reference data:
-  stored_matrix_type Sref{
-        {1, -0.5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},             // row1
-        {-0.5, 1, 0, 0, 0, -0.5, 0, 0, 0, 0, 0, 0, 0, 0},          // row2
-        {0, 0, 1, 0, 0, 0, -(1 / sqrt(6.)), 0, 0, 0, 0, 0, 0, 0},  // row3
-        {0, 0, 0, 1, 0, 0, 0, -(1 / sqrt(6.)), 0, 0, 0, 0, 0, 0},  // row4
-        {0, 0, 0, 0, 1, 0, 0, 0, -(1 / sqrt(6.)), 0, 0, 0, 0, 0},  // row5
-        {0, -0.5, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0},             // row6
-        {0, 0, -(1 / sqrt(6.)), 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0},  // row7
-        {0, 0, 0, -(1 / sqrt(6.)), 0, 0, 0, 1, 0, 0, 0, 0, 0, 0},  // row8
-        {0, 0, 0, 0, -(1 / sqrt(6.)), 0, 0, 0, 1, 0, 0, 0, 0, 0},  // row9
-        {0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0},                // row10
-        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0},                // row11
-        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0},                // row12
-        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0},                // row13
-        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}                 // row14
-  };
-
-  stored_matrix_type V0ref{
-        {-4., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.},       // 1
-        {0., -2., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.},       // 2
-        {0., 0., -2., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.},       // 3
-        {0., 0., 0., -2., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.},       // 4
-        {0., 0., 0., 0., -2., 0., 0., 0., 0., 0., 0., 0., 0., 0.},       // 5
-        {0., 0., 0., 0., 0., -4. / 3., 0., 0., 0., 0., 0., 0., 0., 0.},  // 6
-        {0., 0., 0., 0., 0., 0., -4. / 3., 0., 0., 0., 0., 0., 0., 0.},  // 7
-        {0., 0., 0., 0., 0., 0., 0., -4. / 3., 0., 0., 0., 0., 0., 0.},  // 8
-        {0., 0., 0., 0., 0., 0., 0., 0., -4. / 3., 0., 0., 0., 0., 0.},  // 9
-        {0., 0., 0., 0., 0., 0., 0., 0., 0., -4. / 3., 0., 0., 0., 0.},  // 10
-        {0., 0., 0., 0., 0., 0., 0., 0., 0., 0., -4. / 3., 0., 0., 0.},  // 11
-        {0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., -4. / 3., 0., 0.},  // 12
-        {0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., -4. / 3., 0.},  // 13
-        {0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., -4. / 3.}   // 14
-  };
-
-  stored_matrix_type Tref{
-        {0.5, 0.25, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},              // row1
-        {0.25, 0.5, 0, 0, 0, 0.25, 0, 0, 0, 0, 0, 0, 0, 0},           // row2
-        {0, 0, 0.5, 0, 0, 0, (0.5 / sqrt(6.)), 0, 0, 0, 0, 0, 0, 0},  // row3
-        {0, 0, 0, 0.5, 0, 0, 0, (0.5 / sqrt(6.)), 0, 0, 0, 0, 0, 0},  // row4
-        {0, 0, 0, 0, 0.5, 0, 0, 0, (0.5 / sqrt(6.)), 0, 0, 0, 0, 0},  // row5
-        {0, 0.25, 0, 0, 0, 0.5, 0, 0, 0, 0, 0, 0, 0, 0},              // row6
-        {0, 0, (0.5 / sqrt(6.)), 0, 0, 0, 0.5, 0, 0, 0, 0, 0, 0, 0},  // row7
-        {0, 0, 0, (0.5 / sqrt(6.)), 0, 0, 0, 0.5, 0, 0, 0, 0, 0, 0},  // row8
-        {0, 0, 0, 0, (0.5 / sqrt(6.)), 0, 0, 0, 0.5, 0, 0, 0, 0, 0},  // row9
-        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0.5, 0, 0, 0, 0},                 // row10
-        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.5, 0, 0, 0},                 // row11
-        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.5, 0, 0},                 // row12
-        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.5, 0},                 // row13
-        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.5}                  // row14
-  };
-
-  // Some non-linear coefficients
-  stored_matrix_type coeffref_bo{{0.923879532511287, 0.},
-                                 {1.306562964876374, 0.},
-                                 {0., 0.},
-                                 {0., 0.},
-                                 {0., 0.919211060789804},
-                                 {0.923879532511284, 0.},
-                                 {0., 0.},
-                                 {0., 0.},
-                                 {0., 0.919211060789804},
-                                 {0., 0.},
-                                 {0., 0.},
-                                 {0., 0.},
-                                 {0., 0.},
-                                 {0., 0.}};
-
-  // Reference Coulomb matrix for those nonlinear coefficients
-  stored_matrix_type Jref_for_coeff{
-        {1.266286204937442, -0.2568693801546084, 0., 0., 0.,
-         -0.1047658029927954, 0., 0., 0., 0., 0., -0.00948398136110219, 0., 0.},
-        {-0.2568693801546084, 0.7328637781341365, 0., 0., 0.,
-         -0.140793301769866, 0., 0., 0., 0., 0., 0.00875397427897254, 0., 0.},
-        {0., 0., 0.844335768660014, 0., 0., 0., -0.07638272034979674, 0., 0.,
-         0., 0., 0., 0., 0.},
-        {0., 0., 0., 0.824217206060768, 0., 0., 0., -0.07764712970593046, 0.,
-         0., 0., 0., 0., 0.},
-        {0., 0., 0., 0., 0.844335768660014, 0., 0., 0., -0.07638272034979674,
-         0., 0., 0., 0., 0.},
-        {-0.1047658029927954, -0.140793301769866, 0., 0., 0.,
-         0.5220627813359466, 0., 0., 0., 0., 0., -0.0006889133959990507, 0.,
-         0.},
-        {0., 0., -0.07638272034979674, 0., 0., 0., 0.5690079524878392, 0., 0.,
-         0., 0., 0., 0., 0.},
-        {0., 0., 0., -0.07764712970593046, 0., 0., 0., 0.5598079730366972, 0.,
-         0., 0., 0., 0., 0.},
-        {0., 0., 0., 0., -0.07638272034979674, 0., 0., 0., 0.5690079524878392,
-         0., 0., 0., 0., 0.},
-        {0., 0., 0., 0., 0., 0., 0., 0., 0., 0.6156846969142331, 0., 0., 0.,
-         0.},
-        {0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.6072961346212196, 0., 0.,
-         0.},
-        {-0.00948398136110219, 0.00875397427897254, 0., 0., 0.,
-         -0.0006889133959990507, 0., 0., 0., 0., 0., 0.6044999471902149, 0.,
-         0.},
-        {0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.6072961346212196,
-         0.},
-        {0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
-         0.6156846969142331}};
-
-  // Reference Exchange matrix for those nonlinear coefficients
-  stored_matrix_type Kref_for_coeff{
-        {0.359888202706249, 0.133732508758423, 0., 0., 0., 0.019648923904622,
-         0., 0., 0., 0., 0., -0.0165955980829667, 0., 0.},
-        {0.133732508758423, 0.150823395068129, 0., 0., 0., 0.0551389305703789,
-         0., 0., 0., 0., 0., 0.00688652633071872, 0., 0.},
-        {0., 0., 0.0449844455544027, 0., 0., 0., 0.0164915045496037, 0., 0., 0.,
-         0., 0., 0., 0.},
-        {0., 0., 0., 0.0291566394651632, 0., 0., 0., 0.0109363386834629, 0., 0.,
-         0., 0., 0., 0.},
-        {0., 0., 0., 0., 0.238752182931375, 0., 0., 0., 0.135019585984146, 0.,
-         0., 0., 0., 0.},
-        {0.019648923904622, 0.0551389305703789, 0., 0., 0., 0.043001713255703,
-         0., 0., 0., 0., 0., 0.00491206850843349, 0., 0.},
-        {0., 0., 0.0164915045496037, 0., 0., 0., 0.0217152655006732, 0., 0., 0.,
-         0., 0., 0., 0.},
-        {0., 0., 0., 0.0109363386834629, 0., 0., 0., 0.0168060425595382, 0., 0.,
-         0., 0., 0., 0.},
-        {0., 0., 0., 0., 0.135019585984146, 0., 0., 0., 0.103510480185157, 0.,
-         0., 0., 0., 0.},
-        {0., 0., 0., 0., 0., 0., 0., 0., 0., 0.0114998765395547, 0., 0., 0.,
-         0.},
-        {0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.0089327437574228, 0., 0.,
-         0.},
-        {-0.0165955980829667, 0.00688652633071872, 0., 0., 0.,
-         0.00491206850843349, 0., 0., 0., 0., 0., 0.0104791419166949, 0., 0.},
-        {0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.0161390710173709,
-         0.},
-        {0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
-         0.0259125310594508}};
 
   // Comparator functor
   typedef linalgwrap::tests::NumComp NumComp;
@@ -188,47 +58,82 @@ TEST_CASE("Quick atomic cs_dummy test", "[quicktest]") {
     return test;
   };
 
-  // Parameter map containing coeff
-  linalgwrap::ParameterMap map;
-  map.update_copy("coefficients_occupied", coeffref_bo);
+  // Parameter maps containing coeff
 
   SECTION("Test overlap") {
     CHECK(S_bb.is_symmetric());
-    CHECK(NumComp::is_equal_matrix(S_bb, Sref, thresh, true, verbose_throw));
+    CHECK(NumComp::is_equal_matrix(S_bb, data::Sref, thresh, true,
+                                   verbose_throw));
     CHECK(rc::check("Test application of overlap",
-                    make_test(S_bb, Sref, thresh, verbose_throw)));
+                    make_test(S_bb, data::Sref, thresh, verbose_throw)));
   }
 
   SECTION("Test nuclear attraction") {
     CHECK(V0_bb.is_symmetric());
-    CHECK(NumComp::is_equal_matrix(V0_bb, V0ref, thresh, true, verbose_throw));
+    CHECK(NumComp::is_equal_matrix(V0_bb, data::V0ref, thresh, true,
+                                   verbose_throw));
     CHECK(rc::check("Test application of nuclear attraction",
-                    make_test(V0_bb, V0ref, thresh, verbose_throw)));
+                    make_test(V0_bb, data::V0ref, thresh, verbose_throw)));
   }
 
   SECTION("Test kinetic") {
     CHECK(T_bb.is_symmetric());
-    CHECK(NumComp::is_equal_matrix(T_bb, Tref, thresh, true, verbose_throw));
+    CHECK(NumComp::is_equal_matrix(T_bb, data::Tref, thresh, true,
+                                   verbose_throw));
     CHECK(rc::check("Test application of kinetic",
-                    make_test(T_bb, Tref, thresh, verbose_throw)));
+                    make_test(T_bb, data::Tref, thresh, verbose_throw)));
   }
 
-  SECTION("Test coulomb") {
-    J_bb.update(map);
+  SECTION("Test coulomb: Test case 1") {
+    linalgwrap::ParameterMap map_1;
+    map_1.update_copy("coefficients_occupied", data::coeffref_bo_1);
+    J_bb.update(map_1);
+
     CHECK(J_bb.is_symmetric());
-    CHECK(NumComp::is_equal_matrix(J_bb, Jref_for_coeff, thresh, true,
+    CHECK(NumComp::is_equal_matrix(J_bb, data::Jref_for_coeff_1, thresh, true,
                                    verbose_throw));
-    CHECK(rc::check("Test application of coulomb",
-                    make_test(J_bb, Jref_for_coeff, thresh, verbose_throw)));
+    CHECK(rc::check(
+          "Test application of coulomb",
+          make_test(J_bb, data::Jref_for_coeff_1, thresh, verbose_throw)));
   }
 
-  SECTION("Test exchange") {
-    K_bb.update(map);
-    CHECK(K_bb.is_symmetric());
-    CHECK(NumComp::is_equal_matrix(K_bb, Kref_for_coeff, thresh, true,
+  SECTION("Test coulomb: Test case 2") {
+    linalgwrap::ParameterMap map_2;
+    map_2.update_copy("coefficients_occupied", data::coeffref_bo_2);
+    J_bb.update(map_2);
+
+    CHECK(J_bb.is_symmetric());
+    CHECK(NumComp::is_equal_matrix(J_bb, data::Jref_for_coeff_2, thresh, true,
                                    verbose_throw));
-    CHECK(rc::check("Test application of exchange",
-                    make_test(K_bb, Kref_for_coeff, thresh, verbose_throw)));
+    CHECK(rc::check(
+          "Test application of coulomb",
+          make_test(J_bb, data::Jref_for_coeff_2, thresh, verbose_throw)));
+  }
+
+  SECTION("Test exchange: Test case 1") {
+    linalgwrap::ParameterMap map_1;
+    map_1.update_copy("coefficients_occupied", data::coeffref_bo_1);
+    K_bb.update(map_1);
+
+    CHECK(K_bb.is_symmetric());
+    CHECK(NumComp::is_equal_matrix(K_bb, data::Kref_for_coeff_1, thresh, true,
+                                   verbose_throw));
+    CHECK(rc::check(
+          "Test application of exchange",
+          make_test(K_bb, data::Kref_for_coeff_1, thresh, verbose_throw)));
+  }
+
+  SECTION("Test exchange: Test case 2") {
+    linalgwrap::ParameterMap map_2;
+    map_2.update_copy("coefficients_occupied", data::coeffref_bo_2);
+    K_bb.update(map_2);
+
+    CHECK(K_bb.is_symmetric());
+    CHECK(NumComp::is_equal_matrix(K_bb, data::Kref_for_coeff_2, thresh, true,
+                                   verbose_throw));
+    CHECK(rc::check(
+          "Test application of exchange",
+          make_test(K_bb, data::Kref_for_coeff_2, thresh, verbose_throw)));
   }
 }
 
