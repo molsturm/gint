@@ -122,7 +122,7 @@ public:
       int8_t n = nlm.n;
 
       for (size_type j = 0; j < AX.n_cols(); j++)
-        AX(i, j) = (-Z * k / n) * X(i, j);
+        AX(i, j) = (-Z*k/n) * X(i, j);
     }
 
     return AX;
@@ -136,20 +136,20 @@ public:
     if (row != col)
       return 0;
     else {
-      const nlm_t mui = nlmbasis::quantum_numbers_from_index(row);
-      return (-Z * k) / mui.n;
+      int8_t n = nlmbasis::quantum_numbers_from_index(row).n;
+      return -Z*k/n;
     }
   }
 
   NuclearAttractionIntegralCore(const Atomic& integral_calculator, real_type k,
                                 real_type Z)
-        : k(k), Z(Z), S_integral_calculator(integral_calculator) {}
+        : k(k), Z(Z), m_integral_calculator(integral_calculator) {}
 
   /** \brief Number of rows of the matrix */
-  size_type n_rows() const override { return S_integral_calculator.n_bas(); }
+  size_type n_rows() const override { return m_integral_calculator.n_bas(); }
 
   /** \brief Number of columns of the matrix  */
-  size_type n_cols() const override { return S_integral_calculator.n_bas(); }
+  size_type n_cols() const override { return m_integral_calculator.n_bas(); }
 
   /** \brief Clone the expression */
   std::unique_ptr<base_type> clone() const override {
@@ -165,7 +165,7 @@ public:
   std::string name() const override { return "Nuclear attraction operator"; }
 
 private:
-  const Atomic& S_integral_calculator;
+  const Atomic& m_integral_calculator;
 };
 
 template <typename StoredMatrix>
@@ -187,7 +187,7 @@ public:
     assert_size(n_cols(), X.n_rows());
 
     stored_matrix_type AX(n_rows(), X.n_cols(), false);
-    const int nmax = S_integral_calculator.nmax1;
+    const int nmax = m_integral_calculator.nmax1;
 
     // Apply S^{(l)}_{n',n} = \delta_{n',n} +
     // S^{(l)}_{n,n+1}(\delta_{n',n+1}+\delta_{n'+1,n}).
@@ -197,14 +197,15 @@ public:
       nlm_t nlm = nlmbasis::quantum_numbers_from_index(i);
       int8_t n = nlm.n, l = nlm.l, m = nlm.m;
       size_t i_nminus = nlmbasis::index(nlm_t(n - 1, l, m)),
-             i_nplus = nlmbasis::index(nlm_t(n + 1, l, m));
+             i_nplus  = nlmbasis::index(nlm_t(n + 1, l, m));
 
       // Overlap is symmetric in n,np
-      double S_nnl = S_integral_calculator.overlap(n, n + 1, l);
+      double S_nnl = m_integral_calculator.overlap(n, n + 1, l);
 
       for (size_type j = 0; j < AX.n_cols(); j++)
-        AX(i, j) = ((n > l + 1) ? S_nnl * X(i_nminus, j) : 0) + X(i, j) +
-                   ((n < nmax) ? S_nnl * X(i_nplus, j) : 0);
+        AX(i, j) = ((n>l+1)  ? S_nnl * X(i_nminus, j) : 0)
+	           + X(i, j) +
+                   ((n<nmax) ? S_nnl * X(i_nplus, j) : 0);
     }
 
     return AX;
@@ -218,17 +219,17 @@ public:
     const nlm_t mui = nlmbasis::quantum_numbers_from_index(row),
                 muj = nlmbasis::quantum_numbers_from_index(col);
 
-    return S_integral_calculator.overlap(mui, muj);
+    return m_integral_calculator.overlap(mui, muj);
   }
 
   OverlapIntegralCore(const Atomic& integral_calculator)
-        : S_integral_calculator(integral_calculator) {}
+        : m_integral_calculator(integral_calculator) {}
 
   /** \brief Number of rows of the matrix */
-  size_type n_rows() const override { return S_integral_calculator.n_bas(); }
+  size_type n_rows() const override { return m_integral_calculator.n_bas(); }
 
   /** \brief Number of columns of the matrix  */
-  size_type n_cols() const override { return S_integral_calculator.n_bas(); }
+  size_type n_cols() const override { return m_integral_calculator.n_bas(); }
 
   /** \brief Clone the expression */
   std::unique_ptr<base_type> clone() const override {
@@ -242,7 +243,7 @@ public:
   std::string name() const override { return "Overlap operator"; }
 
 private:
-  const Atomic& S_integral_calculator;
+  const Atomic& m_integral_calculator;
 };
 
 template <typename StoredMatrix>
@@ -264,7 +265,7 @@ public:
     assert_size(n_cols(), X.n_rows());
 
     stored_matrix_type AX(n_rows(), X.n_cols(), false);
-    const int nmax = S_integral_calculator.nmax1;
+    const int nmax = m_integral_calculator.nmax1;
 
     for (size_t i = 0; i < n_rows(); i++) {
       nlm_t nlm = nlmbasis::quantum_numbers_from_index(i);
@@ -274,7 +275,7 @@ public:
       // overlap matrix S.
       size_t i_nminus = nlmbasis::index(nlm_t(n - 1, l, m)),
              i_nplus = nlmbasis::index(nlm_t(n + 1, l, m));
-      double T_nnl = -0.5L * S_integral_calculator.overlap(n, n + 1, l);
+      double T_nnl = -0.5L * m_integral_calculator.overlap(n, n + 1, l);
 
       for (size_type j = 0; j < AX.n_cols(); j++) {
         AX(i, j) = ((n > l + 1) ? T_nnl * X(i_nminus, j) : 0) + 0.5L * X(i, j) +
@@ -293,17 +294,17 @@ public:
     const nlm_t mui = nlmbasis::quantum_numbers_from_index(row),
                 muj = nlmbasis::quantum_numbers_from_index(col);
 
-    return k * k * S_integral_calculator.kinetic(mui, muj);
+    return k * k * m_integral_calculator.kinetic(mui, muj);
   }
 
   KineticIntegralCore(const Atomic& integral_calculator, real_type k)
-        : k(k), S_integral_calculator(integral_calculator) {}
+        : k(k), m_integral_calculator(integral_calculator) {}
 
   /** \brief Number of rows of the matrix */
-  size_type n_rows() const override { return S_integral_calculator.n_bas(); }
+  size_type n_rows() const override { return m_integral_calculator.n_bas(); }
 
   /** \brief Number of columns of the matrix  */
-  size_type n_cols() const override { return S_integral_calculator.n_bas(); }
+  size_type n_cols() const override { return m_integral_calculator.n_bas(); }
 
   /** \brief Clone the expression */
   std::unique_ptr<base_type> clone() const override {
@@ -317,7 +318,7 @@ public:
   std::string name() const override { return "Kinetic energy operator"; }
 
 private:
-  const Atomic& S_integral_calculator;
+  const Atomic& m_integral_calculator;
 };
 
 template <typename StoredMatrix>
@@ -345,15 +346,15 @@ public:
                linalgwrap::ExcInvalidPointer());
 
     stored_matrix_type AX(n_rows(), X.n_cols(), true);
-    const int l_max = S_integral_calculator.lmax1;
-    const int n_max = S_integral_calculator.nmax1;
+    const int l_max = m_integral_calculator.lmax1;
+    const int n_max = m_integral_calculator.nmax1;
     const stored_matrix_type& Cocc(*coefficients_occupied_ptr);
 
     //    cout << "\nCalculating "<<(exchange?"exchange":"coulomb")<<" integral
     //    application.\n";
-    for (size_t b1 = 0; b1 < n_rows();
-         b1++) {  // TODO: Mål, om det bliver hurtigere / nemmere at OpenMP'e,
-                  // af at iterere over b1q samlet.
+    for (size_t b1 = 0; b1 < n_rows(); b1++) {
+      // TODO: Mål, om det bliver hurtigere / nemmere at OpenMP'e,
+      // af at iterere over b1q samlet.
       nlm_t nlm1 = nlmbasis::quantum_numbers_from_index(b1);
       int8_t /*n1 = nlm1.n, */ l1 = nlm1.l, m1 = nlm1.m;
 
@@ -367,17 +368,14 @@ public:
           for (size_t b3 = 0; b3 < n_rows(); b3++) {
             nlm_t nlm3 = nlmbasis::quantum_numbers_from_index(b3);
             int8_t /*n3 = nlm3.n, l3 = nlm3.l,*/ m3 = nlm3.m;
-            //	    cout << "b3 = " << b3 << " = index(" <<
-            // vector<int>{n3,l3,m3} << ")\n";
 
             // TODO: Exchange? Da!
             int8_t m4 = m3 - m2 + m1;
             int l_parity = (l1 + l2) & 1, m_parity = (m1 + m2) & 1;
             int l_min = max(
                   l_parity,
-                  ::abs(m4) + ((m_parity + l_parity) & 1));  // TODO: Check!!
-            //	    cout << "\t{l_parity,m_parity,l_min} = " <<
-            // vector<int>{l_parity,m_parity,l_min} << endl;
+                  ::abs(int(m4)) + ((m_parity + l_parity) & 1)
+	     );  // TODO: Check.
 
             int B2 =
                   exchange ? b3 : b2;  // Swap b2 and b3 if computing exchange
@@ -385,24 +383,9 @@ public:
             real_type X_bq = X(b2, q);  // TODO: switch b,B again?
 
             for (int8_t l4 = l_min; l4 <= l_max; l4 += 2) {
-              //		int8_t lmin =
-              // max(abs(m2-m1)+(m_parity-l_parity),
-              // max(abs(l1-l2),abs(l3-l4)));
-              //// l >= |m2-m1| && l >= |l1-l2| && l >= |l3-l4| && (-1)^l =
-              //(-1)^(l1+l2)
-              //		int8_t lmax = min(l1+l2,l3+l4);
 
-              for (int8_t n4 = l4 + 1; n4 <= n_max;
-                   n4++) {  // TODO: Fixed number of n's (same-length dot
-                            // product for all (l,m)-combinations). Same (l,m),
-                            // different n's should be contiguous in memory.
-                // TODO: Ide: Shell-pairs grupperet efter (m2-m1) og l-paritet.
-                // Mål: contiguous dot-product.
-                // TODO: Alle atomic/cs implementationer er fuldstændig ens
-                // bortset fra repulsion-operationerne.
+              for (int8_t n4 = l4 + 1; n4 <= n_max; n4++) {  
                 int b4 = nlmbasis::index(nlm_t{n4, l4, m4});
-                //		cout << "\tb4 = " << b4 << " = index(" <<
-                // vector<int>{n4,l4,m4} << ")\n";
 
                 for (size_t p = 0; p < Cocc.n_cols(); p++)
                   sum += sturmint::atomic::cs_dummy::repulsion
@@ -413,7 +396,8 @@ public:
           }
         }
 
-        AX(b1, q) = sum;
+	//        AX(b1, q) = sum;
+	AX(b1, q) = 0;
       }
     }
 
@@ -434,8 +418,8 @@ public:
     assert_dbg(coefficients_occupied_ptr != nullptr,
                linalgwrap::ExcInvalidPointer());
 
-    const int l_max = S_integral_calculator.lmax1;
-    const int n_max = S_integral_calculator.nmax1;
+    const int l_max = m_integral_calculator.lmax1;
+    const int n_max = m_integral_calculator.nmax1;
     const stored_matrix_type& Cocc(*coefficients_occupied_ptr);
 
     nlm_t nlm1 = nlmbasis::quantum_numbers_from_index(b1);
@@ -445,59 +429,39 @@ public:
 
     real_type sum = 0;
 
-    //    cout << "\nCalculating "<<(exchange?"exchange":"coulomb")<<" integral
-    //    element ("<<b1<<","<<b2<<").\n"
-    //	 << "{n1,l1,m1} = " << vector<int>{n1,l1,m1} << "; {n2,l2,m2} = " <<
-    // vector<int>{n2,l2,m2} << ";\n";
-
     for (size_t b3 = 0; b3 < n_rows(); b3++) {
       nlm_t nlm3 = nlmbasis::quantum_numbers_from_index(b3);
       int8_t /*n3 = nlm3.n, l3 = nlm3.l,*/ m3 = nlm3.m;
 
       int8_t m4 = m3 - m2 + m1;
       int l_parity = (l1 + l2) & 1, m_parity = (m1 + m2) & 1;
-      int l_min =
-            max(l_parity,
-                ::abs(m4) + ((m_parity + l_parity) & 1));  // TODO: Check!!
-      //      cout << "b3 = " << b3 << " = index(" << vector<int>{n3,l3,m3} <<
-      //      ")\n";
-      //      cout << "\t{l_parity,m_parity,l_min} = " <<
-      //      vector<int>{l_parity,m_parity,l_min} << endl;
+      int l_min    = max(l_parity,
+			 ::abs(int(m4)) + ((m_parity + l_parity) & 1));  // TODO: Check!!
 
-      int B2 =
-            exchange
-                  ? b3
-                  : b2;  // Swap b2 and b3 if computing exchange // TODO: Check
+      int B2 = exchange ? b3 : b2;  // Swap b2 and b3 if computing exchange // TODO: Check
       int B3 = exchange ? b2 : b3;
 
       for (int8_t l4 = l_min; l4 <= l_max; l4 += 2) {
-        //		int8_t lmin = max(abs(m2-m1)+(m_parity-l_parity),
-        // max(abs(l1-l2),abs(l3-l4))); // l >= |m2-m1| && l >= |l1-l2| && l >=
-        //|l3-l4| && (-1)^l = (-1)^(l1+l2)
-        //		int8_t lmax = min(l1+l2,l3+l4);
-
         // TODO: Fixed number of n's (same-length dot product for all
         // (l,m)-combinations). Same (l,m), different n's should be
         // contiguous in memory.
         for (int8_t n4 = l4 + 1; n4 <= n_max; n4++) {
           int b4 = nlmbasis::index(nlm_t{n4, l4, m4});
-          //	  cout << "\tb4 = " << b4 << " = index(" <<
-          // vector<int>{n4,l4,m4} << ")\n";
 
           for (size_t p = 0; p < Cocc.n_cols(); p++)
-            sum += cs_dummy::repulsion[b4 +
-                                       norb * (B3 + norb * (B2 + norb * b1))] *
-                   Cocc(b3, p) * Cocc(b4, p);
+            sum += cs_dummy::repulsion[b4+norb*(B3+norb*(B2+norb*b1))] 
+	           * Cocc(b3, p) * Cocc(b4, p);
         }
       }
     }
-    return sum;
+    //    return sum;
+    return 0;
   }
 
   ERICore(const Atomic& integral_calculator, bool exchange, real_type k)
         : exchange(exchange),
           k(k),
-          S_integral_calculator(integral_calculator) {}
+          m_integral_calculator(integral_calculator) {}
 
   /** \brief Update the internal data of all objects in this expression
    *         given the ParameterMap                                     */
@@ -509,19 +473,18 @@ public:
     if (!map.exists(occ_coeff_key)) return;
 
     // Get coefficients as pointer. // TODO: Doesn't compile
-    coefficients_occupied_ptr =
-      map.at_ptr<stored_matrix_type>(occ_coeff_key);
+    coefficients_occupied_ptr = map.at_ptr<stored_matrix_type>(occ_coeff_key);
 
     // We will contract the coefficient row index over the number of
     // basis functions.
     assert_size(coefficients_occupied_ptr->n_rows(),
-                S_integral_calculator.n_bas());
+                m_integral_calculator.n_bas());
   }
   /** \brief Number of rows of the matrix */
-  size_type n_rows() const override { return S_integral_calculator.n_bas(); }
+  size_type n_rows() const override { return m_integral_calculator.n_bas(); }
 
   /** \brief Number of columns of the matrix  */
-  size_type n_cols() const override { return S_integral_calculator.n_bas(); }
+  size_type n_cols() const override { return m_integral_calculator.n_bas(); }
 
   /** \brief Clone the expression */
   std::unique_ptr<base_type> clone() const override {
@@ -540,7 +503,7 @@ public:
   }
 
 private:
-  const Atomic& S_integral_calculator;
+  const Atomic& m_integral_calculator;
 };
 
 }  // namespace cs_dummy
