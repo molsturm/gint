@@ -13,3 +13,4 @@ update_file "linalgwrap" "cmake/findKrims.cmake" || exit 1
 update_file "gscf" "cmake/findLinalgwrap.cmake" || exit 1
 
 update_file "linalgwrap" "cmake/IncludeKrimsCmakeModule.cmake" || exit 1
+update_file "linalgwrap" "update_from_sisters.lib.sh" || exit 1

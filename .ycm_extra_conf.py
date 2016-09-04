@@ -53,10 +53,16 @@ flags = [
     # To suppress errors shown here, use "-isystem" 
     # instead of "-I"
     '-I', 'src',
-    '-isystem', './../linalgwrap/src',
-    '-isystem', './../linalgwrap/external/rapidcheck/include',
-    '-isystem', './../linalgwrap/external/catch/include',
-    '-isystem', './../sturmint/src',
+    '-isystem', './external/krims/src'
+    '-isystem', './external/linalgwrap/src'
+    '-isystem', './external/sturmint/src'
+    '-isystem', './external/rapidcheck/include'
+    '-isystem', './external/rapidcheck/ext/catch/include'
+    '-isystem', '../krims/src'
+    '-isystem', '../linalgwrap/src'
+    '-isystem', '../sturmint/src'
+    '-isystem', '../rapidcheck/include'
+    '-isystem', '../rapidcheck/ext/catch/include'
 ]
 
 def DirectoryOfThisScript():

@@ -43,6 +43,20 @@ if ("${sturmint_DIR}" STREQUAL "sturmint_DIR-NOTFOUND")
 		add_subdirectory(${PROJECT_SOURCE_DIR}/external/sturmint)
 		include_directories(${PROJECT_SOURCE_DIR}/external/sturmint/src)
 
+		# Extract version from CMakeLists.txt:
+		file(STRINGS "${PROJECT_SOURCE_DIR}/external/sturmint/CMakeLists.txt"
+			VERSION_RAW
+			REGEX "sturmint VERSION [0-9.]+"
+			LIMIT_COUNT 1)
+		string(REGEX MATCH "[0-9.]+" GOT_VERSION "${VERSION_RAW}")
+
+		# Compare against what is needed
+		if("${GOT_VERSION}" VERSION_LESS "${STURMINT_VERSION}")
+			message(FATAL_ERROR "Inconsistency in the repo: \
+Version ${STURMINT_VERSION} of sturmint was requested, but only version ${GOT_VERSION} \
+was found.")
+		endif()
+
 		return()
 	endif()
 
