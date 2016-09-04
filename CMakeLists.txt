@@ -1,12 +1,13 @@
+## ---------------------------------------------------------------------
+## Put licence text here
+## ---------------------------------------------------------------------
+
 cmake_minimum_required(VERSION 3.0.0)
 
-# The DebugReleaseBuild module provides a nice infrastructure to 
-# simultaneously build a Debug and a Release version of the same program
-# or library, exactly what we need. Try to load it:
-include("${CMAKE_SOURCE_DIR}/cmake/IncludeLinalgwrapCmakeModule.cmake")
-include_linalgwrap_cmake_module(DebugReleaseBuild)
-
-# initialise DebugReleaseBuild:
+# Load the DebugReleaseBuild module for a simultaneous Debug and Release
+# and release build and initialise it.
+include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/IncludeKrimsCmakeModule.cmake")
+include_krims_cmake_module(DebugReleaseBuild)
 drb_init()
 
 ##########################################################################
@@ -24,6 +25,7 @@ option(GINT_ENABLE_TESTS "Build gint tests" ON)
 # enable the new version feature introduced in cmake 3.0.0
 cmake_policy(SET CMP0048 NEW)
 project(gint VERSION 0.0.0)
+message("\n# Configuring ${PROJECT_NAME}\n#")
 
 # Global include directories for this project:
 include_directories("${gint_SOURCE_DIR}/src")
@@ -35,8 +37,8 @@ enable_testing()
 ##########################################################################
 # Setup hard and optional dependencies and find components
 
-# Determine and setup compiler flags
-drb_setup_compiler_flags()
+# Determine and setup compiler flags, enforcing C++11
+drb_setup_compiler_flags(11)
 
 # setup hard dependencies
 include(cmake/setup_dependencies.cmake)
@@ -47,15 +49,18 @@ include(cmake/setup_optional.cmake)
 ##########################################################################
 # Pass on to subdirectories:
 
-# The src directory does most of the work: Here the library is build and 
+# The src directory does most of the work: Here the library is build and
 # installation is configured.
 add_subdirectory(src)
 
 # Add subdirectories for the test.
-if(GINT_ENABLE_TESTS) 
+if(GINT_ENABLE_TESTS)
 	add_subdirectory(tests)
 endif()
 
 ##########################################################################
 # Finally install package:
 include(cmake/install_package.cmake)
+
+# and print a closing message
+message("#\n# Configuring ${PROJECT_NAME} done")

@@ -1,14 +1,14 @@
 # sets these things
 #
-# 	GINT_DEPENDENCIES			everyone needs these libraries
-# 	GINT_DEPENDENCIES_DEBUG		debug mode needs these extras
-# 	GINT_DEPENDENCIES_RELEASE		release mode needs these extras
-# 	GINT_DEPENDENCIES_TEST		tests need these extra libraries
+#	GINT_DEPENDENCIES			everyone needs these libraries
+#	GINT_DEPENDENCIES_DEBUG		debug mode needs these extras
+#	GINT_DEPENDENCIES_RELEASE		release mode needs these extras
+#	GINT_DEPENDENCIES_TEST		tests need these extra libraries
 #
 #       GINT_DEFINITIONS			definitions for all compilation
 #       GINT_DEFINITIONS_DEBUG		definitions for debug mode
 #       GINT_DEFINITIONS_RELEASE		definitions for release mode
-#       
+#
 
 ####################
 #-- Empty it all --#
@@ -21,79 +21,47 @@ set(GINT_DEFINITIONS "")
 set(GINT_DEFINITIONS_DEBUG "")
 set(GINT_DEFINITIONS_RELEASE "")
 
+############################
+#-- rapidcheck and catch --#
+############################
+if(GINT_ENABLE_TESTS)
+	# We need to setup rapidcheck and catch for the tests:
+	include(cmake/findRapidcheck.cmake)
+	set(GINT_DEPENDENCIES_TEST ${GINT_DEPENDENCIES_TEST} ${rapidcheck_TARGET})
+
+	include(cmake/findCatch.cmake)
+	set(GINT_DEPENDENCIES_TEST ${GINT_DEPENDENCIES_TEST} ${catch_TARGET})
+endif()
+
+#############
+#-- krims --#
+#############
+# Find at least version 0.0.0
+set(KRIMS_VERSION 0.0.0)
+include(cmake/findKrims.cmake)
+
+foreach (build ${DRB_BUILD_TYPES})
+	set(GINT_DEPENDENCIES_${build} ${GINT_DEPENDENCIES_${build}} ${krims_${build}_TARGET})
+endforeach()
+
 ##################
 #-- linalgwrap --#
 ##################
-if (TARGET "${linalgwrap_DEBUG_TARGET}" OR TARGET "${linalgwrap_RELEASE_TARGET}")
-	# If the targets are already defined elsewhere, we are done:
-	message(STATUS "Using linalgwrap library provided by build environment.")
-else()
-	include(cmake/findLinalgwrap.cmake)
-endif()
+# Find at least version 0.2.0
+set(LINALGWRAP_VERSION 0.2.0)
+include(cmake/findLinalgwrap.cmake)
 
-# Check that all required targets are available.
-foreach(build ${DRB_BUILD_TYPES})
-	if(NOT TARGET "${linalgwrap_${build}_TARGET}")
-		message(FATAL_ERROR "We could not find a ${build} version of linalwrap at this location. \
-Either disable building a ${build} version of ${CMAKE_PROJECT_NAME} or else \
-rebuild linalgwrap with a ${build} version as well.")
-	endif()
-
-	# Add dependencies to appropriate versions of gint
+foreach (build ${DRB_BUILD_TYPES})
 	set(GINT_DEPENDENCIES_${build} ${GINT_DEPENDENCIES_${build}} ${linalgwrap_${build}_TARGET})
 endforeach()
 
 ################
 #-- sturmint --#
 ################
+# Find at least version 0.0.0
+set(STURMINT_VERSION 0.0.0)
+include(cmake/findSturmint.cmake)
 
-if (TARGET "${sturmint_DEBUG_TARGET}" OR TARGET "${sturmint_RELEASE_TARGET}")
-	message(STATUS "Using sturmint library provided by build environment.")
-else()
-	include(cmake/findSturmint.cmake)
-endif()
-
-# Check that all required targets are available.
-foreach(build ${DRB_BUILD_TYPES})
-	if(NOT TARGET "${sturmint_${build}_TARGET}")
-		message(FATAL_ERROR "We could not find a ${build} version of sturmint at this location. \
-Either disable building a ${build} version of ${CMAKE_PROJECT_NAME} or else \
-rebuild sturmint with a ${build} version as well.")
-	endif()
-
-	# Add dependencies to appropriate versions of gint
+foreach (build ${DRB_BUILD_TYPES})
 	set(GINT_DEPENDENCIES_${build} ${GINT_DEPENDENCIES_${build}} ${sturmint_${build}_TARGET})
 endforeach()
-
-
-##############
-#-- catch  --#
-##############
-if(GINT_ENABLE_TESTS)
-	if (TARGET common_catch)
-		MESSAGE(STATUS "Using catch provided by build enviroment.")
-		set(GINT_DEPENDENCIES_TEST ${GINT_DEPENDENCIES_TEST} common_catch)
-	else()
-		include(cmake/findCatch.cmake)
-		set(GINT_DEPENDENCIES_TEST ${GINT_DEPENDENCIES_TEST} Upstream::catch)
-	endif()
-
-endif()
-
-##################
-#-- rapidcheck --#
-##################
-if(GINT_ENABLE_TESTS)
-	if (TARGET common_rapidcheck)
-		MESSAGE(STATUS "Using rapidcheck provided by build environment.")
-		set(GINT_DEPENDENCIES_TEST ${GINT_DEPENDENCIES_TEST} rapidcheck)
-	else()
-		find_package(rapidcheck REQUIRED CONFIG 
-			PATHS 
-			${gint_SOURCE_DIR}/../linalgwrap/build
-		)
-
-		message(STATUS "Found rapidcheck config at ${rapidcheck_CONFIG}")
-		set(GINT_DEPENDENCIES_TEST ${GINT_DEPENDENCIES_TEST} Upstream::rapidcheck)
-	endif()
-endif()

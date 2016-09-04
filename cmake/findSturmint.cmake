@@ -1,93 +1,72 @@
-# Finds and sets up the sturmint targets
+# Finds and sets up linalgwrap under the target names stored in
+#      sturmint_DEBUG_TARGET     (Debug version)
+#      sturmint_RELEASE_TARGET   (Release version)
+# such that just linking against it as a dependency does everything
+# automatically.
 #
-#   Upstream::sturmint.g      (Debug target)
-#   Upstream::sturmint        (Release target)
-#
-# Such that just linking against them as a dependency does everything
-# automaatically.
-#
-# If sturmint was not compiled as Debug and Release it may happen that
-# one of the above targets is not available.
-#
-# For convenience and future portability the variables 
-#      sturmint_DEBUG_TARGET      (Name of Debug target)
-#      sturmint_RELEASE_TARGET    (Name of Release target)
-# are available, but note that their presence does not indicate that
-# the targets are actually available.
+# In case the sturmint library is not found and AUTOCHECKOUT_MISSING_LIBS is set to
+# on, sturmint is automatically checked out and built.
+# Otherwise a fatal error is produced.
 #
 
-# We need sturmint version 0.0.0
-find_package(sturmint 0.0.0 REQUIRED CONFIG 
-	PATHS 
-	${PROJECT_SOURCE_DIR}/../sturmint/build
-)
-# Now we found the library. Most of the times that's it and we are done.
-# But if we got the sturmint from a build directory, then it is very
-# likely that the header includes cannot be found like this.
+#
+# Options and properties required
+#
+option(AUTOCHECKOUT_MISSING_REPOS "Automatically checkout missing repositories" OFF)
 
-# Find dir containing sturmint config:
-get_filename_component(sturmint_config_dir "${sturmint_CONFIG}"  DIRECTORY)
+#
+# -------
+#
 
-set(sturmint_DEBUG_TARGET   "Upstream::sturmint.g" 
+if (TARGET "${sturmint_DEBUG_TARGET}"  OR TARGET "${sturmint_RELEASE_TARGET}")
+	message(STATUS "Found sturmint targets, assume sturmint already configured for build.")
+	return()
+endif()
+
+# Try to find sturmint somewhere
+find_package(sturmint ${STURMINT_VERSION} QUIET CONFIG)
+string(TOUPPER "${PROJECT_NAME}" PROJECT_UPPER)
+if ("${sturmint_DIR}" STREQUAL "sturmint_DIR-NOTFOUND")
+	if (AUTOCHECKOUT_MISSING_REPOS)
+		execute_process(
+			COMMAND "sh" "get_sturmint.sh"
+			WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/external"
+			RESULT_VARIABLE RES
+		)
+		if (NOT RES EQUAL 0)
+			message(FATAL_ERROR "Getting sturmint from git failed with error: ${RES}")
+		endif()
+
+		#
+		# Proceed to configure sturmint
+		#
+		add_subdirectory(${PROJECT_SOURCE_DIR}/external/sturmint)
+		include_directories(${PROJECT_SOURCE_DIR}/external/sturmint/src)
+
+		return()
+	endif()
+
+	message(FATAL_ERROR "Could not find sturmint library.
+Either provide the installation prefix of the sturmint library in the environment \
+variable sturmint_DIR or enable autocheckout via -DAUTOCHECKOUT_MISSING_REPOS=ON.")
+endif()
+
+#TODO test and remove (same below in #old#)
+message(WARNING "This part of findLinalgwrap has never been tested.")
+
+# Setup library targets
+set(sturmint_DEBUG_TARGET   "Upstream::sturmint.g"
 	CACHE INTERNAL "Target name of debug version of sturmint")
 set(sturmint_RELEASE_TARGET "Upstream::sturmint"
 	CACHE INTERNAL "Target name of release version of sturmint")
 
-# So we try to correct this for all existing targets:
-foreach(target ${sturmint_DEBUG_TARGET} ${sturmint_RELEASE_TARGET})
-	if (NOT TARGET ${target})
-		continue()
+# Check that all required targets are available.
+foreach(build ${DRB_BUILD_TYPES})
+	if(NOT TARGET "${sturmint_${build}_TARGET}")
+		message(FATAL_ERROR "We could not find a ${build} version of sturmint at this location. \
+		Either disable building a ${build} version of ${CMAKE_PROJECT_NAME} or else \
+		rebuild sturmint with a ${build} version as well.")
 	endif()
-
-	# Check that the includes are present:
-	get_target_property(STURMINT_INTERFACE_INCLUDES 
-		${target} INTERFACE_INCLUDE_DIRECTORIES)
-
-	# If yes continue
-	if(NOT "${STURMINT_INTERFACE_INCLUDES}" 
-			STREQUAL "STURMINT_INTERFACE_INCLUDES-NOTFOUND")
-		continue()
-	endif()
-
-	set(STURMINT_INTERFACE_INCLUDES "")
-
-	# Try to find the include dirctory:
-	find_path(sturmint_INCLUDE_DIR "sturmint/version.hh"
-		HINTS
-		# If we found a build directory, then this is the 
-		# path to the include directory
-		${sturmint_config_dir}/../src/
-		PATHS
-		$ENV{sturmint_INCLUDE_DIR}
-		${PROJECT_SOURCE_DIR}/../sturmint/src
-		DOC "sturmint header include directory"
-	)
-
-	# Check that the include directory was found
-	if ("${sturmint_INCLUDE_DIR}" STREQUAL "sturmint_INCLUDE_DIR-NOTFOUND")
-		message(FATAL_ERROR "Could not find sturmint include directory. 
-Please provide a hint using the environment variable sturmint_INCLUDE_DIR")
-	endif()
-
-	# Append to interface includes:
-	set(STURMINT_INTERFACE_INCLUDES ${STURMINT_INTERFACE_INCLUDES} ${sturmint_INCLUDE_DIR})
-
-	# Check that the sturmint/version_defs.hh file can be found in this include
-	# directory.
-	if(NOT EXISTS "${sturmint_INCLUDE_DIR}/sturmint/version_defs.hh")
-		if(EXISTS "${sturmint_config_dir}/src/sturmint/version_defs.hh")
-			set(STURMINT_INTERFACE_INCLUDES ${STURMINT_INTERFACE_INCLUDES} 
-				"${sturmint_config_dir}/src"
-			)
-		else()
-			message(FATAL_ERROR "Could not find sturmint version_defs.hh file")
-		endif()
-	endif()
-
-	# Set the interface includes:
-	set_target_properties(${target}
-		PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${STURMINT_INTERFACE_INCLUDES}"
-	)
 endforeach()
 
 message(STATUS "Found sturmint config at ${sturmint_CONFIG}")

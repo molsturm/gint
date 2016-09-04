@@ -6,7 +6,7 @@ set(GINT_SOURCES
 )
 
 # Dump the current version as an include file.
-include_linalgwrap_cmake_module(WriteVersionHeader)
+include_krims_cmake_module(WriteVersionHeader)
 write_version_header("${CMAKE_BINARY_DIR}/src/gint/version_defs.hh")
 
 # Add the libraries for Debug and Release builds:
