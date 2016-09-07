@@ -42,8 +42,12 @@ flags = [
     # Compile debug code as well
     '-DDEBUG',
     # Compile extra code blocks:
-    # '-DLINALGWRAP_HAVE_GLIBC_STACKTRACE',
     '-DLINALGWRAP_HAVE_ARMADILLO',
+    # C++14 code blocks:
+    '-DLINALGWRAP_HAVE_CXX14',
+    '-DKRIMS_HAVE_CXX14',
+    '-DSTURMINT_HAVE_CXX14',
+    '-DGINT_HAVE_CXX14',
     # Compile as c++14
     '-std=c++14',
     # Treat .h header files as c++:
@@ -63,6 +67,8 @@ flags = [
     '-isystem', '../sturmint/src'
     '-isystem', '../rapidcheck/include'
     '-isystem', '../rapidcheck/ext/catch/include'
+    # Explicit clang includes:
+    '-isystem', '/usr/lib/ycmd/clang_includes',
 ]
 
 def DirectoryOfThisScript():
