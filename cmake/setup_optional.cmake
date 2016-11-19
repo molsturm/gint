@@ -14,11 +14,11 @@
 ####################
 #-- C++ standard --#
 ####################
-if (DRB_HAS_CXX14_SUPPORT)
+if (NOT CMAKE_CXX_STANDARD VERSION_LESS 14)
 	message(STATUS "Detected C++14 support: Setting GINT_HAVE_CXX14")
 	LIST(APPEND GINT_DEFINITIONS "GINT_HAVE_CXX14")
 endif()
-if (DRB_HAS_CXX17_SUPPORT)
+if (NOT CMAKE_CXX_STANDARD VERSION_LESS 17)
 	message(STATUS "Detected C++17 support: Setting GINT_HAVE_CXX17")
 	LIST(APPEND GINT_DEFINITIONS "GINT_HAVE_CXX17")
 endif()
