@@ -22,3 +22,12 @@ if (NOT CMAKE_CXX_STANDARD VERSION_LESS 17)
 	message(STATUS "Detected C++17 support: Setting GINT_HAVE_CXX17")
 	LIST(APPEND GINT_DEFINITIONS "GINT_HAVE_CXX17")
 endif()
+
+#############################
+#-- Experimental features --#
+#############################
+option(GINT_STATIC_INTEGRALS "Compile pre-computed static integrals into the library (useful for testing)" OFF)
+if(GINT_STATIC_INTEGRALS)
+	message(STATUS "Enable pre-computed static integrals")
+	LIST(APPEND GINT_DEFINITIONS "GINT_STATIC_INTEGRALS")
+endif()
