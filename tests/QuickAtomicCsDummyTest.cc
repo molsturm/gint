@@ -21,8 +21,8 @@ TEST_CASE("Quick atomic cs_dummy test", "[quicktest cs_dummy]") {
 
   // Setup parameters for the integral library
   const krims::ParameterMap params{
-        {"k_exponent", 1.0},
-        {"Z_charge", 4.0},
+        {"k_exponent", refdata_type::k_exp},
+        {"Z_charge", refdata_type::Z},
         {"n_max", 3},
         {"l_max", 2},
         {"basis_type", "atomic/cs_dummy"},
