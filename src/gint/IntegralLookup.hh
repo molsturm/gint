@@ -1,9 +1,8 @@
 #pragma once
 #include "Integral.hh"
 #include <complex>
+#include <krims/ParameterMap.hh>
 #include <linalgwrap/LazyMatrixExpression.hh>
-#include <linalgwrap/ParameterMap.hh>
-#include <linalgwrap/type_utils.hh>
 #include <string>
 #include <type_traits>
 #include <vector>
@@ -29,38 +28,46 @@ public:
   //! The real type underlying the scalar type:
   // TODO make each library know about real type?
   typedef typename stored_matrix_type::scalar_type scalar_type;
-  typedef typename linalgwrap::RealTypeOf<scalar_type>::type real_type;
+  typedef typename stored_matrix_type::real_type real_type;
   // end todo
 
   static_assert(otype == COMPLEX_ATOMIC,
                 "Currently COMPLEX_ATOMIC is hard coded.");
-  typedef atomic::cs_dummy::IntegralCollection<stored_matrix_type>
-        integral_collection_type;
-  typedef Integral<stored_matrix_type> integral_matrix_type;
 
-  static_assert(!linalgwrap::IsComplexScalar<
+  // TODO generalise and enable real sturmians
+  typedef typename atomic::static14::IntegralCollection<stored_matrix_type>
+        integral_collection_type;
+  // typedef atomic::cs_dummy::IntegralCollection<stored_matrix_type>
+  //      integral_collection_type;
+  typedef Integral<stored_matrix_type> integral_type;
+
+  static_assert(!krims::IsComplexNumber<
                       typename stored_matrix_type::scalar_type>::value ||
                       (otype == COMPLEX_MOLECULAR),
                 "The StoredMatrix should only have a complex scalar type if "
                 "the OrbitalType is COMPLEX_MOLECULAR");
 
   /** \name Construct an IntegralLookup object for a particular basis, which
-   *  is referred to by the \t basistype_name string */
-  IntegralLookup(const std::string& basistype_name,
-                 const linalgwrap::ParameterMap& parameters =
-                       linalgwrap::ParameterMap());
+   *  is referred to by the \t basistype_name string
+   *
+   * ## Some useful control parameters
+   *   - "basistype_name":    Name of the basis functions to be used.
+   *                          (Default: "", which will yield an error)
+   *
+   *  */
+  IntegralLookup(const krims::ParameterMap& parameters);
 
   /** Return a particular integral, given an id */
-  integral_matrix_type operator()(const std::string& integral_id);
+  integral_type operator()(const std::string& integral_id) const;
 
   /** Return an integral matrix representing a linear combination of
    *  a list of integrals. */
-  integral_matrix_type operator()(
+  integral_type operator()(
         const std::vector<scalar_type>& coefficients,
-        const std::vector<std::string>& integral_names);
+        const std::vector<std::string>& integral_names) const;
 
 private:
-  //! Integral collection to use. Currently we use the dummy cs_atomic one
+  //! Integral collection to use. Currently we use the precomputed static14.
   integral_collection_type m_integral_collection;
 };
 
@@ -70,26 +77,27 @@ private:
 
 template <typename StoredMatrix, OrbitalType otype>
 IntegralLookup<StoredMatrix, otype>::IntegralLookup(
-      const std::string& basistype_name,
-      const linalgwrap::ParameterMap& parameters)
+      const krims::ParameterMap& parameters)
       : m_integral_collection{parameters} {
-  assert_dbg(basistype_name == "atomic/cs_dummy",
-             linalgwrap::ExcNotImplemented());
+  std::string basis_type =
+        parameters.at("basis_type", std::string("No basis_type supplied"));
+
+  assert_dbg(basis_type == "atomic/cs_dummy",
+             krims::ExcNotImplemented());
 }
 
 template <typename StoredMatrix, OrbitalType otype>
-typename IntegralLookup<StoredMatrix, otype>::integral_matrix_type
-IntegralLookup<StoredMatrix, otype>::operator()(
-      const std::string& integral_id) {
+typename IntegralLookup<StoredMatrix, otype>::integral_type IntegralLookup<
+      StoredMatrix, otype>::operator()(const std::string& integral_id) const {
   return m_integral_collection(integral_id);
 }
 
 template <typename StoredMatrix, OrbitalType otype>
-typename IntegralLookup<StoredMatrix, otype>::integral_matrix_type
+typename IntegralLookup<StoredMatrix, otype>::integral_type
 IntegralLookup<StoredMatrix, otype>::operator()(
       const std::vector<scalar_type>& /* coefficients */,
-      const std::vector<std::string>& /* integral_names */) {
-  assert_dbg(false, linalgwrap::ExcNotImplemented());
+      const std::vector<std::string>& /* integral_names */) const {
+  assert_dbg(false, krims::ExcNotImplemented());
   return m_integral_collection("Not implemented");
 }
 
