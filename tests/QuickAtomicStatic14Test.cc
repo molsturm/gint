@@ -1,3 +1,4 @@
+#ifdef GINT_STATIC_INTEGRALS
 #include "SturmianTestData.hh"
 #include "integral_quick_tests.hh"
 #include <gint/IntegralLookup.hh>
@@ -9,7 +10,7 @@ namespace tests {
 using namespace linalgwrap;
 using namespace krims;
 
-TEST_CASE("Quick atomic cs_dummy test", "[quicktest cs_dummy]") {
+TEST_CASE("Quick atomic cs_dummy test", "[quicktest static14]") {
   typedef double scalar_type;
   typedef SmallMatrix<scalar_type> stored_matrix_type;
   const OrbitalType otype = COMPLEX_ATOMIC;
@@ -23,9 +24,7 @@ TEST_CASE("Quick atomic cs_dummy test", "[quicktest cs_dummy]") {
   const krims::ParameterMap params{
         {"k_exponent", 1.0},
         {"Z_charge", 4.0},
-        {"n_max", 3},
-        {"l_max", 2},
-        {"basis_type", "atomic/cs_dummy"},
+        {"basis_type", "atomic/static14"},
   };
 
   IntegralDummyTests<int_lookup_type, refdata_type>::run_all(
@@ -34,3 +33,4 @@ TEST_CASE("Quick atomic cs_dummy test", "[quicktest cs_dummy]") {
 
 }  // namespace tests
 }  // namespace gint
+#endif

@@ -2,8 +2,8 @@
 # The sources for the test executable
 #
 set(GINT_TESTS_SOURCES
-	../../linalgwrap/tests/NumComp.cc
-	QuickAtomicCsDummyTest.cc
+	#QuickAtomicCsDummyTest.cc
+	QuickAtomicStatic14Test.cc
 	main.cc
 )
 
