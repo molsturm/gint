@@ -7,7 +7,9 @@
 #include <type_traits>
 #include <vector>
 
-#include "atomic/cs_dummy.hh"
+// TODO taken out since it does not work atm
+//#include "atomic/cs_dummy.hh"
+#include "atomic/static14.hh"
 
 namespace gint {
 
@@ -82,7 +84,7 @@ IntegralLookup<StoredMatrix, otype>::IntegralLookup(
   std::string basis_type =
         parameters.at("basis_type", std::string("No basis_type supplied"));
 
-  assert_dbg(basis_type == "atomic/cs_dummy",
+  assert_dbg(basis_type == integral_collection_type::id,
              krims::ExcNotImplemented());
 }
 
