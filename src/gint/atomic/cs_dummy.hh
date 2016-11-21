@@ -132,17 +132,15 @@ public:
    * \delta_{\mu',\mu} \f$ */
   scalar_type operator()(size_type row, size_type col) const override {
     using sturmint::orbital_index::nlmbasis;
-
     if (row != col)
       return 0;
     else {
-      int8_t n = nlmbasis::quantum_numbers_from_index(row).n;
+      int n = nlmbasis::quantum_numbers_from_index(row).n;
       return -Z*k/n;
     }
   }
 
-  NuclearAttractionIntegralCore(const Atomic& integral_calculator, real_type k,
-                                real_type Z)
+  NuclearAttractionIntegralCore(const Atomic& integral_calculator, real_type k, real_type Z)
         : k(k), Z(Z), m_integral_calculator(integral_calculator) {}
 
   /** \brief Number of rows of the matrix */
@@ -335,10 +333,8 @@ public:
   real_type k;    // Exponent scale
 
   /** \brief Multiplication with a stored matrix */
-  // J_{b1,q} = J_{b1,b2} X_{b2,q} = J_{b1,b2,b3,b4} X_{b2,q} Cocc_{b3,p}
-  // Cocc_{b4,p} = J_{b1,b2,b3,b4} X_{b2,q} D_{b3,b4}
-  // K_{b1,q} = K_{b1,b2} X_{b2,q} = J_{b1,b3,b2,b4} X_{b2,q} Cocc_{b3,p}
-  // Cocc_{b4,p} = J_{b1,b3,b2,b4} X_{b2,q} D_{b3,b4}
+  // J_{b1,q} = J_{b1,b2} X_{b2,q} = J_{b1,b2,b3,b4} X_{b2,q} Cocc_{b3,p} Cocc_{b4,p} = J_{b1,b2,b3,b4} X_{b2,q} D_{b3,b4}
+  // K_{b1,q} = K_{b1,b2} X_{b2,q} = J_{b1,b3,b2,b4} X_{b2,q} Cocc_{b3,p} Cocc_{b4,p} = J_{b1,b3,b2,b4} X_{b2,q} D_{b3,b4}
   stored_matrix_type operator*(const stored_matrix_type& X) const override {
     using namespace sturmint::orbital_index;
     assert_size(n_cols(), X.n_rows());
