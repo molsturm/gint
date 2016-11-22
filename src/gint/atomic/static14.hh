@@ -2,20 +2,18 @@
 #ifdef GINT_STATIC_INTEGRALS
 #include "Static14Data.hh"
 #include "gint/Integral.hh"
+#include "gint/IntegralCollectionBase.hh"
 #include "gint/IntegralCoreBase.hh"
+#include "gint/config.hh"
 #include <krims/ParameterMap.hh>
 
 namespace gint {
 namespace atomic {
 namespace static14 {
 
-template <typename StoredMatrix>
 class OverlapIntegralCore;
-template <typename StoredMatrix>
 class NuclearAttractionIntegralCore;
-template <typename StoredMatrix>
 class KineticIntegralCore;
-template <typename StoredMatrix, bool Exchange>
 class ERICore;
 
 /** This integral collection contains precomputed data for an atomic sturmian
@@ -23,18 +21,10 @@ class ERICore;
  *
  * The exponent k and the nuclear charge Z can still be chosen freely.
  */
-template <typename StoredMatrix>
-class IntegralCollection {
+class IntegralCollection : public IntegralCollectionBase<COMPLEX_ATOMIC> {
 public:
-  typedef StoredMatrix stored_matrix_type;
-  typedef Integral<stored_matrix_type> integral_matrix_type;
-  typedef typename stored_matrix_type::size_type size_type;
-  typedef double real_type;
-
-  static_assert(
-        std::is_same<double, typename stored_matrix_type::scalar_type>::value,
-        "The scalar type of StoredMatrix needs to be double for now.");
-
+  typedef IntegralCollectionBase<COMPLEX_ATOMIC> base_type;
+  
   const static std::string id, name;
   const real_type k_exponent, Z_charge;
 
@@ -47,91 +37,44 @@ public:
   IntegralCollection(const krims::ParameterMap& parameters);
 
   /** Lookup an integral by its identifier string */
-  integral_matrix_type operator()(const std::string& integral_id) const;
+  integral_matrix_type lookup_integral(const std::string& integral_id) const override;
+
+  /** Create an integral collection for a particular basis set defined by parameters */
+  static std::shared_ptr<base_type> create(const krims::ParameterMap& parameters) {
+    return std::make_shared<IntegralCollection>(parameters);
+  }
 };
 
-//
-// Implementation
-//
-template <typename StoredMatrix>
-const std::string IntegralCollection<StoredMatrix>::id = "atomic/static14";
-template <typename StoredMatrix>
-const std::string IntegralCollection<StoredMatrix>::name =
-      "Fully precomputed integral data for 14 sturmians";
-
-template <typename StoredMatrix>
-IntegralCollection<StoredMatrix>::IntegralCollection(
-      const krims::ParameterMap& parameters)
-      : k_exponent{parameters.at<double>("k_exponent")},
-        Z_charge{parameters.at<double>("Z_charge")} {}
-
-template <typename StoredMatrix>
-Integral<StoredMatrix> IntegralCollection<StoredMatrix>::operator()(
-      const std::string& integral_name) const {
-  // TODO provide these keys as static constants somewhere
-  if (integral_name == "nuclear_attraction")
-    return make_integral<NuclearAttractionIntegralCore<stored_matrix_type>>(
-          k_exponent, Z_charge);
-  if (integral_name == "overlap")
-    return make_integral<OverlapIntegralCore<stored_matrix_type>>();
-  if (integral_name == "kinetic")
-    return make_integral<KineticIntegralCore<stored_matrix_type>>(k_exponent);
-  if (integral_name == "coulomb")
-    return make_integral<ERICore<stored_matrix_type, false>>(k_exponent);
-  if (integral_name == "exchange")
-    return make_integral<ERICore<stored_matrix_type, true>>(k_exponent);
-
-  assert_dbg(false, krims::ExcNotImplemented());
-  return Integral<StoredMatrix>(nullptr);
-}
-
-//
-// Integral cores
-//
-
-template <typename StoredMatrix>
-class NuclearAttractionIntegralCore : public IntegralCoreBase<StoredMatrix> {
+class NuclearAttractionIntegralCore : public IntegralCoreBase<real_stored_mtx_type> {
 public:
-  typedef IntegralCoreBase<StoredMatrix> base_type;
-  typedef StoredMatrix stored_matrix_type;
-  typedef typename base_type::size_type size_type;
-  typedef typename base_type::scalar_type scalar_type;
-  typedef typename base_type::real_type real_type;
+  typedef real_stored_mtx_type stored_mtx_type;
+  typedef IntegralCoreBase<real_stored_mtx_type> base_type;
+  typedef real_type scalar_type;
 
   const real_type k, Z;
 
   /** \brief Number of rows of the matrix */
-  size_type n_rows() const override {
-    return detail::Static14Data<stored_matrix_type>::nbas;
-  }
+  size_t n_rows() const override { return detail::Static14Data<stored_mtx_type>::nbas; }
 
   /** \brief Number of columns of the matrix  */
-  size_type n_cols() const override {
-    return detail::Static14Data<stored_matrix_type>::nbas;
-  }
+  size_t n_cols() const override { return detail::Static14Data<stored_mtx_type>::nbas; }
 
   /** \brief return an element of the matrix \f$ {V_0}_{\mu',\mu} = -Zk/n
    * \delta_{\mu',\mu} \f$ */
-  scalar_type operator()(size_type row, size_type col) const override {
-    return -k * Z *
-           detail::Static14Data<stored_matrix_type>::v0_bb_base(row, col);
+  scalar_type operator()(size_t row, size_t col) const override {
+    return -k * Z * detail::Static14Data<stored_mtx_type>::v0_bb_base(row, col);
   }
 
   bool has_transpose_operation_mode() const override {
-    return detail::Static14Data<stored_matrix_type>::v0_bb_base
-          .has_transpose_operation_mode();
+    return detail::Static14Data<stored_mtx_type>::v0_bb_base.has_transpose_operation_mode();
   }
 
-  void apply(const linalgwrap::MultiVector<
-                   const linalgwrap::MutableMemoryVector_i<scalar_type>>& x,
-             linalgwrap::MultiVector<
-                   linalgwrap::MutableMemoryVector_i<scalar_type>>& y,
+  void apply(const linalgwrap::MultiVector<const linalgwrap::MutableMemoryVector_i<scalar_type>>& x,
+             linalgwrap::MultiVector<linalgwrap::MutableMemoryVector_i<scalar_type>>& y,
              const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
              const scalar_type c_this = linalgwrap::Constants<scalar_type>::one,
-             const scalar_type c_y =
-                   linalgwrap::Constants<scalar_type>::zero) const override {
-    detail::Static14Data<stored_matrix_type>::v0_bb_base.apply(
-          x, y, mode, -k * Z * c_this, c_y);
+             const scalar_type c_y = linalgwrap::Constants<scalar_type>::zero) const override {
+    detail::Static14Data<stored_mtx_type>::v0_bb_base.apply(x, y, mode, -k * Z * c_this, c_y);
   }
 
   /** Extract a block of a matrix and (optionally) add it to
@@ -162,47 +105,38 @@ public:
   NuclearAttractionIntegralCore(real_type k, real_type Z) : k(k), Z(Z) {}
 };
 
-template <typename StoredMatrix>
-class OverlapIntegralCore : public IntegralCoreBase<StoredMatrix> {
+//
+// Integral cores
+//
+class OverlapIntegralCore : public IntegralCoreBase<real_stored_mtx_type> {
 public:
-  typedef IntegralCoreBase<StoredMatrix> base_type;
-  typedef StoredMatrix stored_matrix_type;
-  typedef typename base_type::size_type size_type;
-  typedef typename base_type::scalar_type scalar_type;
-  typedef typename base_type::real_type real_type;
+  typedef real_stored_mtx_type stored_mtx_type;
+  typedef IntegralCoreBase<stored_mtx_type> base_type;
+  typedef real_type scalar_type;
 
   /** \brief Number of rows of the matrix */
-  size_type n_rows() const override {
-    return detail::Static14Data<stored_matrix_type>::nbas;
-  }
+  size_t n_rows() const override { return detail::Static14Data<stored_mtx_type>::nbas; }
 
   /** \brief Number of columns of the matrix  */
-  size_type n_cols() const override {
-    return detail::Static14Data<stored_matrix_type>::nbas;
-  }
+  size_t n_cols() const override { return detail::Static14Data<stored_mtx_type>::nbas; }
 
   /** \brief return an element of the matrix \f$ {S}_{\mu',\mu} */
-  scalar_type operator()(size_type row, size_type col) const override {
-    return detail::Static14Data<stored_matrix_type>::s_bb(row, col);
+  scalar_type operator()(size_t row, size_t col) const override {
+    return detail::Static14Data<stored_mtx_type>::s_bb(row, col);
   }
 
   bool has_transpose_operation_mode() const override {
-    return detail::Static14Data<stored_matrix_type>::s_bb
-          .has_transpose_operation_mode();
+    return detail::Static14Data<stored_mtx_type>::s_bb.has_transpose_operation_mode();
   }
 
   bool has_apply_inverse() const override { return true; }
 
-  void apply(const linalgwrap::MultiVector<
-                   const linalgwrap::MutableMemoryVector_i<scalar_type>>& x,
-             linalgwrap::MultiVector<
-                   linalgwrap::MutableMemoryVector_i<scalar_type>>& y,
+  void apply(const linalgwrap::MultiVector<const linalgwrap::MutableMemoryVector_i<scalar_type>>& x,
+             linalgwrap::MultiVector<linalgwrap::MutableMemoryVector_i<scalar_type>>& y,
              const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
              const scalar_type c_this = linalgwrap::Constants<scalar_type>::one,
-             const scalar_type c_y =
-                   linalgwrap::Constants<scalar_type>::zero) const override {
-    detail::Static14Data<stored_matrix_type>::s_bb.apply(x, y, mode, c_this,
-                                                         c_y);
+             const scalar_type c_y = linalgwrap::Constants<scalar_type>::zero) const override {
+    detail::Static14Data<stored_mtx_type>::s_bb.apply(x, y, mode, c_this, c_y);
   }
 
   void apply_inverse(
@@ -243,48 +177,35 @@ public:
   std::string name() const override { return "Overlap operator"; }
 };
 
-template <typename StoredMatrix>
-class KineticIntegralCore : public IntegralCoreBase<StoredMatrix> {
+class KineticIntegralCore : public IntegralCoreBase<real_stored_mtx_type> {
 public:
-  typedef IntegralCoreBase<StoredMatrix> base_type;
-  typedef StoredMatrix stored_matrix_type;
-  typedef typename base_type::size_type size_type;
-  typedef typename base_type::scalar_type scalar_type;
-  typedef typename base_type::real_type real_type;
+  typedef real_stored_mtx_type stored_mtx_type;
+  typedef IntegralCoreBase<stored_mtx_type> base_type;
+  typedef real_type scalar_type;
 
   const real_type k;
 
   /** \brief Number of rows of the matrix */
-  size_type n_rows() const override {
-    return detail::Static14Data<stored_matrix_type>::nbas;
-  }
+  size_t n_rows() const override { return detail::Static14Data<stored_mtx_type>::nbas; }
 
   /** \brief Number of columns of the matrix  */
-  size_type n_cols() const override {
-    return detail::Static14Data<stored_matrix_type>::nbas;
-  }
+  size_t n_cols() const override { return detail::Static14Data<stored_mtx_type>::nbas; }
 
   /** \brief return an element of the matrix \f$ {T}_{\mu',\mu} */
-  scalar_type operator()(size_type row, size_type col) const override {
-    return k * k *
-           detail::Static14Data<stored_matrix_type>::t_bb_base(row, col);
+  scalar_type operator()(size_t row, size_t col) const override {
+    return k * k * detail::Static14Data<stored_mtx_type>::t_bb_base(row, col);
   }
 
   bool has_transpose_operation_mode() const override {
-    return detail::Static14Data<stored_matrix_type>::t_bb_base
-          .has_transpose_operation_mode();
+    return detail::Static14Data<stored_mtx_type>::t_bb_base.has_transpose_operation_mode();
   }
 
-  void apply(const linalgwrap::MultiVector<
-                   const linalgwrap::MutableMemoryVector_i<scalar_type>>& x,
-             linalgwrap::MultiVector<
-                   linalgwrap::MutableMemoryVector_i<scalar_type>>& y,
+  void apply(const linalgwrap::MultiVector<const linalgwrap::MutableMemoryVector_i<scalar_type>>& x,
+             linalgwrap::MultiVector<linalgwrap::MutableMemoryVector_i<scalar_type>>& y,
              const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
              const scalar_type c_this = linalgwrap::Constants<scalar_type>::one,
-             const scalar_type c_y =
-                   linalgwrap::Constants<scalar_type>::zero) const override {
-    detail::Static14Data<stored_matrix_type>::t_bb_base.apply(
-          x, y, mode, k * k * c_this, c_y);
+             const scalar_type c_y = linalgwrap::Constants<scalar_type>::zero) const override {
+    detail::Static14Data<stored_mtx_type>::t_bb_base.apply(x, y, mode, k * k * c_this, c_y);
   }
 
   /** Extract a block of a matrix and (optionally) add it to
@@ -314,18 +235,18 @@ public:
   KineticIntegralCore(real_type k) : k(k) {}
 };
 
-template <typename StoredMatrix, bool Exchange>
-class ERICore : public IntegralCoreBase<StoredMatrix> {
+class ERICore : public IntegralCoreBase<real_stored_mtx_type> {
 public:
-  typedef IntegralCoreBase<StoredMatrix> base_type;
-  typedef StoredMatrix stored_matrix_type;
-  typedef typename stored_matrix_type::vector_type vector_type;
-  typedef typename base_type::size_type size_type;
-  typedef typename base_type::scalar_type scalar_type;
-  typedef typename base_type::real_type real_type;
+  typedef real_stored_mtx_type stored_mtx_type;
+  typedef IntegralCoreBase<stored_mtx_type> base_type;
+  typedef typename stored_mtx_type::vector_type vector_type;
+  typedef real_type scalar_type;
   typedef const linalgwrap::MultiVector<const vector_type> coefficients_type;
   typedef std::shared_ptr<coefficients_type> coefficients_ptr_type;
 
+  //! Is this an exchange or Coulomb operator?
+  const bool exchange;
+  
   //! The exponent
   const real_type k;
 
@@ -333,18 +254,14 @@ public:
   coefficients_ptr_type coefficients_occupied_ptr;
 
   /** \brief Number of rows of the matrix */
-  size_type n_rows() const override {
-    return detail::Static14Data<stored_matrix_type>::nbas;
-  }
+  size_t n_rows() const override { return detail::Static14Data<stored_mtx_type>::nbas; }
 
   /** \brief Number of columns of the matrix  */
-  size_type n_cols() const override {
-    return detail::Static14Data<stored_matrix_type>::nbas;
-  }
+  size_t n_cols() const override { return detail::Static14Data<stored_mtx_type>::nbas; }
 
   /** \brief return an element of the matrix \f$ {J}_{\mu',\mu} \f$ or \f$
    * {k}_{\mu',\mu} \f$. */
-  scalar_type operator()(size_type a, size_type b) const override {
+  scalar_type operator()(size_t a, size_t b) const override {
     assert_greater(a, n_rows());
     assert_greater(b, n_cols());
 
@@ -360,39 +277,36 @@ public:
     // where a and c are the same centre, so are b and d
 
     // Repulsion integrals indexed in shell-pairs
-    const auto& i_bbbb = detail::Static14Data<stored_matrix_type>::i_bbbb_base;
-    const size_type nbas = detail::Static14Data<stored_matrix_type>::nbas;
+    const auto& i_bbbb = detail::Static14Data<stored_mtx_type>::i_bbbb_base;
+    const size_t nbas = detail::Static14Data<stored_mtx_type>::nbas;
 
-    assert_dbg(coefficients_occupied_ptr != nullptr,
-               krims::ExcInvalidPointer());
+    assert_dbg(coefficients_occupied_ptr != nullptr, krims::ExcInvalidPointer());
 
     // Density matrix expression
-    auto density_bb = outer_prod_sum(*coefficients_occupied_ptr,
-                                     *coefficients_occupied_ptr);
+    auto density_bb = outer_prod_sum(*coefficients_occupied_ptr, *coefficients_occupied_ptr);
     assert_dbg(density_bb.n_rows() == nbas, krims::ExcInternalError());
     assert_dbg(density_bb.n_cols() == nbas, krims::ExcInternalError());
 
     // Shell pair index for basis functions a and b:
-    const size_type ab_pair = a * nbas + b;
+    const size_t ab_pair = a * nbas + b;
 
     // Sum accumulator variable for this exchange or
     // coulomb  matrix element
     scalar_type mat_ab{0};
 
     // Double loop over basis functions c and d:
-    for (size_type c = 0; c < nbas; ++c) {
+    for (size_t c = 0; c < nbas; ++c) {
       // Shell pair index for basis functions a and c:
-      const size_type ac_pair = a * nbas + c;
+      const size_t ac_pair = a * nbas + c;
 
-      for (size_type d = 0; d < nbas; ++d) {
+      for (size_t d = 0; d < nbas; ++d) {
         // Shell pair index for basis functions c and d:
         // or b and d:
-        const size_type cd_pair = c * nbas + d;
-        const size_type db_pair = d * nbas + b;
+        const size_t cd_pair = c * nbas + d;
+        const size_t db_pair = d * nbas + b;
 
         // Perform contraction:
-        const scalar_type i_elem =
-              Exchange ? i_bbbb(ac_pair, db_pair) : i_bbbb(ab_pair, cd_pair);
+        const scalar_type i_elem = exchange ? i_bbbb(ac_pair, db_pair) : i_bbbb(ab_pair, cd_pair);
         mat_ab += density_bb(c, d) * k * i_elem;
       }  // d
     }    // c
@@ -402,16 +316,13 @@ public:
 
   bool has_transpose_operation_mode() const override { return true; }
 
-  void apply(const linalgwrap::MultiVector<
-                   const linalgwrap::MutableMemoryVector_i<scalar_type>>& x,
-             linalgwrap::MultiVector<
-                   linalgwrap::MutableMemoryVector_i<scalar_type>>& y,
+  void apply(const linalgwrap::MultiVector<const linalgwrap::MutableMemoryVector_i<scalar_type>>& x,
+             linalgwrap::MultiVector<linalgwrap::MutableMemoryVector_i<scalar_type>>& y,
              const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
              const scalar_type c_this = linalgwrap::Constants<scalar_type>::one,
-             const scalar_type c_y =
-                   linalgwrap::Constants<scalar_type>::zero) const override {
+             const scalar_type c_y = linalgwrap::Constants<scalar_type>::zero) const override {
     using namespace linalgwrap;
-    const size_type nbas = detail::Static14Data<stored_matrix_type>::nbas;
+    const size_t nbas = detail::Static14Data<stored_mtx_type>::nbas;
 
     assert_finite(c_this);
     assert_finite(c_y);
@@ -429,12 +340,12 @@ public:
     // if c_this == 0 we are done
     if (c_this == Constants<scalar_type>::zero) return;
 
-    for (size_type veci = 0; veci < x.n_vectors(); ++veci) {
+    for (size_t veci = 0; veci < x.n_vectors(); ++veci) {
       const auto& vec = x[veci];
       auto& out = y[veci];
-      for (size_type row = 0; row < nbas; ++row) {
+      for (size_t row = 0; row < nbas; ++row) {
         scalar_type sum = 0;
-        for (size_type k = 0; k < nbas; ++k) {
+        for (size_t k = 0; k < nbas; ++k) {
           switch (mode) {
             case Transposed::None:
             case Transposed::Trans:
@@ -512,35 +423,31 @@ public:
   }
 
   void update(const krims::ParameterMap& map) override {
-    const std::string occ_coeff_key =
-          Integral<stored_matrix_type>::update_key_coefficients;
+    const std::string occ_coeff_key = Integral<stored_mtx_type>::update_key_coefficients;
 
     if (!map.exists(occ_coeff_key)) return;
 
     // Get coefficients as a shared pointer (having ownership)
-    coefficients_occupied_ptr = static_cast<coefficients_ptr_type>(
-          map.at_ptr<coefficients_type>(occ_coeff_key));
+    coefficients_occupied_ptr =
+          static_cast<coefficients_ptr_type>(map.at_ptr<coefficients_type>(occ_coeff_key));
 
     // We will contract the coefficient row index over the number of
     // basis functions.
     if (coefficients_occupied_ptr->n_vectors() == 0) return;
-    assert_size(coefficients_occupied_ptr->n_elem(),
-                detail::Static14Data<stored_matrix_type>::nbas);
+    assert_size(coefficients_occupied_ptr->n_elem(), detail::Static14Data<stored_mtx_type>::nbas);
   }
 
   // TODO use static keys to generate values
   /** \brief Get the identifier of the integral */
-  std::string id() const override {
-    return std::string("static/14/ERI_") + (Exchange ? "K" : "J");
-  }
+  std::string id() const override { return std::string("static/14/ERI_") + (exchange ? "K" : "J"); }
 
   /** \brief Get the friendly name of the integral */
   std::string name() const override {
-    return std::string("Electron Repulsion Integrals, ") +
-           (Exchange ? "Exchange" : "Coulomb") + " operator";
+    return std::string("Electron Repulsion Integrals, ") + (exchange ? "Exchange" : "Coulomb") +
+           " operator";
   }
 
-  ERICore(real_type k) : k(k) {}
+  ERICore(bool exchange, real_type k) : exchange(exchange), k(k) {}
 };
 
 }  // namespace static14

@@ -2,9 +2,9 @@
 # The sources for the test executable
 #
 set(GINT_TESTS_SOURCES
-	#QuickAtomicCsDummyTest.cc
-	QuickAtomicStatic14Test.cc
-	main.cc
+  QuickAtomicCsDummyTest.cc
+  QuickAtomicStatic14Test.cc
+  main.cc
 )
 
 drb_add_executable(gint_tests

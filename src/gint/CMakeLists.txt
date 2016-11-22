@@ -2,7 +2,9 @@
 # set the source files.
 #
 set(GINT_SOURCES
-	version.cc
+  version.cc
+  IntegralLookup.cc
+  atomic/static14.cc
 )
 
 # Dump the current version as an include file.

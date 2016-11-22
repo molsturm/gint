@@ -10,21 +10,19 @@ namespace tests {
 using namespace linalgwrap;
 using namespace krims;
 
-TEST_CASE("Quick atomic cs_dummy test", "[quicktest static14]") {
-  typedef double scalar_type;
-  typedef SmallMatrix<scalar_type> stored_matrix_type;
+TEST_CASE("Quick atomic static14 test", "[quicktest static14]") {
   const OrbitalType otype = COMPLEX_ATOMIC;
-  typedef IntegralLookup<stored_matrix_type, otype> int_lookup_type;
+  typedef IntegralLookup<otype> int_lookup_type;
 
   // The reference data for atomic coulomb sturmians
   // with parameters k = 1, Z = 4, n_max =  3, l_max = 2
-  typedef SturmianTestData<stored_matrix_type> refdata_type;
+  typedef SturmianTestData<real_stored_mtx_type> refdata_type;
 
   // Setup parameters for the integral library
   const krims::ParameterMap params{
         {"k_exponent", refdata_type::k_exp},
         {"Z_charge", refdata_type::Z},
-        {"basis_type", "atomic/static14"},
+        {"basis_type", "cs_static14"},
   };
 
   IntegralDummyTests<int_lookup_type, refdata_type>::run_all(

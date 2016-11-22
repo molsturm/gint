@@ -30,7 +30,7 @@
 FROM="ssh://gitte@ccsvn.iwr.uni-heidelberg.de:42022/sturmint.git"
 
 # Branch to checkout (empty for default)
-BRANCH="master-krims"
+BRANCH=""
 
 # Folder to check it out to
 WHAT="sturmint"
