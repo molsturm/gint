@@ -134,6 +134,20 @@ public:
           x, y, mode, -k * Z * c_this, c_y);
   }
 
+  /** Extract a block of a matrix and (optionally) add it to
+   * a different matrix.
+   */
+  virtual void extract_block(
+        stored_matrix_type& M, const size_type start_row,
+        const size_type start_col,
+        const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
+        const scalar_type c_this = linalgwrap::Constants<scalar_type>::one,
+        const scalar_type c_M =
+              linalgwrap::Constants<scalar_type>::zero) const override {
+    detail::Static14Data<stored_matrix_type>::v0_bb_base.extract_block(
+          M, start_row, start_col, mode, -k * Z * c_this, c_M);
+  }
+
   std::unique_ptr<base_type> clone() const override {
     return std::unique_ptr<base_type>(new NuclearAttractionIntegralCore(*this));
   }
@@ -187,6 +201,19 @@ public:
                    linalgwrap::Constants<scalar_type>::zero) const override {
     detail::Static14Data<stored_matrix_type>::s_bb.apply(x, y, mode, c_this,
                                                          c_y);
+  }
+
+  /** Extract a block of a matrix and (optionally) add it to
+   * a different matrix.  */
+  virtual void extract_block(
+        stored_matrix_type& M, const size_type start_row,
+        const size_type start_col,
+        const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
+        const scalar_type c_this = linalgwrap::Constants<scalar_type>::one,
+        const scalar_type c_M =
+              linalgwrap::Constants<scalar_type>::zero) const override {
+    detail::Static14Data<stored_matrix_type>::s_bb.extract_block(
+          M, start_row, start_col, mode, c_this, c_M);
   }
 
   std::unique_ptr<base_type> clone() const override {
@@ -245,6 +272,19 @@ public:
           x, y, mode, k * k * c_this, c_y);
   }
 
+  /** Extract a block of a matrix and (optionally) add it to
+   * a different matrix.  */
+  virtual void extract_block(
+        stored_matrix_type& M, const size_type start_row,
+        const size_type start_col,
+        const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
+        const scalar_type c_this = linalgwrap::Constants<scalar_type>::one,
+        const scalar_type c_M =
+              linalgwrap::Constants<scalar_type>::zero) const override {
+    detail::Static14Data<stored_matrix_type>::t_bb_base.extract_block(
+          M, start_row, start_col, mode, k * k * c_this, c_M);
+  }
+
   std::unique_ptr<base_type> clone() const override {
     return std::unique_ptr<base_type>(new KineticIntegralCore(*this));
   }
@@ -268,8 +308,8 @@ public:
   typedef typename base_type::size_type size_type;
   typedef typename base_type::scalar_type scalar_type;
   typedef typename base_type::real_type real_type;
-  typedef linalgwrap::MultiVector<vector_type> coefficients_type;
-  typedef std::shared_ptr<const coefficients_type> coefficients_ptr_type;
+  typedef const linalgwrap::MultiVector<const vector_type> coefficients_type;
+  typedef std::shared_ptr<coefficients_type> coefficients_ptr_type;
 
   //! The exponent
   const real_type k;
@@ -398,6 +438,56 @@ public:
         out(row) += c_this * sum;
       }  // row
     }    // veci
+  }
+
+  /** Extract a block of a matrix and (optionally) add it to
+   * a different matrix.  */
+  virtual void extract_block(
+        stored_matrix_type& M, const size_type start_row,
+        const size_type start_col,
+        const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
+        const scalar_type c_this = linalgwrap::Constants<scalar_type>::one,
+        const scalar_type c_M =
+              linalgwrap::Constants<scalar_type>::zero) const override {
+    using namespace linalgwrap;
+    const size_type nbas = detail::Static14Data<stored_matrix_type>::nbas;
+
+    assert_finite(c_this);
+    assert_finite(c_M);
+    assert_greater_equal(start_row + M.n_rows(), nbas);
+    assert_greater_equal(start_col + M.n_cols(), nbas);
+    assert_sufficiently_tested(mode != Transposed::ConjTrans);
+
+    // For empty matrices there is nothing to do
+    if (M.n_rows() == 0 || M.n_cols() == 0) return;
+
+    // Scale the current values of M or set them to zero
+    // (if c_M == 0): We are now done with c_M and do not
+    // need to worry about it any more in this function
+    // TODO we are kind of calling an internal function here
+    linalgwrap::detail::scale_or_set(M, c_M);
+
+    if (c_this == Constants<scalar_type>::zero) return;
+
+    for (size_type row = 0; row < M.n_rows(); ++row) {
+      for (size_type col = 0; col < M.n_cols(); ++col) {
+        switch (mode) {
+          case Transposed::None:
+          case Transposed::Trans:
+            // No difference since symmetric
+            M(row, col) += c_this * (*this)(start_row + row, start_col + col);
+            break;
+          case Transposed::ConjTrans:
+            // A variant of std::conj, which does not return a complex
+            // data type if scalar is real only.
+            // TODO we are kind of calling an internal function here
+            linalgwrap::detail::ConjFctr mconj;
+            M(row, col) +=
+                  c_this * mconj((*this)(start_col + col, start_row + row));
+            break;
+        }  // mode
+      }    // col
+    }      // row
   }
 
   std::unique_ptr<base_type> clone() const override {

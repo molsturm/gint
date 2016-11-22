@@ -38,21 +38,21 @@ struct IntegralDummyTests {
     SECTION("Test overlap") {
       CHECK(S_bb.is_symmetric());
       REQUIRE(S_bb == numcomp(data::Sref).tolerance(equality_tol));
-      CHECK(rc::check("Test application of overlap",
+      CHECK(rc::check("Test apply and extract_block of overlap",
                       make_compare_ref_test(S_bb, data::Sref, apply_tol)));
     }
 
     SECTION("Test nuclear attraction") {
       CHECK(V0_bb.is_symmetric());
       REQUIRE(V0_bb == numcomp(data::V0ref).tolerance(equality_tol));
-      CHECK(rc::check("Test application of nuclear attraction",
+      CHECK(rc::check("Test apply and extract_block of nuclear attraction",
                       make_compare_ref_test(V0_bb, data::V0ref, apply_tol)));
     }
 
     SECTION("Test kinetic") {
       CHECK(T_bb.is_symmetric());
       REQUIRE(T_bb == numcomp(data::Tref).tolerance(equality_tol));
-      CHECK(rc::check("Test application of kinetic",
+      CHECK(rc::check("Test apply and extract_block of kinetic",
                       make_compare_ref_test(T_bb, data::Tref, apply_tol)));
     }
 
@@ -62,7 +62,7 @@ struct IntegralDummyTests {
       CHECK(J_bb.is_symmetric());
       REQUIRE(J_bb == numcomp(data::Jref_for_coeff_1).tolerance(equality_tol));
       CHECK(rc::check(
-            "Test application of coulomb 1",
+            "Test apply and extract_block of coulomb 1",
             make_compare_ref_test(J_bb, data::Jref_for_coeff_1, apply_tol)));
     }
 
@@ -72,7 +72,7 @@ struct IntegralDummyTests {
       CHECK(J_bb.is_symmetric());
       REQUIRE(J_bb == numcomp(data::Jref_for_coeff_2).tolerance(equality_tol));
       CHECK(rc::check(
-            "Test application of coulomb 2",
+            "Test apply and extract_block of coulomb 2",
             make_compare_ref_test(J_bb, data::Jref_for_coeff_2, apply_tol)));
     }
 
@@ -82,7 +82,7 @@ struct IntegralDummyTests {
       CHECK(K_bb.is_symmetric());
       REQUIRE(K_bb == numcomp(data::Kref_for_coeff_1).tolerance(equality_tol));
       CHECK(rc::check(
-            "Test application of exchange 1",
+            "Test apply and extract_block of exchange 1",
             make_compare_ref_test(K_bb, data::Kref_for_coeff_1, apply_tol)));
     }
 
@@ -92,7 +92,7 @@ struct IntegralDummyTests {
       CHECK(K_bb.is_symmetric());
       REQUIRE(K_bb == numcomp(data::Kref_for_coeff_2).tolerance(equality_tol));
       CHECK(rc::check(
-            "Test application of exchange 2",
+            "Test apply and extract_block of exchange 2",
             make_compare_ref_test(K_bb, data::Kref_for_coeff_2, apply_tol)));
     }
   }
@@ -106,6 +106,22 @@ private:
     auto test = [&] {
       auto vec = *gen::numeric_tensor<vector_type>(integral.n_cols());
       RC_ASSERT(((integral * vec) == numcomp(ref * vec).tolerance(tolerance)));
+
+      size_t nrows = *gen::inRange<size_t>(1, ref.n_rows())
+                            .as("Number of rows of the extracted matrix");
+      size_t ncols = *gen::inRange<size_t>(1, ref.n_cols())
+                            .as("Number of cols of the extracted matrix");
+      size_t start_row =
+            *gen::inRange<size_t>(0, ref.n_rows() - nrows).as("Start row");
+      size_t start_col =
+            *gen::inRange<size_t>(0, ref.n_cols() - ncols).as("Start col");
+
+      stored_matrix_type xtr_int(nrows, ncols, false);
+      stored_matrix_type xtr_ref(nrows, ncols, false);
+      integral.extract_block(xtr_int, start_row, start_col);
+      ref.extract_block(xtr_ref, start_row, start_col);
+
+      RC_ASSERT((xtr_int == numcomp(xtr_ref).tolerance(tolerance)));
     };
     return test;
   }

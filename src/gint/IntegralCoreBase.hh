@@ -101,18 +101,7 @@ public:
         const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
         const scalar_type c_this = linalgwrap::Constants<scalar_type>::one,
         const scalar_type c_M =
-              linalgwrap::Constants<scalar_type>::zero) const {
-    // TODO for simplicity we do not force this method to be implemented
-    // at the moment
-    assert_dbg(false, krims::ExcNotImplemented());
-    // TODO fake-use:
-    (void)start_row;
-    (void)start_col;
-    (void)M;
-    (void)c_this;
-    (void)c_M;
-    (void)mode;
-  }
+              linalgwrap::Constants<scalar_type>::zero) const = 0;
 
   /** \brief Clone the expression */
   virtual std::unique_ptr<IntegralCoreBase> clone() const = 0;
