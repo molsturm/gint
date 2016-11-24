@@ -162,14 +162,14 @@ public:
              i_nplus  = nlmbasis::index(nlm_t(n + 1, l, m));
 
       // Overlap is symmetric in n,np
-      double S_nnl = m_integral_calculator.overlap(n, n + 1, l);
+      double S_lnnm = m_integral_calculator.overlap(l, n, max(n - 1,0) ),
+	     S_lnnp = m_integral_calculator.overlap(l, n, min(n + 1,nmax));
 
-      for (size_t j = 0; j < x.n_vectors(); j++)
-        y[j][i] = ((n > l + 1) ? S_nnl * x[j][i_nminus] : 0)
+      for (size_t j = 0; j < x.n_vectors(); j++) {
+        y[j][i] = ((n > l + 1) ? S_lnnm * x[j][i_nminus] : 0) 
 	          + x[j][i] +
-                  ((n < nmax) ? S_nnl * x[j][i_nplus] : 0)
-	          +
-	          (beta != 0 ? beta * y[j][i] : 0);
+                  ((n < nmax)  ? S_lnnp * x[j][i_nplus] : 0) + (beta != 0 ? beta * y[j][i] : 0);
+      }
     }
   }
 
@@ -233,17 +233,19 @@ public:
       // T is symmetric in n1,n2 and has the same sparsity pattern as the
       // overlap matrix S.
       size_t i_nminus = nlmbasis::index(nlm_t(n - 1, l, m)),
-             i_nplus = nlmbasis::index(nlm_t(n + 1, l, m));
-      double T_nnl = -0.5L * m_integral_calculator.overlap(n, n + 1, l);
+             i_nplus  = nlmbasis::index(nlm_t(n + 1, l, m));
+
+      double T_lnnm = -0.5L * m_integral_calculator.overlap(l, n, max(n - 1,0) ),
+	     T_lnnp = -0.5L * m_integral_calculator.overlap(l, n, min(n + 1,nmax));      
 
       for (size_t j = 0; j < x.n_vectors(); j++) {
-        y[j][i] = ((n > l + 1) ? T_nnl * x[j][i_nminus] : 0) + 0.5L * x[j][i] +
-                  ((n < nmax)  ? T_nnl * x[j][i_nplus]  : 0)
+        y[j][i] = ((n > l + 1) ? T_lnnm * x[j][i_nminus] : 0) + 0.5L * x[j][i] +
+                  ((n < nmax)  ? T_lnnp * x[j][i_nplus]  : 0)
 	  	  +
 	          (beta != 0 ? beta * y[j][i] : 0);
 
         y[j][i] *= k * k;
-      }
+      }     
     }
   }
 
