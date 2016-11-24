@@ -286,7 +286,8 @@ class ERICore : public IntegralCoreBase<real_stored_mtx_type> {
 public:
   typedef IntegralCoreBase<real_stored_mtx_type> base_type;
   typedef real_stored_mtx_type stored_matrix_type;
-  typedef multivector_type coefficients_type;
+  typedef typename stored_mtx_type::vector_type vector_type;  
+  typedef linalgwrap::MultiVector<vector_type>  coefficients_type;
   typedef std::shared_ptr<const coefficients_type> coefficients_ptr_type;  
 
   bool exchange;  // Is this exchange or Coulomb operator?
@@ -310,7 +311,7 @@ public:
 
     const int l_max = m_integral_calculator.lmax1;
     const int n_max = m_integral_calculator.nmax1;
-    const multivector_type& Cocc(*coefficients_occupied_ptr);
+    const coefficients_type& Cocc(*coefficients_occupied_ptr);
 
     //    cout << "\nCalculating "<<(exchange?"exchange":"coulomb")<<" integral
     //    application.\n";
@@ -369,7 +370,7 @@ public:
 
     const int l_max = m_integral_calculator.lmax1;
     const int n_max = m_integral_calculator.nmax1;
-    const multivector_type& Cocc(*coefficients_occupied_ptr);
+    const coefficients_type& Cocc(*coefficients_occupied_ptr);
 
     nlm_t nlm1 = nlmbasis::quantum_numbers_from_index(b1);
     nlm_t nlm2 = nlmbasis::quantum_numbers_from_index(b2);
