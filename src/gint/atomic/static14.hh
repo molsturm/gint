@@ -4,7 +4,7 @@
 #include "gint/Integral.hh"
 #include "gint/IntegralCollectionBase.hh"
 #include "gint/IntegralCoreBase.hh"
-#include "gint/config.hh"
+#include "gint/real_config.hh"
 #include <krims/ParameterMap.hh>
 
 namespace gint {
@@ -69,12 +69,12 @@ public:
     return detail::Static14Data<stored_mtx_type>::v0_bb_base.has_transpose_operation_mode();
   }
 
+  // alpha * A * x + beta * y
   void apply(const linalgwrap::MultiVector<const linalgwrap::MutableMemoryVector_i<scalar_type>>& x,
              linalgwrap::MultiVector<linalgwrap::MutableMemoryVector_i<scalar_type>>& y,
              const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
-             const scalar_type c_this = linalgwrap::Constants<scalar_type>::one,
-             const scalar_type c_y = linalgwrap::Constants<scalar_type>::zero) const override {
-    detail::Static14Data<stored_mtx_type>::v0_bb_base.apply(x, y, mode, -k * Z * c_this, c_y);
+             const scalar_type alpha = 1, const scalar_type beta = 0) const override {
+    detail::Static14Data<stored_mtx_type>::v0_bb_base.apply(x, y, mode, -k * Z * alpha, beta);
   }
 
   /** Extract a block of a matrix and (optionally) add it to
@@ -349,15 +349,9 @@ public:
           switch (mode) {
             case Transposed::None:
             case Transposed::Trans:
-              // Same case since we are symmetric
-              sum += (*this)(row, k) * vec(k);
-              break;
             case Transposed::ConjTrans:
-              // A variant of std::conj, which does not return a
-              // complex data type if scalar is real only.
-              // TODO we are kind of calling an internal function here
-              linalgwrap::detail::ConjFctr mconj;
-              sum += mconj((*this)(row, k)) * vec(k);
+              // Same case since we are symmetric and real
+              sum += (*this)(row, k) * vec(k);
               break;
           }  // mode
         }    // k

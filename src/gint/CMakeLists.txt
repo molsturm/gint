@@ -5,6 +5,7 @@ set(GINT_SOURCES
   version.cc
   IntegralLookup.cc
   atomic/static14.cc
+  atomic/cs_dummy.cc
 )
 
 # Dump the current version as an include file.

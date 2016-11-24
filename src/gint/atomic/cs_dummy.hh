@@ -1,35 +1,30 @@
 #pragma once
-#include "../Integral.hh"
-#include "../IntegralCoreBase.hh"
-#include <linalgwrap/Exceptions.hh>
-#include <linalgwrap/ParameterMap.hh>
+
+#include "gint/Integral.hh"
+#include "gint/IntegralCoreBase.hh"
+#include "gint/IntegralCollectionBase.hh"
+#include <krims/ParameterMap.hh>
 #include <sturmint/atomic/cs_dummy/cs_atomic.hh>
 #include <sturmint/atomic/data/cs_dummy.hh>
 #include <sturmint/harmonic/OrbitalIndex.hh>
+
 
 namespace gint {
 namespace atomic {
 namespace cs_dummy {
 
+#include "gint/real_config.hh"
+  
 using namespace sturmint::atomic::cs_dummy;
 
-template <typename StoredMatrix>
 class OverlapIntegralCore;
-template <typename StoredMatrix>
 class NuclearAttractionIntegralCore;
-template <typename StoredMatrix>
 class KineticIntegralCore;
-template <typename StoredMatrix>
 class ERICore;
 
-// TODO: This has OrbitalType COMPLEX_ATOMIC. Decide how to multiplex wrt
-// OrbitalType later.
-template <typename StoredMatrix>
-class IntegralCollection {
+class IntegralCollection: public IntegralCollectionBase<COMPLEX_ATOMIC>{
 public:
-  typedef StoredMatrix stored_matrix_type;
-  typedef Integral<stored_matrix_type> integral_matrix_type;
-  typedef sturmint::real_t real_type;
+  typedef IntegralCollectionBase<COMPLEX_ATOMIC> base_type;
 
   static std::string id, name;
 
@@ -45,92 +40,57 @@ public:
    *   - n_max (int): The maximal principle quantum number
    *   - l_max (int): Maximal angular momentum qn
    */
-  IntegralCollection(const linalgwrap::ParameterMap& parameters);
+  IntegralCollection(const krims::ParameterMap& parameters);
+
   /** Lookup an integral by its identifier string */
-  integral_matrix_type operator()(const std::string& integral_id);
+  integral_matrix_type lookup_integral(const std::string& integral_id) const override;
+
+  /** Create an integral collection for a particular basis set defined by parameters */
+  static std::shared_ptr<base_type> create(const krims::ParameterMap& parameters) {
+    return std::make_shared<IntegralCollection>(parameters);
+  }
 };
 
-// ----------------------------------------------------------------------
-//			    IMPLEMENTATION
-// ----------------------------------------------------------------------
-template <typename StoredMatrix>
-std::string IntegralCollection<StoredMatrix>::id = "cs_atomic/dummy";
-template <typename StoredMatrix>
-std::string IntegralCollection<StoredMatrix>::name =
-      "Dummy implementation of atomic Coulomb Sturmians";
-
-template <typename StoredMatrix>
-IntegralCollection<StoredMatrix>::IntegralCollection(
-      const linalgwrap::ParameterMap& parameters)
-      : k_exponent{parameters.at<double>("k_exponent")},
-        Z_charge{parameters.at<double>("Z_charge")},
-        n_max{parameters.at<int>("n_max")},
-        l_max{parameters.at<int>("l_max")},
-        integral_calculator{n_max, l_max} {}
-
-template <typename StoredMatrix>
-Integral<StoredMatrix> IntegralCollection<StoredMatrix>::operator()(
-      const std::string& integral_name) {
-  if (integral_name == "nuclear_attraction")
-    return make_integral<NuclearAttractionIntegralCore<stored_matrix_type>>(
-          integral_calculator, k_exponent, Z_charge);
-  if (integral_name == "overlap")
-    return make_integral<OverlapIntegralCore<stored_matrix_type>>(
-          integral_calculator);
-  if (integral_name == "kinetic")
-    return make_integral<KineticIntegralCore<stored_matrix_type>>(
-          integral_calculator, k_exponent);
-  if (integral_name == "coulomb")
-    return make_integral<ERICore<stored_matrix_type>>(integral_calculator,
-                                                      false, k_exponent);
-  if (integral_name == "exchange")
-    return make_integral<ERICore<stored_matrix_type>>(integral_calculator, true,
-                                                      k_exponent);
-
-  assert_dbg(false, linalgwrap::ExcNotImplemented());
-  return Integral<StoredMatrix>(nullptr);
-}
 
 // ----------------------------------------------------------------------
 //			    INTEGRAL CORES
 // ----------------------------------------------------------------------
-template <typename StoredMatrix>
-class NuclearAttractionIntegralCore : public IntegralCoreBase<StoredMatrix> {
+class NuclearAttractionIntegralCore : public IntegralCoreBase<real_stored_mtx_type> {
 public:
-  typedef IntegralCoreBase<StoredMatrix> base_type;
-  typedef StoredMatrix stored_matrix_type;
-  typedef typename base_type::size_type size_type;
+  typedef IntegralCoreBase<real_stored_mtx_type> base_type;
   typedef typename base_type::scalar_type scalar_type;
   typedef sturmint::real_t real_type;
 
   const real_type k, Z;
 
-  /** \brief Multiplication with a stored matrix */
-  stored_matrix_type operator*(const stored_matrix_type& X) const override {
+  // Compute alpha*A*x + beta*y into y
+  void apply(const const_multivector_type& x,
+             multivector_type& y,
+             const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
+             const scalar_type alpha = 1,
+             const scalar_type beta  = 0) const override {
+    using namespace linalgwrap;
+
     using namespace sturmint::orbital_index;
     typedef nlmbasis::quantum_numbers_t nlm_t;
 
-    assert_size(n_cols(), X.n_rows());
-
-    stored_matrix_type AX(n_rows(), X.n_cols(), false);
-
+    // TODO: Add preconditions (dimension check, etc.)
     // TODO: Basis lexicographic order m,l,n is way more efficient than n,l,m.
     // TODO: Make memory layout more friendly to operate on
     //       many vectors.
-    for (size_t i = 0; i < n_rows(); i++) {
+
+    for (size_t i = 0; i < x.n_elem(); i++) {
       nlm_t nlm = nlmbasis::quantum_numbers_from_index(i);
       int8_t n = nlm.n;
-
-      for (size_type j = 0; j < AX.n_cols(); j++)
-        AX(i, j) = (-Z*k/n) * X(i, j);
+      
+      for (size_t j = 0; j < x.n_vectors(); j++)
+	y[j][i] = alpha * (-Z*k/n) * x[j][i] + (beta != 0? beta*y[j][i] : 0);
     }
-
-    return AX;
   }
 
   /** \brief return an element of the matrix \f$ {V_0}_{\mu',\mu} = -Zk/n
    * \delta_{\mu',\mu} \f$ */
-  scalar_type operator()(size_type row, size_type col) const override {
+  scalar_type operator()(size_t row, size_t col) const override {
     using sturmint::orbital_index::nlmbasis;
     if (row != col)
       return 0;
@@ -144,10 +104,10 @@ public:
         : k(k), Z(Z), m_integral_calculator(integral_calculator) {}
 
   /** \brief Number of rows of the matrix */
-  size_type n_rows() const override { return m_integral_calculator.n_bas(); }
+  size_t n_rows() const override { return m_integral_calculator.n_bas(); }
 
   /** \brief Number of columns of the matrix  */
-  size_type n_cols() const override { return m_integral_calculator.n_bas(); }
+  size_t n_cols() const override { return m_integral_calculator.n_bas(); }
 
   /** \brief Clone the expression */
   std::unique_ptr<base_type> clone() const override {
@@ -166,32 +126,36 @@ private:
   const Atomic& m_integral_calculator;
 };
 
-template <typename StoredMatrix>
-class OverlapIntegralCore : public IntegralCoreBase<StoredMatrix> {
+class OverlapIntegralCore : public IntegralCoreBase<real_stored_mtx_type> {
 public:
-  typedef IntegralCoreBase<StoredMatrix> base_type;
-  typedef StoredMatrix stored_matrix_type;
-  typedef typename base_type::size_type size_type;
-  typedef typename base_type::scalar_type scalar_type;
-  typedef sturmint::real_t real_type;
+  typedef IntegralCoreBase<real_stored_mtx_type> base_type;
+  typedef real_stored_mtx_type stored_matrix_type;
 
   /** \brief Multiplication with a stored matrix */
   // TODO: Change basis order from n,l,m to m,l,n to make multiplication
   // contiguous.
-  stored_matrix_type operator*(const stored_matrix_type& X) const override {
+
+  void apply(const const_multivector_type& x,
+             multivector_type& y,
+             const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
+             const scalar_type alpha = 1,
+             const scalar_type beta  = 0) const override {  
     using namespace sturmint::orbital_index;
     typedef nlmbasis::quantum_numbers_t nlm_t;
 
-    assert_size(n_cols(), X.n_rows());
-
-    stored_matrix_type AX(n_rows(), X.n_cols(), false);
+    //        for (auto& vec : y) linalgwrap::detail::scale_or_set(vec, beta);
+    // TODO: Add preconditions (dimension check, etc.)
+    // TODO: Basis lexicographic order m,l,n is way more efficient than n,l,m.
+    // TODO: Make memory layout more friendly to operate on
+    //       many vectors.    
+    
     const int nmax = m_integral_calculator.nmax1;
 
     // Apply S^{(l)}_{n',n} = \delta_{n',n} +
     // S^{(l)}_{n,n+1}(\delta_{n',n+1}+\delta_{n'+1,n}).
     // S is block-diagonal w.r.t. l and m, and only terms with |n'-n|<2 are
     // nonzero.
-    for (size_t i = 0; i < n_rows(); i++) {
+    for (size_t i = 0; i < x.n_elem(); i++) {
       nlm_t nlm = nlmbasis::quantum_numbers_from_index(i);
       int8_t n = nlm.n, l = nlm.l, m = nlm.m;
       size_t i_nminus = nlmbasis::index(nlm_t(n - 1, l, m)),
@@ -200,17 +164,17 @@ public:
       // Overlap is symmetric in n,np
       double S_nnl = m_integral_calculator.overlap(n, n + 1, l);
 
-      for (size_type j = 0; j < AX.n_cols(); j++)
-        AX(i, j) = ((n>l+1)  ? S_nnl * X(i_nminus, j) : 0)
-	           + X(i, j) +
-                   ((n<nmax) ? S_nnl * X(i_nplus, j) : 0);
+      for (size_t j = 0; j < x.n_vectors(); j++)
+        y[j][i] = ((n > l + 1) ? S_nnl * x[j][i_nminus] : 0)
+	          + x[j][i] +
+                  ((n < nmax) ? S_nnl * x[j][i_nplus] : 0)
+	          +
+	          (beta != 0 ? beta * y[j][i] : 0);
     }
-
-    return AX;
   }
 
   /** \brief return an element of the matrix    */
-  scalar_type operator()(size_type row, size_type col) const override {
+  scalar_type operator()(size_t row, size_t col) const override {
     using sturmint::orbital_index::nlmbasis;
     assert_greater(row, n_rows()) assert_greater(col, n_cols());
 
@@ -224,10 +188,10 @@ public:
         : m_integral_calculator(integral_calculator) {}
 
   /** \brief Number of rows of the matrix */
-  size_type n_rows() const override { return m_integral_calculator.n_bas(); }
+  size_t n_rows() const override { return m_integral_calculator.n_bas(); }
 
   /** \brief Number of columns of the matrix  */
-  size_type n_cols() const override { return m_integral_calculator.n_bas(); }
+  size_t n_cols() const override { return m_integral_calculator.n_bas(); }
 
   /** \brief Clone the expression */
   std::unique_ptr<base_type> clone() const override {
@@ -244,28 +208,25 @@ private:
   const Atomic& m_integral_calculator;
 };
 
-template <typename StoredMatrix>
-class KineticIntegralCore : public IntegralCoreBase<StoredMatrix> {
+class KineticIntegralCore : public IntegralCoreBase<real_stored_mtx_type> {
 public:
-  typedef IntegralCoreBase<StoredMatrix> base_type;
-  typedef StoredMatrix stored_matrix_type;
-  typedef typename base_type::size_type size_type;
-  typedef typename base_type::scalar_type scalar_type;
-  typedef sturmint::real_t real_type;
+  typedef IntegralCoreBase<real_stored_mtx_type> base_type;
+  typedef real_stored_mtx_type stored_matrix_type;
 
   real_type k;  // k-exponent
 
   /** \brief Multiplication with a stored matrix */
-  stored_matrix_type operator*(const stored_matrix_type& X) const override {
+  void apply(const const_multivector_type& x,
+             multivector_type& y,
+             const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
+             const scalar_type alpha = 1,
+             const scalar_type beta  = 0) const override {  
     using namespace sturmint::orbital_index;
     typedef nlmbasis::quantum_numbers_t nlm_t;
 
-    assert_size(n_cols(), X.n_rows());
-
-    stored_matrix_type AX(n_rows(), X.n_cols(), false);
     const int nmax = m_integral_calculator.nmax1;
 
-    for (size_t i = 0; i < n_rows(); i++) {
+    for (size_t i = 0; i < x.n_elem(); i++) {
       nlm_t nlm = nlmbasis::quantum_numbers_from_index(i);
       int8_t n = nlm.n, l = nlm.l, m = nlm.m;
 
@@ -275,19 +236,19 @@ public:
              i_nplus = nlmbasis::index(nlm_t(n + 1, l, m));
       double T_nnl = -0.5L * m_integral_calculator.overlap(n, n + 1, l);
 
-      for (size_type j = 0; j < AX.n_cols(); j++) {
-        AX(i, j) = ((n > l + 1) ? T_nnl * X(i_nminus, j) : 0) + 0.5L * X(i, j) +
-                   ((n < nmax) ? T_nnl * X(i_nplus, j) : 0);
+      for (size_t j = 0; j < x.n_vectors(); j++) {
+        y[j][i] = ((n > l + 1) ? T_nnl * x[j][i_nminus] : 0) + 0.5L * x[j][i] +
+                  ((n < nmax)  ? T_nnl * x[j][i_nplus]  : 0)
+	  	  +
+	          (beta != 0 ? beta * y[j][i] : 0);
 
-        AX(i, j) *= k * k;
+        y[j][i] *= k * k;
       }
     }
-
-    return AX;
   }
 
   /** \brief return an element of the matrix    */
-  scalar_type operator()(size_type row, size_type col) const override {
+  scalar_type operator()(size_t row, size_t col) const override {
     using sturmint::orbital_index::nlmbasis;
     const nlm_t mui = nlmbasis::quantum_numbers_from_index(row),
                 muj = nlmbasis::quantum_numbers_from_index(col);
@@ -299,10 +260,10 @@ public:
         : k(k), m_integral_calculator(integral_calculator) {}
 
   /** \brief Number of rows of the matrix */
-  size_type n_rows() const override { return m_integral_calculator.n_bas(); }
+  size_t n_rows() const override { return m_integral_calculator.n_bas(); }
 
   /** \brief Number of columns of the matrix  */
-  size_type n_cols() const override { return m_integral_calculator.n_bas(); }
+  size_t n_cols() const override { return m_integral_calculator.n_bas(); }
 
   /** \brief Clone the expression */
   std::unique_ptr<base_type> clone() const override {
@@ -319,45 +280,49 @@ private:
   const Atomic& m_integral_calculator;
 };
 
-template <typename StoredMatrix>
-class ERICore : public IntegralCoreBase<StoredMatrix> {
-  std::shared_ptr<const StoredMatrix> coefficients_occupied_ptr;
+class ERICore : public IntegralCoreBase<real_stored_mtx_type> {
 public:
-  typedef IntegralCoreBase<StoredMatrix> base_type;
-  typedef StoredMatrix stored_matrix_type;
-  typedef typename base_type::size_type size_type;
-  typedef typename base_type::scalar_type scalar_type;
-  typedef sturmint::real_t real_type;
+  typedef IntegralCoreBase<real_stored_mtx_type> base_type;
+  typedef real_stored_mtx_type stored_matrix_type;
+  typedef multivector_type coefficients_type;
+  typedef std::shared_ptr<const coefficients_type> coefficients_ptr_type;  
 
   bool exchange;  // Is this exchange or Coulomb operator?
   real_type k;    // Exponent scale
 
-  /** \brief Multiplication with a stored matrix */
-  // J_{b1,q} = J_{b1,b2} X_{b2,q} = J_{b1,b2,b3,b4} X_{b2,q} Cocc_{b3,p} Cocc_{b4,p} = J_{b1,b2,b3,b4} X_{b2,q} D_{b3,b4}
-  // K_{b1,q} = K_{b1,b2} X_{b2,q} = J_{b1,b3,b2,b4} X_{b2,q} Cocc_{b3,p} Cocc_{b4,p} = J_{b1,b3,b2,b4} X_{b2,q} D_{b3,b4}
-  stored_matrix_type operator*(const stored_matrix_type& X) const override {
-    using namespace sturmint::orbital_index;
-    assert_size(n_cols(), X.n_rows());
-    assert_dbg(coefficients_occupied_ptr != nullptr,
-               linalgwrap::ExcInvalidPointer());
+  //! The occupied coefficients as a pointer
+  coefficients_ptr_type coefficients_occupied_ptr;
 
-    stored_matrix_type AX(n_rows(), X.n_cols(), true);
+  /** \brief Multiplication with a stored matrix */
+  // J_{b1,q} = J_{b1,b2} X_{b2,q} = J_{b1,b2,b3,b4} X_{b2,q} Cocc_{b3,p} Cocc_{b4,p} = J_{b1,b2,b3,b4}
+  // X_{b2,q} D_{b3,b4}
+  // K_{b1,q} = K_{b1,b2} X_{b2,q} = J_{b1,b3,b2,b4} X_{b2,q} Cocc_{b3,p} Cocc_{b4,p} = J_{b1,b3,b2,b4}
+  // X_{b2,q} D_{b3,b4}
+  void apply(const const_multivector_type& x, multivector_type& y,
+             const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
+             const scalar_type alpha = 1, const scalar_type beta = 0) const override {
+    using namespace sturmint::orbital_index;
+    using namespace sturmint::atomic::cs_dummy;
+
+    assert_dbg(coefficients_occupied_ptr != nullptr, krims::ExcInvalidPointer());
+
     const int l_max = m_integral_calculator.lmax1;
     const int n_max = m_integral_calculator.nmax1;
-    const stored_matrix_type& Cocc(*coefficients_occupied_ptr);
+    const multivector_type& Cocc(*coefficients_occupied_ptr);
 
     //    cout << "\nCalculating "<<(exchange?"exchange":"coulomb")<<" integral
     //    application.\n";
-    for (size_t b1 = 0; b1 < n_rows(); b1++) {
+    for (size_t b1 = 0; b1 < x.n_elem(); b1++) {
       // TODO: Mål, om det bliver hurtigere / nemmere at OpenMP'e,
       // af at iterere over b1q samlet.
       nlm_t nlm1 = nlmbasis::quantum_numbers_from_index(b1);
       int8_t /*n1 = nlm1.n, */ l1 = nlm1.l, m1 = nlm1.m;
 
-      for (size_t q = 0; q < X.n_cols(); q++) {
+      for (size_t q = 0; q < x.n_vectors(); q++) {
         real_type sum = 0;
+        real_type y_term = (beta != 0 ? beta * y[q][b1] : 0);
 
-        for (size_t b2 = 0; b2 < X.n_rows(); b2++) {
+        for (size_t b2 = 0; b2 < x.n_elem(); b2++) {
           nlm_t nlm2 = nlmbasis::quantum_numbers_from_index(b2);
           int8_t /*n2 = nlm2.n, */ l2 = nlm2.l, m2 = nlm2.m;
 
@@ -368,55 +333,41 @@ public:
             // TODO: Exchange? Da!
             int8_t m4 = m3 - m2 + m1;
             int l_parity = (l1 + l2) & 1, m_parity = (m1 + m2) & 1;
-            int l_min = max(
-                  l_parity,
-                  ::abs(int(m4)) + ((m_parity + l_parity) & 1)
-	     );  // TODO: Check.
+            int l_min = max(l_parity, ::abs(int(m4)) + ((m_parity + l_parity) & 1));  // TODO: Check.
 
-            int B2 =
-                  exchange ? b3 : b2;  // Swap b2 and b3 if computing exchange
+            int B2 = exchange ? b3 : b2;  // Swap b2 and b3 if computing exchange
             int B3 = exchange ? b2 : b3;
-            real_type X_bq = X(b2, q);  // TODO: switch b,B again?
+            real_type X_bq = x[q][b2];
 
             for (int8_t l4 = l_min; l4 <= l_max; l4 += 2) {
 
-              for (int8_t n4 = l4 + 1; n4 <= n_max; n4++) {  
+              for (int8_t n4 = l4 + 1; n4 <= n_max; n4++) {
                 int b4 = nlmbasis::index(nlm_t{n4, l4, m4});
 
-                for (size_t p = 0; p < Cocc.n_cols(); p++)
-                  sum += sturmint::atomic::cs_dummy::repulsion
-                               [b4 + norb * (B3 + norb * (B2 + norb * b1))] *
-                         Cocc(b3, p) * Cocc(b4, p) * X_bq;
+                for (size_t p = 0; p < Cocc.n_vectors(); p++)
+                  sum += repulsion[b4 + norb * (B3 + norb * (B2 + norb * b1))] * Cocc[p][b3] * Cocc[p][b4] * X_bq;
               }
             }
           }
         }
 
-	//        AX(b1, q) = sum;
-	AX(b1, q) = 0;
+        y[q][b1] = sum + y_term;
       }
     }
-
-    return AX;
   }
 
   /** \brief return an element of the matrix    */
-  // J_{b1,b2} = J_{b1,b2,b3,b4} Cocc_{b3,p} Cocc_{b4,p} = J_{b1,b2,b3,b4}
-  // D_{b3,b4}
-  // K_{b1,b2} = J_{b1,b3,b2,b4} Cocc_{b3,p} Cocc_{b4,p} = J_{b1,b2,b3,b4}
-  // D_{b3,b4}
-  scalar_type operator()(size_type b1, size_type b2) const override {
-    using namespace sturmint::atomic;
+  // J_{b1,b2} = J_{b1,b2,b3,b4} Cocc_{b3,p} Cocc_{b4,p} = J_{b1,b2,b3,b4} D_{b3,b4}
+  // K_{b1,b2} = J_{b1,b3,b2,b4} Cocc_{b3,p} Cocc_{b4,p} = J_{b1,b2,b3,b4} D_{b3,b4}
+  scalar_type operator()(size_t b1, size_t b2) const override {
+    using namespace sturmint::atomic::cs_dummy;
     using namespace sturmint::orbital_index;
 
-    assert_greater(b1, n_rows());
-    assert_greater(b2, n_cols());
-    assert_dbg(coefficients_occupied_ptr != nullptr,
-               linalgwrap::ExcInvalidPointer());
+    assert_dbg(coefficients_occupied_ptr != nullptr, krims::ExcInvalidPointer());
 
     const int l_max = m_integral_calculator.lmax1;
     const int n_max = m_integral_calculator.nmax1;
-    const stored_matrix_type& Cocc(*coefficients_occupied_ptr);
+    const multivector_type& Cocc(*coefficients_occupied_ptr);
 
     nlm_t nlm1 = nlmbasis::quantum_numbers_from_index(b1);
     nlm_t nlm2 = nlmbasis::quantum_numbers_from_index(b2);
@@ -425,14 +376,13 @@ public:
 
     real_type sum = 0;
 
-    for (size_t b3 = 0; b3 < n_rows(); b3++) {
+    for (size_t b3 = 0; b3 < Cocc.n_elem(); b3++) {
       nlm_t nlm3 = nlmbasis::quantum_numbers_from_index(b3);
       int8_t /*n3 = nlm3.n, l3 = nlm3.l,*/ m3 = nlm3.m;
 
       int8_t m4 = m3 - m2 + m1;
       int l_parity = (l1 + l2) & 1, m_parity = (m1 + m2) & 1;
-      int l_min    = max(l_parity,
-			 ::abs(int(m4)) + ((m_parity + l_parity) & 1));  // TODO: Check!!
+      int l_min = max(l_parity, ::abs(int(m4)) + ((m_parity + l_parity) & 1));  // TODO: Check!!
 
       int B2 = exchange ? b3 : b2;  // Swap b2 and b3 if computing exchange // TODO: Check
       int B3 = exchange ? b2 : b3;
@@ -444,14 +394,12 @@ public:
         for (int8_t n4 = l4 + 1; n4 <= n_max; n4++) {
           int b4 = nlmbasis::index(nlm_t{n4, l4, m4});
 
-          for (size_t p = 0; p < Cocc.n_cols(); p++)
-            sum += cs_dummy::repulsion[b4+norb*(B3+norb*(B2+norb*b1))] 
-	           * Cocc(b3, p) * Cocc(b4, p);
+          for (size_t p = 0; p < Cocc.n_vectors(); p++)
+            sum += repulsion[b4 + norb * (B3 + norb * (B2 + norb * b1))] * Cocc[p][b3] * Cocc[p][b4];
         }
       }
     }
-    //    return sum;
-    return 0;
+    return sum;
   }
 
   ERICore(const Atomic& integral_calculator, bool exchange, real_type k)
@@ -461,26 +409,24 @@ public:
 
   /** \brief Update the internal data of all objects in this expression
    *         given the ParameterMap                                     */
-  virtual void update(const linalgwrap::ParameterMap& map) override {
-    using namespace linalgwrap;
+  virtual void update(const krims::ParameterMap& map) override {
+    const std::string occ_coeff_key = Integral<stored_mtx_type>::update_key_coefficients;
 
-    // The expected key for the new coefficients
-    const std::string occ_coeff_key("coefficients_occupied");
     if (!map.exists(occ_coeff_key)) return;
 
-    // Get coefficients as pointer. // TODO: Doesn't compile
-    coefficients_occupied_ptr = map.at_ptr<stored_matrix_type>(occ_coeff_key);
+    // Get coefficients as a shared pointer (having ownership)
+    coefficients_occupied_ptr =
+          static_cast<coefficients_ptr_type>(map.at_ptr<coefficients_type>(occ_coeff_key));
 
     // We will contract the coefficient row index over the number of
     // basis functions.
-    assert_size(coefficients_occupied_ptr->n_rows(),
-                m_integral_calculator.n_bas());
+    if (coefficients_occupied_ptr->n_vectors() == 0) return;
   }
   /** \brief Number of rows of the matrix */
-  size_type n_rows() const override { return m_integral_calculator.n_bas(); }
+  size_t n_rows() const override { return m_integral_calculator.n_bas(); }
 
   /** \brief Number of columns of the matrix  */
-  size_type n_cols() const override { return m_integral_calculator.n_bas(); }
+  size_t n_cols() const override { return m_integral_calculator.n_bas(); }
 
   /** \brief Clone the expression */
   std::unique_ptr<base_type> clone() const override {
@@ -502,6 +448,8 @@ private:
   const Atomic& m_integral_calculator;
 };
 
+  
+  
 }  // namespace cs_dummy
 }  // namespace atomic
 }  // namespace gint

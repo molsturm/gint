@@ -13,18 +13,16 @@ template <typename StoredMatrix>
 class IntegralCoreBase /* : public linalgwrap::Subscribable */ {
 public:
   typedef StoredMatrix stored_matrix_type;
-  typedef typename stored_matrix_type::size_type size_type;
   typedef typename stored_matrix_type::scalar_type scalar_type;
-  typedef typename stored_matrix_type::real_type real_type;
 
   /** \brief Number of rows of the matrix */
-  virtual size_type n_rows() const = 0;
+  virtual size_t n_rows() const = 0;
 
   /** \brief Number of columns of the matrix  */
-  virtual size_type n_cols() const = 0;
+  virtual size_t n_cols() const = 0;
 
   /** \brief return an element of the matrix    */
-  virtual scalar_type operator()(size_type row, size_type col) const = 0;
+  virtual scalar_type operator()(size_t row, size_t col) const = 0;
 
   /** Are operation modes Transposed::Trans and Transposed::ConjTrans
    *  supported for this matrix type
@@ -51,14 +49,11 @@ public:
    * vector type, but we're not there yet.
    */
   virtual void apply(
-        const linalgwrap::MultiVector<
-              const linalgwrap::MutableMemoryVector_i<scalar_type>>& x,
-        linalgwrap::MultiVector<linalgwrap::MutableMemoryVector_i<scalar_type>>&
-              y,
+        const linalgwrap::MultiVector<const linalgwrap::MutableMemoryVector_i<scalar_type>>& x,
+        linalgwrap::MultiVector<linalgwrap::MutableMemoryVector_i<scalar_type>>& y,
         const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
-        const scalar_type c_this = linalgwrap::Constants<scalar_type>::one,
-        const scalar_type c_y =
-              linalgwrap::Constants<scalar_type>::zero) const = 0;
+        const scalar_type c_this = 1,
+        const scalar_type c_y = 0) const = 0;
 
   /** \brief Compute the Inverse-Multivector application
    *
@@ -120,8 +115,8 @@ public:
    * LazyMatrixExpression class for details.
    */
   virtual void extract_block(
-        stored_matrix_type& M, const size_type start_row,
-        const size_type start_col,
+        stored_matrix_type& M, const size_t start_row,
+        const size_t start_col,
         const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
         const scalar_type c_this = linalgwrap::Constants<scalar_type>::one,
         const scalar_type c_M =

@@ -6,14 +6,14 @@
 #include <type_traits>
 #include <vector>
 
-// TODO taken out since it does not work atm
-//#include "atomic/cs_dummy.hh"
+#include "atomic/cs_dummy.hh"
 #include "atomic/static14.hh"
 
 namespace gint {
   
   static std::map<std::string, create_collection_t<COMPLEX_ATOMIC>*> basis_type_map_ca = {
-    {"cs_static14", atomic::static14::IntegralCollection::create}
+    {"cs_static14", atomic::static14::IntegralCollection::create},
+    {"cs_dummy",    atomic::cs_dummy::IntegralCollection::create}
   };
 
   
