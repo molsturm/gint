@@ -272,7 +272,7 @@ public:
     // where a and b are the same centre, so are c and d
     //
     // or alternatively
-    //
+    //               
     // K_{ab} = \sum_{cd} P_{cd} < ab | cd >
     // where a and c are the same centre, so are b and d
 
@@ -330,7 +330,9 @@ public:
     assert_size(x.n_elem(), nbas);
     assert_size(y.n_elem(), nbas);
     assert_sufficiently_tested(mode != Transposed::ConjTrans);
-
+    // All modes are same case since we are symmetric and real, so no
+    // switching over mode.
+    
     // Scale the current values of y or set them to zero
     // (if c_y == 0): We are now done with c_y and do not
     // need to worry about it any more in this function
@@ -339,22 +341,15 @@ public:
 
     // if c_this == 0 we are done
     if (c_this == Constants<scalar_type>::zero) return;
-
+    
     for (size_t veci = 0; veci < x.n_vectors(); ++veci) {
       const auto& vec = x[veci];
-      auto& out = y[veci];
+      auto&       out = y[veci];
       for (size_t row = 0; row < nbas; ++row) {
         scalar_type sum = 0;
-        for (size_t k = 0; k < nbas; ++k) {
-          switch (mode) {
-            case Transposed::None:
-            case Transposed::Trans:
-            case Transposed::ConjTrans:
-              // Same case since we are symmetric and real
-              sum += (*this)(row, k) * vec(k);
-              break;
-          }  // mode
-        }    // k
+        for (size_t k = 0; k < nbas; ++k) 
+	  sum += (*this)(row, k) * vec(k);
+
         out(row) += c_this * sum;
       }  // row
     }    // veci

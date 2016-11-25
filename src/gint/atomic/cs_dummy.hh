@@ -296,11 +296,10 @@ public:
   //! The occupied coefficients as a pointer
   coefficients_ptr_type coefficients_occupied_ptr;
 
+  
   /** \brief Multiplication with a stored matrix */
-  // J_{b1,q} = J_{b1,b2} X_{b2,q} = J_{b1,b2,b3,b4} X_{b2,q} Cocc_{b3,p} Cocc_{b4,p} = J_{b1,b2,b3,b4}
-  // X_{b2,q} D_{b3,b4}
-  // K_{b1,q} = K_{b1,b2} X_{b2,q} = J_{b1,b3,b2,b4} X_{b2,q} Cocc_{b3,p} Cocc_{b4,p} = J_{b1,b3,b2,b4}
-  // X_{b2,q} D_{b3,b4}
+  // J_{aq} = J_{ab} X_{bq} = J_{abcd} X_{bq} Cocc_{cp} Cocc_{dp} = J_{abcd} X_{bq} D_{cd}
+  // K_{aq} = K_{ab} X_{bq} = J_{acbd} X_{bq} Cocc_{cp} Cocc_{dp} = J_{acbd} X_{bq} D_{cd}
   void apply(const const_multivector_type& x, multivector_type& y,
              const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
              const scalar_type alpha = 1, const scalar_type beta = 0) const override {
@@ -309,60 +308,73 @@ public:
 
     assert_dbg(coefficients_occupied_ptr != nullptr, krims::ExcInvalidPointer());
 
-    const int l_max = m_integral_calculator.lmax1;
-    const int n_max = m_integral_calculator.nmax1;
-    const coefficients_type& Cocc(*coefficients_occupied_ptr);
+    for (auto& vec : y) linalgwrap::detail::scale_or_set(vec, beta);
 
-    //    cout << "\nCalculating "<<(exchange?"exchange":"coulomb")<<" integral
-    //    application.\n";
-    for (size_t b1 = 0; b1 < x.n_elem(); b1++) {
-      // TODO: Mål, om det bliver hurtigere / nemmere at OpenMP'e,
-      // af at iterere over b1q samlet.
-      nlm_t nlm1 = nlmbasis::quantum_numbers_from_index(b1);
-      int8_t /*n1 = nlm1.n, */ l1 = nlm1.l, m1 = nlm1.m;
+    for (size_t a = 0; a < norb; a++)
+      for (size_t b = 0; b < norb; b++) {
+        real_type JKab = (*this)(a, b);
 
-      for (size_t q = 0; q < x.n_vectors(); q++) {
-        real_type sum = 0;
-        real_type y_term = (beta != 0 ? beta * y[q][b1] : 0);
-
-        for (size_t b2 = 0; b2 < x.n_elem(); b2++) {
-          nlm_t nlm2 = nlmbasis::quantum_numbers_from_index(b2);
-          int8_t /*n2 = nlm2.n, */ l2 = nlm2.l, m2 = nlm2.m;
-
-          for (size_t b3 = 0; b3 < n_rows(); b3++) {
-            nlm_t nlm3 = nlmbasis::quantum_numbers_from_index(b3);
-            int8_t /*n3 = nlm3.n, l3 = nlm3.l,*/ m3 = nlm3.m;
-
-            // TODO: Exchange? Da!
-            int8_t m4 = m3 - m2 + m1;
-            int l_parity = (l1 + l2) & 1, m_parity = (m1 + m2) & 1;
-            int l_min = max(l_parity, ::abs(int(m4)) + ((m_parity + l_parity) & 1));  // TODO: Check.
-
-            int B2 = exchange ? b3 : b2;  // Swap b2 and b3 if computing exchange
-            int B3 = exchange ? b2 : b3;
-            real_type X_bq = x[q][b2];
-
-            for (int8_t l4 = l_min; l4 <= l_max; l4 += 2) {
-
-              for (int8_t n4 = l4 + 1; n4 <= n_max; n4++) {
-                int b4 = nlmbasis::index(nlm_t{n4, l4, m4});
-
-                for (size_t p = 0; p < Cocc.n_vectors(); p++)
-                  sum += repulsion[b4 + norb * (B3 + norb * (B2 + norb * b1))] * Cocc[p][b3] * Cocc[p][b4] * X_bq;
-              }
-            }
-          }
+        for (size_t q = 0; q < x.n_vectors(); q++) {
+          y[q][a] += alpha * JKab * x[q][b];
         }
-
-        y[q][b1] = sum + y_term;
       }
-    }
+
+    //    const int l_max = m_integral_calculator.lmax1;
+    //	  const int n_max = m_integral_calculator.nmax1;
+    // //    cout << "\nCalculating "<<(exchange?"exchange":"coulomb")<<" integral
+    // //    application.\n";
+    // for (size_t b1 = 0; b1 < x.n_elem(); b1++) {
+    //   // TODO: Mål, om det bliver hurtigere / nemmere at OpenMP'e,
+    //   // af at iterere over b1q samlet.
+    //   nlm_t nlm1 = nlmbasis::quantum_numbers_from_index(b1);
+    //   int8_t /*n1 = nlm1.n, */ l1 = nlm1.l, m1 = nlm1.m;
+
+    //   for (size_t q = 0; q < x.n_vectors(); q++) {
+    //     real_type sum = 0;
+    //     real_type y_term = (beta != 0 ? beta * y[q][b1] : 0);
+
+    //     for (size_t b2 = 0; b2 < x.n_elem(); b2++) {
+    //       nlm_t nlm2 = nlmbasis::quantum_numbers_from_index(b2);
+    //       int8_t /*n2 = nlm2.n, */ l2 = nlm2.l, m2 = nlm2.m;
+
+    //       for (size_t b3 = 0; b3 < n_rows(); b3++) {
+    //         nlm_t nlm3 = nlmbasis::quantum_numbers_from_index(b3);
+    //         int8_t /*n3 = nlm3.n, l3 = nlm3.l,*/ m3 = nlm3.m;
+
+    //         // TODO: Exchange? Da!
+    //         int8_t m4 = m3 - m2 + m1;
+    //         int l_parity = (l1 + l2) & 1, m_parity = (m1 + m2) & 1;
+    //         int l_min = max(l_parity, ::abs(int(m4)) + ((m_parity + l_parity) & 1));  // TODO: Check.
+
+    //         int B2 = exchange ? b3 : b2;  // Swap b2 and b3 if computing exchange
+    //         int B3 = exchange ? b2 : b3;
+    //         real_type X_bq = x[q][b2];
+
+    //         for (int8_t l4 = l_min; l4 <= l_max; l4 += 2) {
+
+    //           for (int8_t n4 = l4 + 1; n4 <= n_max; n4++) {
+    //             int b4 = nlmbasis::index(nlm_t{n4, l4, m4});
+
+    //             for (size_t p = 0; p < Cocc.n_vectors(); p++)
+    //               sum += repulsion[b4 + norb * (B3 + norb * (B2 + norb * b1))] * Cocc[p][b3] * Cocc[p][b4] * X_bq;
+    //           }
+    //         }
+    //       }
+    //     }
+
+    //     y[q][b1] = sum + y_term;
+    //   }
   }
 
+  scalar_type operator()(size_t a, size_t b) const override {
+    return simple1_ver(a,b);
+  }
+  
   /** \brief return an element of the matrix    */
-  // J_{b1,b2} = J_{b1,b2,b3,b4} Cocc_{b3,p} Cocc_{b4,p} = J_{b1,b2,b3,b4} D_{b3,b4}
-  // K_{b1,b2} = J_{b1,b3,b2,b4} Cocc_{b3,p} Cocc_{b4,p} = J_{b1,b2,b3,b4} D_{b3,b4}
-  scalar_type operator()(size_t b1, size_t b2) const override {
+  // J_{ab} = J_{abcd} Cocc_{cp} Cocc_{dp} = J_{abcd} P_{cd}
+  // K_{ab} = J_{cbad} Cocc_{cp} Cocc_{dp} = J_{acbd} P_{cd}
+
+  scalar_type simple2_ver(size_t a, size_t b) const {
     using namespace sturmint::atomic::cs_dummy;
     using namespace sturmint::orbital_index;
 
@@ -372,83 +384,164 @@ public:
     const int n_max = m_integral_calculator.nmax1;
     const coefficients_type& Cocc(*coefficients_occupied_ptr);
 
-    nlm_t nlm1 = nlmbasis::quantum_numbers_from_index(b1);
-    nlm_t nlm2 = nlmbasis::quantum_numbers_from_index(b2);
+    nlm_t nlm1 = nlmbasis::quantum_numbers_from_index(a);
+    nlm_t nlm2 = nlmbasis::quantum_numbers_from_index(b);
     int8_t /*n1 = nlm1.n,*/ l1 = nlm1.l, m1 = nlm1.m;
-    int8_t /*n2 = nlm2.n, */ l2 = nlm2.l, m2 = nlm2.m;
+    int8_t /*n2 = nlm2.n,*/ l2 = nlm2.l, m2 = nlm2.m;
 
     real_type sum = 0;
 
-    for (size_t b3 = 0; b3 < Cocc.n_elem(); b3++) {
-      nlm_t nlm3 = nlmbasis::quantum_numbers_from_index(b3);
+    for (size_t c = 0; c < norb; c++) {
+      nlm_t nlm3 = nlmbasis::quantum_numbers_from_index(c);
       int8_t /*n3 = nlm3.n, l3 = nlm3.l,*/ m3 = nlm3.m;
 
       int8_t m4 = m3 - m2 + m1;
       int l_parity = (l1 + l2) & 1, m_parity = (m1 + m2) & 1;
       int l_min = max(l_parity, ::abs(int(m4)) + ((m_parity + l_parity) & 1));  // TODO: Check!!
 
-      int B2 = exchange ? b3 : b2;  // Swap b2 and b3 if computing exchange // TODO: Check
-      int B3 = exchange ? b2 : b3;
+      size_t A = exchange ? c : a;  // Swap b and c if computing exchange // TODO: Check
+      size_t C = exchange ? a : c;
+
+      assert(a==A && c==C);
 
       for (int8_t l4 = l_min; l4 <= l_max; l4 += 2) {
-        // TODO: Fixed number of n's (same-length dot product for all
-        // (l,m)-combinations). Same (l,m), different n's should be
-        // contiguous in memory.
+        // TODO: Fixed number of n's (same-length dot product for all (l,m)-combinations).
+        // Same (l,m), different n's should be contiguous in memory.
         for (int8_t n4 = l4 + 1; n4 <= n_max; n4++) {
-          int b4 = nlmbasis::index(nlm_t{n4, l4, m4});
-
+          int d = nlmbasis::index(nlm_t{n4, l4, m4});
+          real_type density_cd = 0;
           for (size_t p = 0; p < Cocc.n_vectors(); p++)
-            sum += repulsion[b4 + norb * (B3 + norb * (B2 + norb * b1))] * Cocc[p][b3] * Cocc[p][b4];
+	    density_cd += Cocc[p][c] * Cocc[p][d];
+
+          sum += repulsion[d + norb * (C + norb * (b + norb * A))] * density_cd;
         }
       }
     }
-    return sum;
+    return k*sum;
   }
 
-  ERICore(const Atomic& integral_calculator, bool exchange, real_type k)
-        : exchange(exchange),
-          k(k),
-          m_integral_calculator(integral_calculator) {}
+  scalar_type simple1_ver(size_t a, size_t b) const {
+    using namespace sturmint::atomic::cs_dummy;
+    using namespace sturmint::orbital_index;
 
-  /** \brief Update the internal data of all objects in this expression
-   *         given the ParameterMap                                     */
-  virtual void update(const krims::ParameterMap& map) override {
-    const std::string occ_coeff_key = Integral<stored_mtx_type>::update_key_coefficients;
+    assert_dbg(coefficients_occupied_ptr != nullptr, krims::ExcInvalidPointer());
 
-    if (!map.exists(occ_coeff_key)) return;
+    const coefficients_type& Cocc(*coefficients_occupied_ptr);
 
-    // Get coefficients as a shared pointer (having ownership)
-    coefficients_occupied_ptr =
-          static_cast<coefficients_ptr_type>(map.at_ptr<coefficients_type>(occ_coeff_key));
+    real_type sum = 0;
 
-    // We will contract the coefficient row index over the number of
-    // basis functions.
-    if (coefficients_occupied_ptr->n_vectors() == 0) return;
-  }
-  /** \brief Number of rows of the matrix */
-  size_t n_rows() const override { return m_integral_calculator.n_bas(); }
+    for (size_t c = 0; c < norb; c++) {
+      size_t A = exchange ? c : a;  // Swap b and c if computing exchange // TODO: Check
+      size_t C = exchange ? a : c;
 
-  /** \brief Number of columns of the matrix  */
-  size_t n_cols() const override { return m_integral_calculator.n_bas(); }
+      for (size_t d = 0; d < norb; d++) {
+        real_type density_cd = 0;
+        for (size_t p = 0; p < Cocc.n_vectors(); p++)
+	  density_cd += Cocc[p][c] * Cocc[p][d];
 
-  /** \brief Clone the expression */
-  std::unique_ptr<base_type> clone() const override {
-    return std::unique_ptr<base_type>(new ERICore(*this));
-  }
+        sum += repulsion[d + norb * (C + norb * (b + norb * A))] * density_cd;
+      }
+    }
+    return k*sum;
+    }
 
-  /** \brief Get the identifier of the integral */
-  std::string id() const override {
-    return std::string("atomic/cs_dummy/ERI_") + (exchange ? "K" : "J");
-  }
+    scalar_type static14_ver(size_t a, size_t b) const {
+      using namespace sturmint::atomic::cs_dummy;
+      assert_greater(a, n_rows());
+      assert_greater(b, n_cols());
 
-  /** \brief Get the friendly name of the integral */
-  std::string name() const override {
-    return std::string("Electron Repulsion Integrals, ") +
-           (exchange ? "Exchange" : "Coulomb") + " operator";
-  }
+      // This routine computes
+      //
+      // J_{ab} = \sum_{cd} P_{cd} < ac | bd >
+      //        = \sum_{cd} \sum_{k \in occ} (C^{k})_c (C^{k})_d < ac | bd >
+      // where a and b are the same centre, so are c and d
+      //
+      // or alternatively
+      //
+      // K_{ab} = \sum_{cd} P_{cd} < ab | cd >
+      // where a and c are the same centre, so are b and d
 
-private:
-  const Atomic& m_integral_calculator;
+      // Repulsion integrals indexed in shell-pairs
+      const auto& i_bbbb = repulsion;
+      const size_t nbas = norb;
+
+      assert_dbg(coefficients_occupied_ptr != nullptr, krims::ExcInvalidPointer());
+
+      // Density matrix expression
+      auto density_bb = outer_prod_sum(*coefficients_occupied_ptr, *coefficients_occupied_ptr);
+      assert_dbg(density_bb.n_rows() == nbas, krims::ExcInternalError());
+      assert_dbg(density_bb.n_cols() == nbas, krims::ExcInternalError());
+
+      // Shell pair index for basis functions a and b:
+      const size_t ab_pair = a * nbas + b;
+
+      // Sum accumulator variable for this exchange or
+      // coulomb  matrix element
+      scalar_type mat_ab{0};
+
+      // Double loop over basis functions c and d:
+      for (size_t c = 0; c < nbas; ++c) {
+        // Shell pair index for basis functions a and c:
+        const size_t ac_pair = a * nbas + c;
+
+        for (size_t d = 0; d < nbas; ++d) {
+          // Shell pair index for basis functions c and d:
+          // or b and d:
+          const size_t cd_pair = c * nbas + d;
+          const size_t db_pair = d * nbas + b;
+
+          // Perform contraction:
+          const scalar_type i_elem = exchange ? i_bbbb[ac_pair * nbas * nbas + db_pair]
+                                              : i_bbbb[ab_pair * nbas * nbas + cd_pair];
+          mat_ab += density_bb(c, d) * k * i_elem;
+        }  // d
+      }    // c
+
+      return mat_ab;
+    }
+
+    ERICore(const Atomic& integral_calculator, bool exchange, real_type k)
+          : exchange(exchange), k(k), m_integral_calculator(integral_calculator) {}
+
+    /** \brief Update the internal data of all objects in this expression
+     *         given the ParameterMap                                     */
+    virtual void update(const krims::ParameterMap& map) override {
+      const std::string occ_coeff_key = Integral<stored_mtx_type>::update_key_coefficients;
+
+      if (!map.exists(occ_coeff_key)) return;
+
+      // Get coefficients as a shared pointer (having ownership)
+      coefficients_occupied_ptr =
+            static_cast<coefficients_ptr_type>(map.at_ptr<coefficients_type>(occ_coeff_key));
+
+      // We will contract the coefficient row index over the number of
+      // basis functions.
+      if (coefficients_occupied_ptr->n_vectors() == 0) return;
+    }
+    /** \brief Number of rows of the matrix */
+    size_t n_rows() const override { return m_integral_calculator.n_bas(); }
+
+    /** \brief Number of columns of the matrix  */
+    size_t n_cols() const override { return m_integral_calculator.n_bas(); }
+
+    /** \brief Clone the expression */
+    std::unique_ptr<base_type> clone() const override {
+      return std::unique_ptr<base_type>(new ERICore(*this));
+    }
+
+    /** \brief Get the identifier of the integral */
+    std::string id() const override {
+      return std::string("atomic/cs_dummy/ERI_") + (exchange ? "K" : "J");
+    }
+
+    /** \brief Get the friendly name of the integral */
+    std::string name() const override {
+      return std::string("Electron Repulsion Integrals, ") + (exchange ? "Exchange" : "Coulomb") +
+             " operator";
+    }
+
+  private:
+    const Atomic& m_integral_calculator;
 };
 
   
