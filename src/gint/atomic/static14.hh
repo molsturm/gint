@@ -191,6 +191,8 @@ public:
           .has_transpose_operation_mode();
   }
 
+  bool has_apply_inverse() const override { return true; }
+
   void apply(const linalgwrap::MultiVector<
                    const linalgwrap::MutableMemoryVector_i<scalar_type>>& x,
              linalgwrap::MultiVector<
@@ -201,6 +203,19 @@ public:
                    linalgwrap::Constants<scalar_type>::zero) const override {
     detail::Static14Data<stored_matrix_type>::s_bb.apply(x, y, mode, c_this,
                                                          c_y);
+  }
+
+  void apply_inverse(
+        const linalgwrap::MultiVector<
+              const linalgwrap::MutableMemoryVector_i<scalar_type>>& x,
+        linalgwrap::MultiVector<linalgwrap::MutableMemoryVector_i<scalar_type>>&
+              y,
+        const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
+        const scalar_type c_this = linalgwrap::Constants<scalar_type>::one,
+        const scalar_type c_y =
+              linalgwrap::Constants<scalar_type>::zero) const override {
+    detail::Static14Data<stored_matrix_type>::sinv_bb.apply(x, y, mode, c_this,
+                                                            c_y);
   }
 
   /** Extract a block of a matrix and (optionally) add it to
@@ -450,7 +465,9 @@ public:
         const scalar_type c_M =
               linalgwrap::Constants<scalar_type>::zero) const override {
     using namespace linalgwrap;
+#ifdef DEBUG
     const size_type nbas = detail::Static14Data<stored_matrix_type>::nbas;
+#endif
 
     assert_finite(c_this);
     assert_finite(c_M);

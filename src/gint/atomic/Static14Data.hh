@@ -18,6 +18,9 @@ struct Static14Data {
   //! Overlap matrix
   static const stored_matrix_type s_bb;
 
+  //! Inverse of the overlap matrix
+  static const stored_matrix_type sinv_bb;
+
   //! Electron-core interaction matrix without k or Z factors.
   static const stored_matrix_type v0_bb_base;
 
@@ -67,6 +70,23 @@ const StoredMatrix Static14Data<StoredMatrix>::s_bb{
       {0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 0., 0.},
       {0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 0.},
       {0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1.}};
+
+template <typename StoredMatrix>
+const StoredMatrix Static14Data<StoredMatrix>::sinv_bb{
+      {1.5, 1, 0, 0, 0, 0.5, 0, 0, 0, 0, 0, 0, 0, 0},
+      {1, 2, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0},
+      {0, 0, 1.2, 0, 0, 0, 0.4898979485566356, 0, 0, 0, 0, 0, 0, 0},
+      {0, 0, 0, 1.2, 0, 0, 0, 0.4898979485566356, 0, 0, 0, 0, 0, 0},
+      {0, 0, 0, 0, 1.2, 0, 0, 0, 0.4898979485566356, 0, 0, 0, 0, 0},
+      {0.5, 1, 0, 0, 0, 1.5, 0, 0, 0, 0, 0, 0, 0, 0},
+      {0, 0, 0.4898979485566356, 0, 0, 0, 1.2, 0, 0, 0, 0, 0, 0, 0},
+      {0, 0, 0, 0.4898979485566356, 0, 0, 0, 1.2, 0, 0, 0, 0, 0, 0},
+      {0, 0, 0, 0, 0.4898979485566356, 0, 0, 0, 1.2, 0, 0, 0, 0, 0},
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0},
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0},
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0},
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0},
+      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.}};
 
 template <typename StoredMatrix>
 const StoredMatrix Static14Data<StoredMatrix>::v0_bb_base{

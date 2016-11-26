@@ -70,6 +70,12 @@ public:
     return m_core_ptr->has_transpose_operation_mode();
   }
 
+  /** Is inverse_apply available for this matrix type */
+  bool has_apply_inverse() const override {
+    assert_dbg(m_core_ptr != nullptr, krims::ExcInternalError());
+    return m_core_ptr->has_apply_inverse();
+  }
+
   /** \brief Compute the Matrix-Multivector application
    *
    * Loosely performs the operation
@@ -105,6 +111,46 @@ public:
     MultiVector<const MutableMemoryVector_i<scalar_type>> x_wrapped(x);
     MultiVector<MutableMemoryVector_i<scalar_type>> y_wrapped(y);
     apply(x_wrapped, y_wrapped, mode, c_this, c_y);
+  }
+
+  /** \brief Compute the Inverse-Multivector application
+   *
+   * Loosely speaking we perform
+   * \[ y = c_this \cdot (A^{-1})^\text{mode} \cdot x + c_y \cdot y. \]
+   *
+   * See LazyMatrixExpression for more details
+   */
+  template <
+        typename VectorIn, typename VectorOut,
+        linalgwrap::mat_vec_apply_enabled_t<Integral, VectorIn, VectorOut>...>
+  void apply_inverse(
+        const linalgwrap::MultiVector<VectorIn>& x,
+        linalgwrap::MultiVector<VectorOut>& y,
+        const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
+        const scalar_type c_this = 1, const scalar_type c_y = 0) const {
+    using namespace linalgwrap;
+    MultiVector<const MutableMemoryVector_i<scalar_type>> x_wrapped(x);
+    MultiVector<MutableMemoryVector_i<scalar_type>> y_wrapped(y);
+    apply_inverse(x_wrapped, y_wrapped, mode, c_this, c_y);
+  }
+
+  /** \brief Compute the Inverse-Multivector application
+   *
+   * Loosely speaking we perform
+   * \[ y = c_this \cdot (A^{-1})^\text{mode} \cdot x + c_y \cdot y. \]
+   *
+   * See LazyMatrixExpression for more details
+   */
+  virtual void apply_inverse(
+        const linalgwrap::MultiVector<
+              const linalgwrap::MutableMemoryVector_i<scalar_type>>& x,
+        linalgwrap::MultiVector<linalgwrap::MutableMemoryVector_i<scalar_type>>&
+              y,
+        const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
+        const scalar_type c_this = 1,
+        const scalar_type c_y = 0) const override {
+    assert_dbg(m_core_ptr != nullptr, krims::ExcInternalError());
+    m_core_ptr->apply_inverse(x, y, mode, c_this, c_y);
   }
 
   /** Perform a matrix-matrix product.

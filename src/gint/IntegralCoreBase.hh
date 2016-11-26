@@ -6,6 +6,8 @@
 
 namespace gint {
 
+// TODO Why does this exist? Could one not use a LazyMatrixExpression all along?
+
 // TODO we might want to be able to make subscriptions to this thing
 template <typename StoredMatrix>
 class IntegralCoreBase /* : public linalgwrap::Subscribable */ {
@@ -32,6 +34,9 @@ public:
    **/
   virtual bool has_transpose_operation_mode() const { return false; }
 
+  /** Is inverse_apply available for this matrix type */
+  virtual bool has_apply_inverse() const { return false; }
+
   /** \brief Compute the Matrix-Multivector application
    *
    * Loosely performs the operation
@@ -55,7 +60,26 @@ public:
         const scalar_type c_y =
               linalgwrap::Constants<scalar_type>::zero) const = 0;
 
-  // TODO Later also provide apply which keeps the type
+  /** \brief Compute the Inverse-Multivector application
+   *
+   * Loosely speaking we perform
+   * \[ y = c_this \cdot (A^{-1})^\text{mode} \cdot x + c_y \cdot y. \]
+   *
+   * See LazyMatrixExpression for more details
+   */
+  virtual void apply_inverse(
+        const linalgwrap::MultiVector<
+              const linalgwrap::MutableMemoryVector_i<scalar_type>>& /*x*/,
+        linalgwrap::MultiVector<linalgwrap::MutableMemoryVector_i<scalar_type>>&
+        /*y*/,
+        const linalgwrap::Transposed /*mode*/ = linalgwrap::Transposed::None,
+        const scalar_type /*c_this*/ = 1, const scalar_type /*c_y*/ = 0) const {
+    assert_throw(false,
+                 krims::ExcDisabled("The apply_inverse function is in general "
+                                    "very expensive and is only implemented in "
+                                    "some cases. Use the function "
+                                    "has_apply_inverse() to check when."));
+  }
 
   /** Perform a matrix-matrix product.
    *
