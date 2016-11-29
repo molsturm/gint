@@ -4,7 +4,6 @@
 #include "gint/Integral.hh"
 #include "gint/IntegralCollectionBase.hh"
 #include "gint/IntegralCoreBase.hh"
-#include "gint/real_config.hh"
 #include <krims/ParameterMap.hh>
 
 namespace gint {
@@ -16,6 +15,18 @@ class NuclearAttractionIntegralCore;
 class KineticIntegralCore;
 class ERICore;
 
+typedef real_type                   scalar_type;
+typedef real_stored_mtx_type        stored_mtx_type;
+typedef real_multivector_type       multivector_type;
+typedef const_real_multivector_type const_multivector_type;
+
+
+void apply_stored_matrix(const real_stored_mtx_type& A,
+			const_multivector_type & x,
+			multivector_type& y,
+			const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
+			 const scalar_type c_A = 1, const scalar_type c_y = 0);  
+  
 /** This integral collection contains precomputed data for an atomic sturmian
  * basis with n_max = 3 and l_max=2, which yields 14 basis functions.
  *
@@ -70,11 +81,11 @@ public:
   }
 
   // alpha * A * x + beta * y
-  void apply(const linalgwrap::MultiVector<const linalgwrap::MutableMemoryVector_i<scalar_type>>& x,
-             linalgwrap::MultiVector<linalgwrap::MutableMemoryVector_i<scalar_type>>& y,
+  void apply(const_multivector_type & x,
+             multivector_type& y,
              const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
              const scalar_type alpha = 1, const scalar_type beta = 0) const override {
-    detail::Static14Data<stored_mtx_type>::v0_bb_base.apply(x, y, mode, -k * Z * alpha, beta);
+    apply_stored_matrix(detail::Static14Data<stored_mtx_type>::v0_bb_base,x,y,mode,-k*Z*alpha,beta);
   }
 
   /** Extract a block of a matrix and (optionally) add it to
@@ -131,12 +142,11 @@ public:
 
   bool has_apply_inverse() const override { return true; }
 
-  void apply(const linalgwrap::MultiVector<const linalgwrap::MutableMemoryVector_i<scalar_type>>& x,
-             linalgwrap::MultiVector<linalgwrap::MutableMemoryVector_i<scalar_type>>& y,
+  void apply(const_multivector_type & x,
+             multivector_type& y,
              const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
-             const scalar_type c_this = linalgwrap::Constants<scalar_type>::one,
-             const scalar_type c_y = linalgwrap::Constants<scalar_type>::zero) const override {
-    detail::Static14Data<stored_mtx_type>::s_bb.apply(x, y, mode, c_this, c_y);
+             const scalar_type alpha = 1, const scalar_type beta = 0) const override {
+    apply_stored_matrix(detail::Static14Data<stored_mtx_type>::s_bb,x,y,mode,alpha,beta);
   }
 
   void apply_inverse(
@@ -200,12 +210,11 @@ public:
     return detail::Static14Data<stored_mtx_type>::t_bb_base.has_transpose_operation_mode();
   }
 
-  void apply(const linalgwrap::MultiVector<const linalgwrap::MutableMemoryVector_i<scalar_type>>& x,
-             linalgwrap::MultiVector<linalgwrap::MutableMemoryVector_i<scalar_type>>& y,
+  void apply(const_multivector_type & x,
+             multivector_type& y,
              const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
-             const scalar_type c_this = linalgwrap::Constants<scalar_type>::one,
-             const scalar_type c_y = linalgwrap::Constants<scalar_type>::zero) const override {
-    detail::Static14Data<stored_mtx_type>::t_bb_base.apply(x, y, mode, k * k * c_this, c_y);
+             const scalar_type alpha = 1, const scalar_type beta = 0) const override {
+    apply_stored_matrix(detail::Static14Data<stored_mtx_type>::t_bb_base,x,y,mode,k*k*alpha,beta);
   }
 
   /** Extract a block of a matrix and (optionally) add it to
@@ -316,19 +325,19 @@ public:
 
   bool has_transpose_operation_mode() const override { return true; }
 
-  void apply(const linalgwrap::MultiVector<const linalgwrap::MutableMemoryVector_i<scalar_type>>& x,
-             linalgwrap::MultiVector<linalgwrap::MutableMemoryVector_i<scalar_type>>& y,
+  void apply(const_multivector_type& x,
+             multivector_type& y,
              const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
-             const scalar_type c_this = linalgwrap::Constants<scalar_type>::one,
+             const scalar_type c_A = linalgwrap::Constants<scalar_type>::one,
              const scalar_type c_y = linalgwrap::Constants<scalar_type>::zero) const override {
     using namespace linalgwrap;
     const size_t nbas = detail::Static14Data<stored_mtx_type>::nbas;
 
-    assert_finite(c_this);
+    assert_finite(c_A);
     assert_finite(c_y);
-    assert_size(x.n_vectors(), y.n_vectors());
-    assert_size(x.n_elem(), nbas);
-    assert_size(y.n_elem(), nbas);
+    assert_size(x.n_cols(), y.n_cols());
+    assert_size(x.n_rows(), nbas);
+    assert_size(y.n_rows(), nbas);
     assert_sufficiently_tested(mode != Transposed::ConjTrans);
     // All modes are same case since we are symmetric and real, so no
     // switching over mode.
@@ -337,20 +346,20 @@ public:
     // (if c_y == 0): We are now done with c_y and do not
     // need to worry about it any more in this function
     // TODO we are kind of calling an internal function here
-    for (auto& vec : y) linalgwrap::detail::scale_or_set(vec, c_y);
+    for(size_t i=0;i<y.n_rows();i++)
+      for(size_t j=0;j<y.n_cols();j++)
+	y(i,j) = (c_y != 0? c_y*y(i,j) : 0);
 
     // if c_this == 0 we are done
-    if (c_this == Constants<scalar_type>::zero) return;
+    if (c_A == Constants<scalar_type>::zero) return;
     
-    for (size_t veci = 0; veci < x.n_vectors(); ++veci) {
-      const auto& vec = x[veci];
-      auto&       out = y[veci];
+    for (size_t veci = 0; veci < x.n_cols(); ++veci) {
       for (size_t row = 0; row < nbas; ++row) {
         scalar_type sum = 0;
         for (size_t k = 0; k < nbas; ++k) 
-	  sum += (*this)(row, k) * vec(k);
+	  sum += (*this)(row, k) * x(k,veci);
 
-        out(row) += c_this * sum;
+        y(row,veci) += c_A * sum;
       }  // row
     }    // veci
   }

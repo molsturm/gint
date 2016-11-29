@@ -3,6 +3,7 @@
 #include <krims/Subscribable.hh>
 #include <linalgwrap/Base/Interfaces.hh>
 #include <linalgwrap/MultiVector.hh>
+#include "config.hh"
 
 namespace gint {
 
@@ -49,8 +50,9 @@ public:
    * vector type, but we're not there yet.
    */
   virtual void apply(
-        const linalgwrap::MultiVector<const linalgwrap::MutableMemoryVector_i<scalar_type>>& x,
-        linalgwrap::MultiVector<linalgwrap::MutableMemoryVector_i<scalar_type>>& y,
+     // NB: This will change when the new multivector interface is implemented.		     
+        const_real_multivector_type &x,
+	real_multivector_type& y,
         const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
         const scalar_type c_this = 1,
         const scalar_type c_y = 0) const = 0;

@@ -2,6 +2,7 @@
 #include <catch.hpp>
 #include <krims/ParameterMap.hh>
 #include <linalgwrap/TestingUtils.hh>
+#include <linalgwrap/io.hh>
 
 namespace gint {
 namespace tests {
@@ -86,9 +87,8 @@ struct IntegralDummyTests {
     }
 
     SECTION("Test coulomb: Test case 1") {
-      J_bb.update({{update_key,
-                    static_cast<coefficients_type>(data::coeffref_bo_1)}});
-
+      J_bb.update({{update_key, static_cast<coefficients_type>(data::coeffref_bo_1)}});
+           
       CHECK(J_bb.is_symmetric());
       REQUIRE(J_bb == numcomp(data::Jref_for_coeff_1).tolerance(equality_tol));
       check_apply_to_identity(J_bb, data::Jref_for_coeff_1, apply_tol);      
