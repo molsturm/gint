@@ -80,12 +80,12 @@ public:
     return detail::Static14Data<stored_mtx_type>::v0_bb_base.has_transpose_operation_mode();
   }
 
-  // alpha * A * x + beta * y
+  // c_A * A * x + c_y * y
   void apply(const_multivector_type & x,
              multivector_type& y,
              const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
-             const scalar_type alpha = 1, const scalar_type beta = 0) const override {
-    apply_stored_matrix(detail::Static14Data<stored_mtx_type>::v0_bb_base,x,y,mode,-k*Z*alpha,beta);
+             const scalar_type c_A = 1, const scalar_type c_y = 0) const override {
+    apply_stored_matrix(detail::Static14Data<stored_mtx_type>::v0_bb_base,x,y,mode,-k*Z*c_A,c_y);
   }
 
   /** Extract a block of a matrix and (optionally) add it to
@@ -145,8 +145,8 @@ public:
   void apply(const_multivector_type & x,
              multivector_type& y,
              const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
-             const scalar_type alpha = 1, const scalar_type beta = 0) const override {
-    apply_stored_matrix(detail::Static14Data<stored_mtx_type>::s_bb,x,y,mode,alpha,beta);
+             const scalar_type c_A = 1, const scalar_type c_y = 0) const override {
+    apply_stored_matrix(detail::Static14Data<stored_mtx_type>::s_bb,x,y,mode,c_A,c_y);
   }
 
   void apply_inverse(
@@ -213,8 +213,8 @@ public:
   void apply(const_multivector_type & x,
              multivector_type& y,
              const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
-             const scalar_type alpha = 1, const scalar_type beta = 0) const override {
-    apply_stored_matrix(detail::Static14Data<stored_mtx_type>::t_bb_base,x,y,mode,k*k*alpha,beta);
+             const scalar_type c_A = 1, const scalar_type c_y = 0) const override {
+    apply_stored_matrix(detail::Static14Data<stored_mtx_type>::t_bb_base,x,y,mode,k*k*c_A,c_y);
   }
 
   /** Extract a block of a matrix and (optionally) add it to
@@ -345,7 +345,6 @@ public:
     // Scale the current values of y or set them to zero
     // (if c_y == 0): We are now done with c_y and do not
     // need to worry about it any more in this function
-    // TODO we are kind of calling an internal function here
     for(size_t i=0;i<y.n_rows();i++)
       for(size_t j=0;j<y.n_cols();j++)
 	y(i,j) = (c_y != 0? c_y*y(i,j) : 0);

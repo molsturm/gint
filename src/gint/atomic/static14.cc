@@ -40,17 +40,23 @@ void apply_stored_matrix(const real_stored_mtx_type& A,
 			const_multivector_type & x,
 			multivector_type& y,
 			const linalgwrap::Transposed mode,
-			const scalar_type c_A, const scalar_type c_y)  {
+			const scalar_type c_A, const scalar_type c_y)
+{
+  // scale y by c_y or set to zero
   for (size_t i = 0; i < x.n_rows(); i++)
     for (size_t j = 0; j < x.n_cols(); j++)
-      y(i,j) = (c_y == 0? 0 : c_y * y(i,j));    
+      y(i,j) = (c_y == 0? 0 : c_y * y(i,j));
 
   // Everything in this module is real and symmetric, so we can ignore mode.
-  for(size_t i=0;i<A.n_rows();i++)
-    for(size_t j=0;j<A.n_cols();j++)
-      for(size_t k=0;k<x.n_cols();k++)
-	y(i,k) += c_A * A(i,j) * x(i,k);
+  for(size_t k=0;k<x.n_cols();k++)    // Iterate over vectors
+    for(size_t i=0;i<A.n_rows();i++){ 
+      real_type row_sum = 0;
+      for(size_t j=0;j<A.n_cols();j++)
+	row_sum += c_A * A(i,j) * x(j,k); 
+      y(i,k) += row_sum;
+    }
 }
+
   
   
 }  // namespace static14
