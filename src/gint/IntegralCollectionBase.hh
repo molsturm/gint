@@ -17,6 +17,13 @@ public:
   typedef Integral<stored_mtx_type> integral_matrix_type;
 
   virtual integral_matrix_type lookup_integral(const std::string& integral_id) const = 0;
+  // NB: Are these necessary?
+  virtual ~IntegralCollectionBase() = default;
+  IntegralCollectionBase& operator=(const IntegralCollectionBase&) = default;
+  IntegralCollectionBase& operator=(IntegralCollectionBase&&)      = default;
+  IntegralCollectionBase(const IntegralCollectionBase&)            = default;
+  IntegralCollectionBase(IntegralCollectionBase&&)                 = default;
+  IntegralCollectionBase()                                         = default;
 };
 
 template <OrbitalType otype>

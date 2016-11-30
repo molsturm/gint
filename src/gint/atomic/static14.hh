@@ -1,5 +1,7 @@
 #pragma once
 #ifdef GINT_STATIC_INTEGRALS
+
+#include "gint/config.hh"
 #include "Static14Data.hh"
 #include "gint/Integral.hh"
 #include "gint/IntegralCollectionBase.hh"
@@ -15,12 +17,8 @@ class NuclearAttractionIntegralCore;
 class KineticIntegralCore;
 class ERICore;
 
-typedef real_type                   scalar_type;
-typedef real_stored_mtx_type        stored_mtx_type;
-typedef real_multivector_type       multivector_type;
-typedef const_real_multivector_type const_multivector_type;
-
-
+#include "gint/real_config.hh"  
+  
 void apply_stored_matrix(const real_stored_mtx_type& A,
 			const_multivector_type & x,
 			multivector_type& y,
