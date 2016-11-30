@@ -333,8 +333,7 @@ public:
     assert_dbg(coefficients_occupied_ptr != nullptr, krims::ExcInvalidPointer());
 
     const coefficients_type& Cocc(*coefficients_occupied_ptr);
-
-    real_type sum = 0;
+    
     stored_mtx_type density(norb,norb);
     for (size_t p = 0; p < coefficients_occupied_ptr->n_vectors(); p++){
       const auto& C = Cocc[p];
@@ -342,8 +341,8 @@ public:
 	for(size_t d=0;d<norb;d++)
 	  density(c,d) += C[c]*C[d];
     }
-    
 
+    real_type sum = 0;
     for (size_t c = 0; c < norb; c++) {
       size_t A = exchange ? c : a;  // Swap b and c if computing exchange // TODO: Check
       size_t C = exchange ? a : c;
