@@ -16,8 +16,7 @@ IntegralCollection::IntegralCollection(
       : k_exponent{parameters.at<double>("k_exponent")},
         Z_charge{parameters.at<double>("Z_charge")},
         n_max{parameters.at<int>("n_max")},
-        l_max{parameters.at<int>("l_max")},
-        integral_calculator{n_max, l_max} {}
+        integral_calculator{n_max} {}
 
 Integral<real_stored_mtx_type> IntegralCollection::lookup_integral(
       const std::string& integral_name) const {

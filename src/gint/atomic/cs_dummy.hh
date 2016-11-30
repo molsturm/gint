@@ -35,7 +35,7 @@ public:
   static std::string id, name;
 
   real_type k_exponent, Z_charge;
-  int n_max, l_max;
+  int n_max;
   sturmint::atomic::cs_dummy::Atomic integral_calculator;
 
   /** Construct collection object from a set of parameters
@@ -44,7 +44,6 @@ public:
    *   - k_exponent (double): The exponent of all Coulomb sturmians
    *   - Z_charge (double): The nuclear change of the system
    *   - n_max (int): The maximal principle quantum number
-   *   - l_max (int): Maximal angular momentum qn
    */
   IntegralCollection(const krims::ParameterMap& parameters);
 
@@ -94,7 +93,7 @@ public:
 
   NuclearAttractionIntegralCore(const sturmint::atomic::cs_dummy::Atomic& integral_calculator, real_type k, real_type Z)
     : k(k), Z(Z), 
-      nmax(integral_calculator.basis_nmax),
+      nmax(integral_calculator.nmax),
       m_integral_calculator(integral_calculator){ }
 
   /** \brief Number of rows of the matrix */
@@ -162,7 +161,7 @@ public:
 
 
   OverlapIntegralCore(const Atomic& integral_calculator)
-    :  nmax(integral_calculator.basis_nmax),
+    :  nmax(integral_calculator.nmax),
        m_integral_calculator(integral_calculator) {}
 
   /** \brief Number of rows of the matrix */
@@ -218,7 +217,7 @@ public:
 
   KineticIntegralCore(const Atomic& integral_calculator, real_type k)
         : k(k),
-	  nmax(integral_calculator.basis_nmax),
+	  nmax(integral_calculator.nmax),
 	  m_integral_calculator(integral_calculator) {}
 
   /** \brief Number of rows of the matrix */
@@ -321,7 +320,7 @@ public:
 
   ERICore(const Atomic& integral_calculator, bool exchange, real_type k)
           : exchange(exchange), k(k),
-	    nmax(integral_calculator.basis_nmax),
+	    nmax(integral_calculator.nmax),
 	    m_integral_calculator(integral_calculator) {}
 
     /** \brief Update the internal data of all objects in this expression
