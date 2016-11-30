@@ -3,12 +3,13 @@
 #include "gint/Integral.hh"
 #include "gint/IntegralCoreBase.hh"
 #include "gint/IntegralCollectionBase.hh"
+#include "gint/atomic/static14.hh" // TODO: Included for the horrible hack!
+
 #include <krims/ParameterMap.hh>
 #include <sturmint/atomic/cs/cs_atomic.hh>
 #include <sturmint/atomic/cs_dummy/cs_atomic.hh>
 #include <sturmint/atomic/data/cs_dummy.hh>
 #include <sturmint/harmonic/OrbitalIndex.hh>
-
 
 namespace gint {
 namespace atomic {
@@ -127,7 +128,7 @@ public:
   /** \brief Multiplication with a stored matrix */
   // TODO: Change basis order from n,l,m to m,l,n to make multiplication
   // contiguous.
-  const size_t mmax, lmax, nmax;
+  const size_t nmax;
   
   void apply(const const_multivector_type& x, multivector_type& y,
              const linalgwrap::Transposed mode = linalgwrap::Transposed::None, const scalar_type c_A = 1,
@@ -137,6 +138,16 @@ public:
 
     sturmint::atomic::cs::apply_to_full_vectors::overlap_nlm(x_ptr, y_ptr, c_A, c_y, x.n_cols(), nmax);
   }
+
+  void apply_inverse(const const_multivector_type& x, multivector_type& y,
+             const linalgwrap::Transposed mode = linalgwrap::Transposed::None, const scalar_type c_A = 1,
+             const scalar_type c_y = 0) const override {
+    // TODO: Huge hack, but we don't really want to bother with overlap_inverse apply for nlm-order right now.
+    //       How to do that: Compute inverse for each (l,m)-block: jump around in vector.
+    using namespace static14;
+    const auto &Sinv(detail::Static14Data<stored_mtx_type>::sinv_bb);
+    static14::apply_stored_matrix(Sinv,x,y,mode,c_A,c_y);
+  }  
 
   /** \brief return an element of the matrix    */
   scalar_type operator()(size_t row, size_t col) const override {
@@ -149,11 +160,10 @@ public:
     return sturmint::atomic::cs::overlap(mui, muj);
   }
 
+
   OverlapIntegralCore(const Atomic& integral_calculator)
-    : mmax(integral_calculator.basis_mmax),
-      lmax(integral_calculator.basis_lmax),
-      nmax(integral_calculator.basis_nmax),
-    m_integral_calculator(integral_calculator) {}
+    :  nmax(integral_calculator.basis_nmax),
+       m_integral_calculator(integral_calculator) {}
 
   /** \brief Number of rows of the matrix */
   size_t n_rows() const override { return m_integral_calculator.n_bas(); }
@@ -237,8 +247,8 @@ public:
   typedef IntegralCoreBase<real_stored_mtx_type> base_type;
   typedef real_stored_mtx_type stored_matrix_type;
   typedef typename stored_mtx_type::vector_type vector_type;  
-  typedef linalgwrap::MultiVector<vector_type>  coefficients_type;
-  typedef std::shared_ptr<const coefficients_type> coefficients_ptr_type;  
+  typedef const linalgwrap::MultiVector<const vector_type>  coefficients_type;
+  typedef std::shared_ptr<coefficients_type> coefficients_ptr_type;  
 
   bool exchange;  // Is this exchange or Coulomb operator?
   real_type k;    // Exponent scale
@@ -246,7 +256,7 @@ public:
   //! The occupied coefficients as a pointer
   coefficients_ptr_type coefficients_occupied_ptr;
 
-  const int mmax, lmax, nmax;  
+  const int nmax;  
   
   /** \brief Multiplication with a stored matrix */
   // J_{aq} = J_{ab} X_{bq} = J_{abcd} X_{bq} Cocc_{cp} Cocc_{dp} = J_{abcd} X_{bq} D_{cd}
@@ -271,52 +281,6 @@ public:
           y(a,q) += alpha * JKab * x(b,q);
         }
       }
-
-    //    const int l_max = m_integral_calculator.lmax1;
-    //	  const int n_max = m_integral_calculator.nmax1;
-    // //    cout << "\nCalculating "<<(exchange?"exchange":"coulomb")<<" integral
-    // //    application.\n";
-    // for (size_t b1 = 0; b1 < x.n_elem(); b1++) {
-    //   // TODO: Mål, om det bliver hurtigere / nemmere at OpenMP'e,
-    //   // af at iterere over b1q samlet.
-    //   nlm_t nlm1 = nlmbasis::quantum_numbers_from_index(b1);
-    //   int8_t /*n1 = nlm1.n, */ l1 = nlm1.l, m1 = nlm1.m;
-
-    //   for (size_t q = 0; q < x.n_vectors(); q++) {
-    //     real_type sum = 0;
-    //     real_type y_term = (beta != 0 ? beta * y[q][b1] : 0);
-
-    //     for (size_t b2 = 0; b2 < x.n_elem(); b2++) {
-    //       nlm_t nlm2 = nlmbasis::quantum_numbers_from_index(b2);
-    //       int8_t /*n2 = nlm2.n, */ l2 = nlm2.l, m2 = nlm2.m;
-
-    //       for (size_t b3 = 0; b3 < n_rows(); b3++) {
-    //         nlm_t nlm3 = nlmbasis::quantum_numbers_from_index(b3);
-    //         int8_t /*n3 = nlm3.n, l3 = nlm3.l,*/ m3 = nlm3.m;
-
-    //         // TODO: Exchange? Da!
-    //         int8_t m4 = m3 - m2 + m1;
-    //         int l_parity = (l1 + l2) & 1, m_parity = (m1 + m2) & 1;
-    //         int l_min = max(l_parity, ::abs(int(m4)) + ((m_parity + l_parity) & 1));  // TODO: Check.
-
-    //         int B2 = exchange ? b3 : b2;  // Swap b2 and b3 if computing exchange
-    //         int B3 = exchange ? b2 : b3;
-    //         real_type X_bq = x[q][b2];
-
-    //         for (int8_t l4 = l_min; l4 <= l_max; l4 += 2) {
-
-    //           for (int8_t n4 = l4 + 1; n4 <= n_max; n4++) {
-    //             int b4 = nlmbasis::index(nlm_t{n4, l4, m4});
-
-    //             for (size_t p = 0; p < Cocc.n_vectors(); p++)
-    //               sum += repulsion[b4 + norb * (B3 + norb * (B2 + norb * b1))] * Cocc[p][b3] * Cocc[p][b4] * X_bq;
-    //           }
-    //         }
-    //       }
-    //     }
-
-    //     y[q][b1] = sum + y_term;
-    //   }
   }
 
   scalar_type operator()(size_t a, size_t b) const override {
@@ -355,66 +319,8 @@ public:
     return k*sum;
   }
 
-
-    scalar_type static14_ver(size_t a, size_t b) const {
-      using namespace sturmint::atomic::cs_dummy;
-      assert_greater(a, n_rows());
-      assert_greater(b, n_cols());
-
-      // This routine computes
-      //
-      // J_{ab} = \sum_{cd} P_{cd} < ac | bd >
-      //        = \sum_{cd} \sum_{k \in occ} (C^{k})_c (C^{k})_d < ac | bd >
-      // where a and b are the same centre, so are c and d
-      //
-      // or alternatively
-      //
-      // K_{ab} = \sum_{cd} P_{cd} < ab | cd >
-      // where a and c are the same centre, so are b and d
-
-      // Repulsion integrals indexed in shell-pairs
-      const auto& i_bbbb = repulsion14;
-      const size_t nbas = norb;
-
-      assert_dbg(coefficients_occupied_ptr != nullptr, krims::ExcInvalidPointer());
-
-      // Density matrix expression
-      auto density_bb = outer_prod_sum(*coefficients_occupied_ptr, *coefficients_occupied_ptr);
-      assert_dbg(density_bb.n_rows() == nbas, krims::ExcInternalError());
-      assert_dbg(density_bb.n_cols() == nbas, krims::ExcInternalError());
-
-      // Shell pair index for basis functions a and b:
-      const size_t ab_pair = a * nbas + b;
-
-      // Sum accumulator variable for this exchange or
-      // coulomb  matrix element
-      scalar_type mat_ab{0};
-
-      // Double loop over basis functions c and d:
-      for (size_t c = 0; c < nbas; ++c) {
-        // Shell pair index for basis functions a and c:
-        const size_t ac_pair = a * nbas + c;
-
-        for (size_t d = 0; d < nbas; ++d) {
-          // Shell pair index for basis functions c and d:
-          // or b and d:
-          const size_t cd_pair = c * nbas + d;
-          const size_t db_pair = d * nbas + b;
-
-          // Perform contraction:
-          const scalar_type i_elem = exchange ? i_bbbb[ac_pair * nbas * nbas + db_pair]
-                                              : i_bbbb[ab_pair * nbas * nbas + cd_pair];
-          mat_ab += density_bb(c, d) * k * i_elem;
-        }  // d
-      }    // c
-
-      return mat_ab;
-    }
-
-    ERICore(const Atomic& integral_calculator, bool exchange, real_type k)
+  ERICore(const Atomic& integral_calculator, bool exchange, real_type k)
           : exchange(exchange), k(k),
-	    mmax(integral_calculator.basis_mmax),
-	    lmax(integral_calculator.basis_lmax),
 	    nmax(integral_calculator.basis_nmax),
 	    m_integral_calculator(integral_calculator) {}
 
@@ -432,7 +338,9 @@ public:
       // We will contract the coefficient row index over the number of
       // basis functions.
       if (coefficients_occupied_ptr->n_vectors() == 0) return;
+      assert_size(coefficients_occupied_ptr->n_elem(), m_integral_calculator.n_bas());
     }
+  
     /** \brief Number of rows of the matrix */
     size_t n_rows() const override { return m_integral_calculator.n_bas(); }
 

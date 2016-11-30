@@ -95,7 +95,8 @@ public:
              const scalar_type c_y =
                    linalgwrap::Constants<scalar_type>::zero) const override {
     assert_dbg(m_core_ptr != nullptr, krims::ExcInternalError());
-    assert_dbg(x_in.n_elem() == y_out.n_elem() && x_in.n_vectors() == y_out.n_vectors(), krims::ExcInternalError());
+    assert_size(x_in.n_elem(),    y_out.n_elem());
+    assert_size(x_in.n_vectors(), y_out.n_vectors());
 
     // TODO: This will go away when the new multivector interface is implemented.
     real_multivector_type x(x_in.n_elem(),x_in.n_vectors());
@@ -158,14 +159,30 @@ public:
    */
   virtual void apply_inverse(
         const linalgwrap::MultiVector<
-              const linalgwrap::MutableMemoryVector_i<scalar_type>>& x,
+              const linalgwrap::MutableMemoryVector_i<scalar_type>>& x_in,
         linalgwrap::MultiVector<linalgwrap::MutableMemoryVector_i<scalar_type>>&
-              y,
+              y_out,
         const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
         const scalar_type c_this = 1,
         const scalar_type c_y = 0) const override {
     assert_dbg(m_core_ptr != nullptr, krims::ExcInternalError());
+    assert_size(x_in.n_elem(),    y_out.n_elem());
+    assert_size(x_in.n_vectors(), y_out.n_vectors());
+
+    // TODO: This will go away when the new multivector interface is implemented.
+    real_multivector_type x(x_in.n_elem(),x_in.n_vectors());
+    real_multivector_type y(x_in.n_elem(),x_in.n_vectors());
+
+    for(size_t i=0;i<x_in.n_vectors();i++)
+      for(size_t j=0;j<x_in.n_elem();j++){
+	x(j,i) = x_in[i][j];
+	y(j,i) = y_out[i][j];
+      }
     m_core_ptr->apply_inverse(x, y, mode, c_this, c_y);
+
+    for(size_t i=0;i<x_in.n_vectors();i++)
+      for(size_t j=0;j<x_in.n_elem();j++)
+	y_out[i][j] = y(j,i);
   }
 
   /** Perform a matrix-matrix product.
@@ -200,9 +217,8 @@ public:
         stored_matrix_type& M, const size_type start_row,
         const size_type start_col,
         const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
-        const scalar_type c_this = linalgwrap::Constants<scalar_type>::one,
-        const scalar_type c_M =
-              linalgwrap::Constants<scalar_type>::zero) const override {
+        const scalar_type c_this = 1,
+        const scalar_type c_M    = 0) const override {
     assert_dbg(m_core_ptr != nullptr, krims::ExcInternalError());
     m_core_ptr->extract_block(M, start_row, start_col, mode, c_this, c_M);
   }

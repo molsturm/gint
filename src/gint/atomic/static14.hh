@@ -92,8 +92,8 @@ public:
    * a different matrix.
    */
   virtual void extract_block(
-        stored_matrix_type& M, const size_type start_row,
-        const size_type start_col,
+        stored_matrix_type& M, const size_t start_row,
+        const size_t start_col,
         const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
         const scalar_type c_this = linalgwrap::Constants<scalar_type>::one,
         const scalar_type c_M =
@@ -149,24 +149,19 @@ public:
     apply_stored_matrix(detail::Static14Data<stored_mtx_type>::s_bb,x,y,mode,c_A,c_y);
   }
 
-  void apply_inverse(
-        const linalgwrap::MultiVector<
-              const linalgwrap::MutableMemoryVector_i<scalar_type>>& x,
-        linalgwrap::MultiVector<linalgwrap::MutableMemoryVector_i<scalar_type>>&
-              y,
-        const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
-        const scalar_type c_this = linalgwrap::Constants<scalar_type>::one,
-        const scalar_type c_y =
-              linalgwrap::Constants<scalar_type>::zero) const override {
-    detail::Static14Data<stored_matrix_type>::sinv_bb.apply(x, y, mode, c_this,
-                                                            c_y);
+  void apply_inverse(const_multivector_type & x,
+		     multivector_type& y,
+		     const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
+		     const scalar_type c_A = 1,
+		     const scalar_type c_y = 0) const override {
+    apply_stored_matrix(detail::Static14Data<stored_mtx_type>::sinv_bb,x,y,mode,c_A,c_y);
   }
 
   /** Extract a block of a matrix and (optionally) add it to
    * a different matrix.  */
   virtual void extract_block(
-        stored_matrix_type& M, const size_type start_row,
-        const size_type start_col,
+        stored_matrix_type& M, const size_t start_row,
+        const size_t start_col,
         const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
         const scalar_type c_this = linalgwrap::Constants<scalar_type>::one,
         const scalar_type c_M =
@@ -220,8 +215,8 @@ public:
   /** Extract a block of a matrix and (optionally) add it to
    * a different matrix.  */
   virtual void extract_block(
-        stored_matrix_type& M, const size_type start_row,
-        const size_type start_col,
+        stored_matrix_type& M, const size_t start_row,
+        const size_t start_col,
         const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
         const scalar_type c_this = linalgwrap::Constants<scalar_type>::one,
         const scalar_type c_M =
@@ -366,15 +361,15 @@ public:
   /** Extract a block of a matrix and (optionally) add it to
    * a different matrix.  */
   virtual void extract_block(
-        stored_matrix_type& M, const size_type start_row,
-        const size_type start_col,
+        stored_matrix_type& M, const size_t start_row,
+        const size_t start_col,
         const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
         const scalar_type c_this = linalgwrap::Constants<scalar_type>::one,
         const scalar_type c_M =
               linalgwrap::Constants<scalar_type>::zero) const override {
     using namespace linalgwrap;
 #ifdef DEBUG
-    const size_type nbas = detail::Static14Data<stored_matrix_type>::nbas;
+    const size_t nbas = detail::Static14Data<stored_matrix_type>::nbas;
 #endif
 
     assert_finite(c_this);
@@ -394,8 +389,8 @@ public:
 
     if (c_this == Constants<scalar_type>::zero) return;
 
-    for (size_type row = 0; row < M.n_rows(); ++row) {
-      for (size_type col = 0; col < M.n_cols(); ++col) {
+    for (size_t row = 0; row < M.n_rows(); ++row) {
+      for (size_t col = 0; col < M.n_cols(); ++col) {
         switch (mode) {
           case Transposed::None:
           case Transposed::Trans:

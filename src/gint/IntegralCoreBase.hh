@@ -65,10 +65,8 @@ public:
    * See LazyMatrixExpression for more details
    */
   virtual void apply_inverse(
-        const linalgwrap::MultiVector<
-              const linalgwrap::MutableMemoryVector_i<scalar_type>>& /*x*/,
-        linalgwrap::MultiVector<linalgwrap::MutableMemoryVector_i<scalar_type>>&
-        /*y*/,
+        const_real_multivector_type &/*x*/,
+	real_multivector_type& /*y*/,
         const linalgwrap::Transposed /*mode*/ = linalgwrap::Transposed::None,
         const scalar_type /*c_this*/ = 1, const scalar_type /*c_y*/ = 0) const {
     assert_throw(false,
@@ -120,9 +118,34 @@ public:
         stored_matrix_type& M, const size_t start_row,
         const size_t start_col,
         const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
-        const scalar_type c_this = linalgwrap::Constants<scalar_type>::one,
-        const scalar_type c_M =
-              linalgwrap::Constants<scalar_type>::zero) const = 0;
+        const scalar_type c_A = 1,
+        const scalar_type c_M = 0) const {
+    using namespace linalgwrap;
+      
+    const auto &A(*this);
+
+    assert_dbg(mode == Transposed::None || has_transpose_operation_mode(),
+	       ExcUnsupportedOperationMode(mode));
+    assert_finite(c_A);
+    assert_finite(c_M);
+    // check that we do not overshoot the indices
+    if (mode == Transposed::Trans || mode == Transposed::ConjTrans) {
+      assert_greater_equal(start_row + M.n_rows(), A.n_cols());
+      assert_greater_equal(start_col + M.n_cols(), A.n_rows());
+    } else {
+      assert_greater_equal(start_row + M.n_rows(), A.n_rows());
+      assert_greater_equal(start_col + M.n_cols(), A.n_cols());
+    }
+    assert_sufficiently_tested(mode != Transposed::ConjTrans);
+    
+
+    if(c_M == 0)  M.set_zero();
+    else          M *= c_M;
+    
+    for(size_t i=start_row, i0=0; i<start_row + M.n_rows(); i++,i0++)
+      for(size_t j=start_col, j0=0; j<start_col + M.n_cols(); j++,j0++)
+	M(i0,j0) += c_A*A(i,j);
+  }
 
   /** \brief Clone the expression */
   virtual std::unique_ptr<IntegralCoreBase> clone() const = 0;
