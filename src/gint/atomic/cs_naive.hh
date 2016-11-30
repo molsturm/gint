@@ -4,10 +4,14 @@
 #include "gint/IntegralCoreBase.hh"
 #include "gint/IntegralCollectionBase.hh"
 #include <krims/ParameterMap.hh>
-#include <sturmint/atomic/cs/cs_atomic.hh>
-#include <sturmint/atomic/cs_dummy/cs_atomic.hh>
-#include <sturmint/atomic/data/cs_dummy.hh>
 #include <sturmint/harmonic/OrbitalIndex.hh>
+
+//TODO: Move all sturmint-specific stuff to sturmint
+#include <sturmint/common/common.hh>
+#include <sturmint/common/simpletensor.hh>
+#include <sturmint/harmonic/Y3Coupling.hh>
+#include <sturmint/atomic/data/cs_data.hh>
+#include <sturmint/atomic/data/Jlnn-table.hh> // TODO: Organization
 
 
 namespace gint {
@@ -15,18 +19,14 @@ namespace atomic {
 namespace cs_dummy {
 
 #include "gint/real_config.hh"
-
-using namespace sturmint::atomic;
+  
 using namespace sturmint::atomic::cs_dummy;
-
 
 class OverlapIntegralCore;
 class NuclearAttractionIntegralCore;
 class KineticIntegralCore;
 class ERICore;
 
-  // This integral class uses (n,l,m)-ordering: {{n,1,nmax},{l,0,n-1},{m,-l,l}}
-  
 class IntegralCollection: public IntegralCollectionBase<COMPLEX_ATOMIC>{
 public:
   typedef IntegralCollectionBase<COMPLEX_ATOMIC> base_type;
@@ -35,7 +35,7 @@ public:
 
   real_type k_exponent, Z_charge;
   int n_max, l_max;
-  sturmint::atomic::cs_dummy::Atomic integral_calculator;
+  Atomic integral_calculator;
 
   /** Construct collection object from a set of parameters
    *
@@ -64,19 +64,33 @@ class NuclearAttractionIntegralCore : public IntegralCoreBase<real_stored_mtx_ty
 public:
   typedef IntegralCoreBase<real_stored_mtx_type> base_type;
   typedef typename base_type::scalar_type scalar_type;
+  typedef sturmint::real_t real_type;
 
   const real_type k, Z;
-  const size_t nmax;
 
   // Compute alpha*A*x + beta*y into y
   void apply(const const_multivector_type& x,
              multivector_type& y,
              const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
-             const scalar_type c_A = 1,
-             const scalar_type c_y = 0) const override {
-    const real_type *x_ptr = x.data().memptr();
-    real_type       *y_ptr = const_cast<real_type*>(y.data().memptr());
-    cs::apply_to_full_vectors::nuclear_attraction_nlm<real_type>(x_ptr,y_ptr,Z*k*c_A,c_y,x.n_cols(),nmax);
+             const scalar_type alpha = 1,
+             const scalar_type beta  = 0) const override {
+    using namespace linalgwrap;
+
+    using namespace sturmint::orbital_index;
+    typedef nlmbasis::quantum_numbers_t nlm_t;
+
+    // TODO: Add preconditions (dimension check, etc.)
+    // TODO: Basis lexicographic order m,l,n is way more efficient than n,l,m.
+    // TODO: Make memory layout more friendly to operate on
+    //       many vectors.
+
+    for (size_t i = 0; i < x.n_elem(); i++) {
+      nlm_t nlm = nlmbasis::quantum_numbers_from_index(i);
+      int8_t n = nlm.n;
+      
+      for (size_t j = 0; j < x.n_vectors(); j++)
+	y[j][i] = alpha * (-Z*k/n) * x[j][i] + (beta != 0? beta*y[j][i] : 0);
+    }
   }
 
   /** \brief return an element of the matrix \f$ {V_0}_{\mu',\mu} = -Zk/n
@@ -91,10 +105,8 @@ public:
     }
   }
 
-  NuclearAttractionIntegralCore(const sturmint::atomic::cs_dummy::Atomic& integral_calculator, real_type k, real_type Z)
-    : k(k), Z(Z), 
-      nmax(integral_calculator.basis_nmax),
-      m_integral_calculator(integral_calculator){ }
+  NuclearAttractionIntegralCore(const Atomic& integral_calculator, real_type k, real_type Z)
+        : k(k), Z(Z), m_integral_calculator(integral_calculator) {}
 
   /** \brief Number of rows of the matrix */
   size_t n_rows() const override { return m_integral_calculator.n_bas(); }
@@ -116,7 +128,7 @@ public:
   std::string name() const override { return "Nuclear attraction operator"; }
 
 private:
-  const sturmint::atomic::cs_dummy::Atomic& m_integral_calculator;
+  const Atomic& m_integral_calculator;
 };
 
 class OverlapIntegralCore : public IntegralCoreBase<real_stored_mtx_type> {
@@ -127,15 +139,48 @@ public:
   /** \brief Multiplication with a stored matrix */
   // TODO: Change basis order from n,l,m to m,l,n to make multiplication
   // contiguous.
-  const size_t mmax, lmax, nmax;
-  
-  void apply(const const_multivector_type& x, multivector_type& y,
-             const linalgwrap::Transposed mode = linalgwrap::Transposed::None, const scalar_type c_A = 1,
-             const scalar_type c_y = 0) const override {
-    const real_type* x_ptr = const_cast<const real_type*>(x.data().memptr());
-    real_type* y_ptr = const_cast<real_type*>(y.data().memptr());
 
-    sturmint::atomic::cs::apply_to_full_vectors::overlap_nlm(x_ptr, y_ptr, c_A, c_y, x.n_cols(), nmax);
+  void apply(const const_multivector_type& x,
+             multivector_type& y,
+             const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
+             const scalar_type alpha = 1,
+             const scalar_type beta  = 0) const override {  
+    using namespace sturmint::orbital_index;
+    using namespace sturmint::atomic::cs;
+    
+    typedef nlmbasis::quantum_numbers_t nlm_t;
+
+    //        for (auto& vec : y) linalgwrap::detail::scale_or_set(vec, beta);
+    // TODO: Add preconditions (dimension check, etc.)
+    // TODO: Basis lexicographic order m,l,n is way more efficient than n,l,m.
+    // TODO: Make memory layout more friendly to operate on
+    //       many vectors.    
+    
+    const int nmax = m_integral_calculator.nmax1;
+
+    // Apply S^{(l)}_{n',n} = \delta_{n',n} +
+    // S^{(l)}_{n,n+1}(\delta_{n',n+1}+\delta_{n'+1,n}).
+    // S is block-diagonal w.r.t. l and m, and only terms with |n'-n|<2 are
+    // nonzero.
+    for (size_t i = 0; i < x.n_elem(); i++) {
+      nlm_t nlm = nlmbasis::quantum_numbers_from_index(i);
+      int8_t n = nlm.n, l = nlm.l, m = nlm.m;
+      size_t i_nminus = nlmbasis::index(nlm_t(n - 1, l, m)),
+             i_nplus  = nlmbasis::index(nlm_t(n + 1, l, m));
+
+      // Overlap is symmetric in n,np
+      long double S_lnnm = m_integral_calculator.overlap(l, n, max(n - 1,1) ),
+	          S_lnnp = m_integral_calculator.overlap(l, n, min(n + 1,nmax));
+
+      // Fast version:
+      long double S_lnnm = (n>l+1)? OverlapTable::values[2*(n-2)
+
+      for (size_t j = 0; j < x.n_vectors(); j++) {
+        y[j][i] = ((n > l + 1) ? S_lnnm * x[j][i_nminus] : 0) 
+	          + x[j][i] +
+                  ((n < nmax)  ? S_lnnp * x[j][i_nplus] : 0) + (beta != 0 ? beta * y[j][i] : 0);
+      }
+    }
   }
 
   /** \brief return an element of the matrix    */
@@ -146,14 +191,11 @@ public:
     const nlm_t mui = nlmbasis::quantum_numbers_from_index(row),
                 muj = nlmbasis::quantum_numbers_from_index(col);
 
-    return sturmint::atomic::cs::overlap(mui, muj);
+    return m_integral_calculator.overlap(mui, muj);
   }
 
   OverlapIntegralCore(const Atomic& integral_calculator)
-    : mmax(integral_calculator.basis_mmax),
-      lmax(integral_calculator.basis_lmax),
-      nmax(integral_calculator.basis_nmax),
-    m_integral_calculator(integral_calculator) {}
+        : m_integral_calculator(integral_calculator) {}
 
   /** \brief Number of rows of the matrix */
   size_t n_rows() const override { return m_integral_calculator.n_bas(); }
@@ -182,19 +224,39 @@ public:
   typedef real_stored_mtx_type stored_matrix_type;
 
   real_type k;  // k-exponent
-  const size_t nmax;
 
   /** \brief Multiplication with a stored matrix */
   void apply(const const_multivector_type& x,
              multivector_type& y,
              const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
-             const scalar_type c_A = 1,
-             const scalar_type c_y = 0) const override {
-       const real_type* x_ptr = const_cast<const real_type*>(x.data().memptr());
-       real_type* y_ptr = const_cast<real_type*>(y.data().memptr());
-    
-       sturmint::atomic::cs::apply_to_full_vectors::overlap_nlm<scalar_type>(x_ptr,y_ptr,(-0.5L*k*k)*c_A,c_y,x.n_cols(),nmax);
-       y += c_A*k*k*x;		// kinetic(x) = k^2*x-1/2 overlap(x)
+             const scalar_type alpha = 1,
+             const scalar_type beta  = 0) const override {  
+    using namespace sturmint::orbital_index;
+    typedef nlmbasis::quantum_numbers_t nlm_t;
+
+    const int nmax = m_integral_calculator.nmax1;
+
+    for (size_t i = 0; i < x.n_elem(); i++) {
+      nlm_t nlm = nlmbasis::quantum_numbers_from_index(i);
+      int8_t n = nlm.n, l = nlm.l, m = nlm.m;
+
+      // T is symmetric in n1,n2 and has the same sparsity pattern as the
+      // overlap matrix S.
+      size_t i_nminus = nlmbasis::index(nlm_t(n - 1, l, m)),
+             i_nplus  = nlmbasis::index(nlm_t(n + 1, l, m));
+
+      double T_lnnm = -0.5L * m_integral_calculator.overlap(l, n, max(n - 1,0) ),
+	     T_lnnp = -0.5L * m_integral_calculator.overlap(l, n, min(n + 1,nmax));      
+
+      for (size_t j = 0; j < x.n_vectors(); j++) {
+        y[j][i] = ((n > l + 1) ? T_lnnm * x[j][i_nminus] : 0) + 0.5L * x[j][i] +
+                  ((n < nmax)  ? T_lnnp * x[j][i_nplus]  : 0)
+	  	  +
+	          (beta != 0 ? beta * y[j][i] : 0);
+
+        y[j][i] *= k * k;
+      }     
+    }
   }
 
   /** \brief return an element of the matrix    */
@@ -203,13 +265,11 @@ public:
     const nlm_t mui = nlmbasis::quantum_numbers_from_index(row),
                 muj = nlmbasis::quantum_numbers_from_index(col);
 
-    return k * k * sturmint::atomic::cs::kinetic(mui, muj);
+    return k * k * m_integral_calculator.kinetic(mui, muj);
   }
 
   KineticIntegralCore(const Atomic& integral_calculator, real_type k)
-        : k(k),
-	  nmax(integral_calculator.basis_nmax),
-	  m_integral_calculator(integral_calculator) {}
+        : k(k), m_integral_calculator(integral_calculator) {}
 
   /** \brief Number of rows of the matrix */
   size_t n_rows() const override { return m_integral_calculator.n_bas(); }
@@ -246,7 +306,6 @@ public:
   //! The occupied coefficients as a pointer
   coefficients_ptr_type coefficients_occupied_ptr;
 
-  const int mmax, lmax, nmax;  
   
   /** \brief Multiplication with a stored matrix */
   // J_{aq} = J_{ab} X_{bq} = J_{abcd} X_{bq} Cocc_{cp} Cocc_{dp} = J_{abcd} X_{bq} D_{cd}
@@ -255,20 +314,18 @@ public:
              const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
              const scalar_type alpha = 1, const scalar_type beta = 0) const override {
     using namespace sturmint::orbital_index;
-    using namespace sturmint::atomic::cs_dummy;
+    using namespace sturmint::atomic::cs;
 
     assert_dbg(coefficients_occupied_ptr != nullptr, krims::ExcInvalidPointer());
 
-    for(size_t i=0;i<y.n_rows();i++)
-      for(size_t j=0;j<y.n_cols();j++)
-	y(i,j) = (beta != 0? beta*y(i,j) : 0);
+    for (auto& vec : y) linalgwrap::detail::scale_or_set(vec, beta);
 
     for (size_t a = 0; a < norb; a++)
       for (size_t b = 0; b < norb; b++) {
         real_type JKab = (*this)(a, b);
 
-        for (size_t q = 0; q < x.n_cols(); q++) {
-          y(a,q) += alpha * JKab * x(b,q);
+        for (size_t q = 0; q < x.n_vectors(); q++) {
+          y[q][a] += alpha * JKab * x[q][b];
         }
       }
 
@@ -319,14 +376,72 @@ public:
     //   }
   }
 
-  scalar_type operator()(size_t a, size_t b) const override {
-    return simple1_ver(a,b);
-  }
+  // TODO: Move most of this stuff to sturmint
   
   /** \brief return an element of the matrix    */
   // J_{ab} = J_{abcd} Cocc_{cp} Cocc_{dp} = J_{abcd} P_{cd}
   // K_{ab} = J_{cbad} Cocc_{cp} Cocc_{dp} = J_{acbd} P_{cd}
-  scalar_type simple1_ver(size_t a, size_t b) const {
+
+  size_t lnn_index(size_t l, size_t np, size_t n) const {
+    size_t n_len = 10; 		// TODO: get from data
+    return l*(1/2)*n_len*(n_len + 1) + 1/2*(np - l)*(np - l - 1) + (n - l - 1);
+  }
+  
+  real_type Jlnn(size_t l, size_ np, size_t n) const {
+    // NB: If traversing in data order, {{l,0,l_max}, {np,l+1,l+n_len}, {n,l+1,np}},
+    //     this is unnecessary (i.e., can use JlnnTable::values[i++])
+    return JlnnTable::values[lnn_index(l,np,n)];
+  }
+
+  
+  static real_type repulsion(size_t a, size_t b, size_t c, size_t d) {
+    nlm_t mu1 = nlmbasis::quantum_numbers_from_index(a);
+    nlm_t mu2 = nlmbasis::quantum_numbers_from_index(b);
+    nlm_t mu3 = nlmbasis::quantum_numbers_from_index(c);
+    nlm_t mu4 = nlmbasis::quantum_numbers_from_index(d);
+   
+    if(mu1.m-mu2.m != mu4.m-mu3.m) return 0;
+
+    const int l_max = m_integral_calculator.lmax1;
+    const int n_max = m_integral_calculator.nmax1;
+
+    int
+      lm1 = lmbasis::index({mu1.l,mu1.m}),
+      lm2 = lmbasis::index({mu2.l,mu2.m}),
+      lm3 = lmbasis::index({mu3.l,mu3.m}),
+      lm4 = lmbasis::index({mu4.l,mu4.m}),
+      len = 0;
+
+    const real_t *Cang21  = Y3ConjugateProduct::values(lm2,lm1,len);
+    const real_t *Cang34  = Y3ConjugateProduct::values(lm3,lm4,len);    
+    const int Cang21_conj = lmbasis::conjugate_prefactor({mu2.l,mu2.m});
+    const int Cang34_conj = lmbasis::conjugate_prefactor({mu3.l,mu4.m});
+    
+    size_t lmin  = max(abs(mu1.l-mu2.l),abs(mu3.l-mu4.l));
+    size_t lmax  = min(min(mu1.l+mu2.l,mu3.l+mu4.l),l_max);
+    size_t npmax = min(mu1.n+mu2.n,n_max), nmax = min(mu3.n+mu4.n,n_max);
+
+    real_type sum = 0;
+    for(size_t l=lmin;l<=lmax;l++){
+      size_t l21_ptr = (l - abs(mu1.l - mu2.l))/2;
+      size_t l34_ptr = (l - abs(mu4.l - mu3.l))/2;
+
+      real_t Cang = Cang21[l21_ptr] * Cang34[l34_ptr];
+      
+      if(Cang != 0)
+	for(size_t np=l+1;np <= npmax; np++)
+	  for(size_t n=l+1; n <= nmax; n++){
+	    size_t A = nlmbasis::index(nlm_t{np,l, mu1.m-mu2.m});
+	    size_t B = nlmbasis::index(nlm_t{n, l, mu1.m-mu2.m});
+	    
+	    sum += Cang *  * Crad(n3,n4,l) Jlnn(l,np,n);
+	  }
+    }
+
+    return k*sum; 
+  }
+ 
+  scalar_type operator(size_t a, size_t b) const override {
     using namespace sturmint::atomic::cs_dummy;
     using namespace sturmint::orbital_index;
 
@@ -335,27 +450,21 @@ public:
     const coefficients_type& Cocc(*coefficients_occupied_ptr);
 
     real_type sum = 0;
-    stored_mtx_type density(norb,norb);
-    for (size_t p = 0; p < coefficients_occupied_ptr->n_vectors(); p++){
-      const auto& C = Cocc[p];
-      for(size_t c=0;c<norb;c++)
-	for(size_t d=0;d<norb;d++)
-	  density(c,d) += C[c]*C[d];
-    }
-    
 
     for (size_t c = 0; c < norb; c++) {
       size_t A = exchange ? c : a;  // Swap b and c if computing exchange // TODO: Check
       size_t C = exchange ? a : c;
 
-      size_t i_abc = norb * (C + norb * (b + norb * A));
+      for (size_t d = 0; d < norb; d++) {
+        real_type density_cd = 0;
+        for (size_t p = 0; p < Cocc.n_vectors(); p++)
+	  density_cd += Cocc[p][c] * Cocc[p][d];
 
-      for (size_t d = 0; d < norb; d++) 
-	sum += repulsion14[i_abc+d] * density(c,d);
+        sum += repulsion(A,b,C,d) * density_cd;
+      }
     }
     return k*sum;
-  }
-
+    }
 
     scalar_type static14_ver(size_t a, size_t b) const {
       using namespace sturmint::atomic::cs_dummy;
@@ -374,7 +483,7 @@ public:
       // where a and c are the same centre, so are b and d
 
       // Repulsion integrals indexed in shell-pairs
-      const auto& i_bbbb = repulsion14;
+      const auto& i_bbbb = repulsion;
       const size_t nbas = norb;
 
       assert_dbg(coefficients_occupied_ptr != nullptr, krims::ExcInvalidPointer());
@@ -413,11 +522,7 @@ public:
     }
 
     ERICore(const Atomic& integral_calculator, bool exchange, real_type k)
-          : exchange(exchange), k(k),
-	    mmax(integral_calculator.basis_mmax),
-	    lmax(integral_calculator.basis_lmax),
-	    nmax(integral_calculator.basis_nmax),
-	    m_integral_calculator(integral_calculator) {}
+          : exchange(exchange), k(k), m_integral_calculator(integral_calculator) {}
 
     /** \brief Update the internal data of all objects in this expression
      *         given the ParameterMap                                     */

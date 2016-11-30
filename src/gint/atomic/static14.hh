@@ -316,7 +316,7 @@ public:
 
         // Perform contraction:
         const scalar_type i_elem = exchange ? i_bbbb(ac_pair, db_pair) : i_bbbb(ab_pair, cd_pair);
-        mat_ab += density_bb(c, d) * k * i_elem;
+        mat_ab += k*i_elem * density_bb(c, d);
       }  // d
     }    // c
 
