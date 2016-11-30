@@ -17,10 +17,9 @@ struct IntegralDummyTests {
   typedef typename stored_matrix_type::vector_type vector_type;
   typedef const linalgwrap::MultiVector<const vector_type> coefficients_type;
   typedef RefData data;
-  static_assert(
-        std::is_same<typename integral_type::stored_matrix_type,
-                     typename RefData::stored_matrix_type>::value,
-        "Stored matrix types of IntegralLookup and RefData need to agree.");
+  static_assert(std::is_same<typename integral_type::stored_matrix_type,
+                             typename RefData::stored_matrix_type>::value,
+                "Stored matrix types of IntegralLookup and RefData need to agree.");
 
   static void run_all(const IntegralLookup& integrals) {
     // Obtain integral objects:
@@ -33,24 +32,24 @@ struct IntegralDummyTests {
     // The update key we need to update the lazy coulomb and exchange matrices
     const std::string update_key = integral_type::update_key_coefficients;
 
-    // Tolerance levels:
+    // TODO Tolerance levels (with normed vectors all default
+    //    => what happens if we loosen the restriction
+    //    => try this!
     NumCompAccuracyLevel equality_tol = NumCompAccuracyLevel::Default;
-    NumCompAccuracyLevel apply_tol = NumCompAccuracyLevel::Sloppy;
-    NumCompAccuracyLevel applyinv_tol = NumCompAccuracyLevel::SuperSloppy;
+    NumCompAccuracyLevel apply_tol = NumCompAccuracyLevel::Default;
+    NumCompAccuracyLevel applyinv_tol = NumCompAccuracyLevel::Default;
 
     SECTION("Test overlap") {
       CHECK(S_bb.is_symmetric());
       REQUIRE(S_bb == numcomp(data::Sref).tolerance(equality_tol));
       check_apply_to_identity(S_bb, data::Sref, apply_tol);
       CHECK(rc::check("Test apply and extract_block of overlap",
-		      make_compare_ref_test(S_bb, data::Sref, apply_tol)));
+                      make_compare_ref_test(S_bb, data::Sref, apply_tol)));
     }
 
     SECTION("Test overlap apply_inverse") {
       auto test = [&] {
-        auto vec =
-              *gen::numeric_tensor<MultiVector<vector_type>>(S_bb.n_rows(), 1)
-                     .as("test vector");
+        auto vec = make_as_multivector<vector_type>(*gen_normed_vector(S_bb.n_rows()).as("test vector"));
 
         MultiVector<vector_type> tmp1(vec.n_elem(), 1);
         MultiVector<vector_type> tmp2(vec.n_elem(), 1);
@@ -73,9 +72,9 @@ struct IntegralDummyTests {
     SECTION("Test nuclear attraction") {
       CHECK(V0_bb.is_symmetric());
       REQUIRE(V0_bb == numcomp(data::V0ref).tolerance(equality_tol));
-      check_apply_to_identity(V0_bb, data::V0ref, apply_tol);      
+      check_apply_to_identity(V0_bb, data::V0ref, apply_tol);
       CHECK(rc::check("Test apply and extract_block of nuclear attraction",
-		      make_compare_ref_test(V0_bb, data::V0ref, apply_tol)));
+                      make_compare_ref_test(V0_bb, data::V0ref, apply_tol)));
     }
 
     SECTION("Test kinetic") {
@@ -88,69 +87,67 @@ struct IntegralDummyTests {
 
     SECTION("Test coulomb: Test case 1") {
       J_bb.update({{update_key, static_cast<coefficients_type>(data::coeffref_bo_1)}});
-           
+
       CHECK(J_bb.is_symmetric());
       REQUIRE(J_bb == numcomp(data::Jref_for_coeff_1).tolerance(equality_tol));
-      check_apply_to_identity(J_bb, data::Jref_for_coeff_1, apply_tol);      
+      check_apply_to_identity(J_bb, data::Jref_for_coeff_1, apply_tol);
       CHECK(rc::check("Test apply and extract_block of coulomb 1",
-            make_compare_ref_test(J_bb, data::Jref_for_coeff_1, apply_tol)));
+                      make_compare_ref_test(J_bb, data::Jref_for_coeff_1, apply_tol)));
     }
 
     SECTION("Test coulomb: Test case 2") {
-      J_bb.update({{update_key,
-                    static_cast<coefficients_type>(data::coeffref_bo_2)}});
+      J_bb.update({{update_key, static_cast<coefficients_type>(data::coeffref_bo_2)}});
 
       CHECK(J_bb.is_symmetric());
       REQUIRE(J_bb == numcomp(data::Jref_for_coeff_2).tolerance(equality_tol));
       check_apply_to_identity(J_bb, data::Jref_for_coeff_2, apply_tol);
-      CHECK(rc::check(
-            "Test apply and extract_block of coulomb 2",
-            make_compare_ref_test(J_bb, data::Jref_for_coeff_2, apply_tol)));
+      CHECK(rc::check("Test apply and extract_block of coulomb 2",
+                      make_compare_ref_test(J_bb, data::Jref_for_coeff_2, apply_tol)));
     }
 
     SECTION("Test exchange: Test case 1") {
-      K_bb.update({{update_key,
-                    static_cast<coefficients_type>(data::coeffref_bo_1)}});
+      K_bb.update({{update_key, static_cast<coefficients_type>(data::coeffref_bo_1)}});
 
       CHECK(K_bb.is_symmetric());
       REQUIRE(K_bb == numcomp(data::Kref_for_coeff_1).tolerance(equality_tol));
-      check_apply_to_identity(K_bb, data::Kref_for_coeff_1, apply_tol);      
-      CHECK(rc::check(
-            "Test apply and extract_block of exchange 1",
-            make_compare_ref_test(K_bb, data::Kref_for_coeff_1, apply_tol)));
+      check_apply_to_identity(K_bb, data::Kref_for_coeff_1, apply_tol);
+      CHECK(rc::check("Test apply and extract_block of exchange 1",
+                      make_compare_ref_test(K_bb, data::Kref_for_coeff_1, apply_tol)));
     }
 
     SECTION("Test exchange: Test case 2") {
-      K_bb.update({{update_key,
-                    static_cast<coefficients_type>(data::coeffref_bo_2)}});
+      K_bb.update({{update_key, static_cast<coefficients_type>(data::coeffref_bo_2)}});
 
       CHECK(K_bb.is_symmetric());
       REQUIRE(K_bb == numcomp(data::Kref_for_coeff_2).tolerance(equality_tol));
-      check_apply_to_identity(K_bb, data::Kref_for_coeff_2, apply_tol);      
-      CHECK(rc::check(
-            "Test apply and extract_block of exchange 2",
-            make_compare_ref_test(K_bb, data::Kref_for_coeff_2, apply_tol)));
+      check_apply_to_identity(K_bb, data::Kref_for_coeff_2, apply_tol);
+      CHECK(rc::check("Test apply and extract_block of exchange 2",
+                      make_compare_ref_test(K_bb, data::Kref_for_coeff_2, apply_tol)));
     }
   }
 
 private:
+  static rc::Gen<vector_type> gen_normed_vector(size_t n_cols) {
+    return gen::map(gen::numeric_tensor<vector_type>(n_cols), [](vector_type&& v) {
+      auto nrm = norm_l2(v);
+      return (0. == numcomp(nrm).failure_action(NumCompActionType::Return)) ? v : v / nrm;
+    });
+  }
+
   // Test generator
-  static std::function<void(void)> make_compare_ref_test(
-        const integral_type& integral, const stored_matrix_type& ref,
-        const NumCompAccuracyLevel tolerance) {
+  static std::function<void(void)> make_compare_ref_test(const integral_type& integral,
+                                                         const stored_matrix_type& ref,
+                                                         const NumCompAccuracyLevel tolerance) {
     // TODO use multivector generated by rapidcheck instead of a vector here!
     auto test = [&] {
-      auto vec = *gen::numeric_tensor<vector_type>(integral.n_cols()).as("Input vector");      
+      auto vec = *gen_normed_vector(integral.n_cols()).as("Input vector");
+
       RC_ASSERT(((integral * vec) == numcomp(ref * vec).tolerance(tolerance)));
 
-      size_t nrows = *gen::inRange<size_t>(1, ref.n_rows())
-                            .as("Number of rows of the extracted matrix");
-      size_t ncols = *gen::inRange<size_t>(1, ref.n_cols())
-                            .as("Number of cols of the extracted matrix");
-      size_t start_row =
-            *gen::inRange<size_t>(0, ref.n_rows() - nrows).as("Start row");
-      size_t start_col =
-            *gen::inRange<size_t>(0, ref.n_cols() - ncols).as("Start col");
+      size_t nrows = *gen::inRange<size_t>(1, ref.n_rows()).as("Number of rows of the extracted matrix");
+      size_t ncols = *gen::inRange<size_t>(1, ref.n_cols()).as("Number of cols of the extracted matrix");
+      size_t start_row = *gen::inRange<size_t>(0, ref.n_rows() - nrows).as("Start row");
+      size_t start_col = *gen::inRange<size_t>(0, ref.n_cols() - ncols).as("Start col");
 
       stored_matrix_type xtr_int(nrows, ncols, false);
       stored_matrix_type xtr_ref(nrows, ncols, false);
@@ -163,13 +160,13 @@ private:
   }
 
   static void check_apply_to_identity(const integral_type& integral, const stored_matrix_type& ref,
-        const NumCompAccuracyLevel tolerance){
+                                      const NumCompAccuracyLevel tolerance) {
     INFO("Application of operator to identity:");
-    auto Id = linalgwrap::MultiVector<vector_type>(integral.n_cols(),integral.n_cols());
-    for(size_t i=0;i<integral.n_cols();i++) Id[i][i] = 1;
+    auto Id = linalgwrap::MultiVector<vector_type>(integral.n_cols(), integral.n_cols());
+    for (size_t i = 0; i < integral.n_cols(); i++) Id[i][i] = 1;
 
-    auto AxI   = integral*Id;
-    auto RefxI = ref*Id;
+    auto AxI = integral * Id;
+    auto RefxI = ref * Id;
 
     REQUIRE(AxI == numcomp(RefxI).tolerance(tolerance));
   }
