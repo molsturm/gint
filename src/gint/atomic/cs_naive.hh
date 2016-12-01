@@ -82,11 +82,10 @@ public:
   /** \brief return an element of the matrix \f$ {V_0}_{\mu',\mu} = -Zk/n
    * \delta_{\mu',\mu} \f$ */
   scalar_type operator()(size_t row, size_t col) const override {
-    using sturmint::orbital_index::nlmbasis;
     if (row != col)
       return 0;
     else {
-      int n = nlmbasis::quantum_numbers_from_index(row).n;
+      int n = basis.quantum_numbers_from_index(row).n;
       return -Z*k/n;
     }
   }
@@ -96,10 +95,7 @@ public:
       basis(integral_calculator.basis),
       m_integral_calculator(integral_calculator){ }
 
-  /** \brief Number of rows of the matrix */
   size_t n_rows() const override { return m_integral_calculator.n_bas(); }
-
-  /** \brief Number of columns of the matrix  */
   size_t n_cols() const override { return m_integral_calculator.n_bas(); }
 
   /** \brief Clone the expression */
@@ -109,7 +105,7 @@ public:
 
   /** \brief Get the identifier of the integral */
   std::string id() const override {
-    return "atomic/cs_dummy/nuclear_attraction";
+    return "atomic/cs_naive/nuclear_attraction";
   }
 
   /** \brief Get the friendly name of the integral */
@@ -146,11 +142,10 @@ public:
 
   /** \brief return an element of the matrix    */
   scalar_type operator()(size_t row, size_t col) const override {
-    using sturmint::orbital_index::nlmbasis;
     assert_greater(row, n_rows()) assert_greater(col, n_cols());
 
-    const nlm_t mui = nlmbasis::quantum_numbers_from_index(row),
-                muj = nlmbasis::quantum_numbers_from_index(col);
+    const nlm_t mui = basis.quantum_numbers_from_index(row),
+                muj = basis.quantum_numbers_from_index(col);
 
     return sturmint::atomic::cs::overlap(mui, muj);
   }
