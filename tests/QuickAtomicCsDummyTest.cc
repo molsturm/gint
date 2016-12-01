@@ -22,12 +22,10 @@ TEST_CASE("Quick atomic cs_dummy test", "[quicktest cs_dummy]") {
         {"k_exponent", refdata_type::k_exp},
         {"Z_charge", refdata_type::Z},
         {"n_max", 3},
-        {"l_max", 2},
         {"basis_type", "cs_dummy"},
   };
 
-  IntegralDummyTests<int_lookup_type, refdata_type>::run_all(
-        int_lookup_type(params));
+  IntegralDummyTests<int_lookup_type, refdata_type>::run_all(int_lookup_type(params));
 }
 
 }  // namespace tests
