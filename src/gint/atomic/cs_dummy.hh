@@ -68,7 +68,6 @@ public:
   const size_t nmax;
 
   bool has_transpose_operation_mode() const override { return true; }
-  bool has_apply_inverse() const override { return true; }
 
   // Compute alpha*A*x + beta*y into y
   void apply(const const_multivector_type& x, multivector_type& y,
@@ -128,6 +127,7 @@ public:
   const size_t nmax;
 
   bool has_transpose_operation_mode() const override { return true; }
+  bool has_apply_inverse() const override { return true; }
 
   void apply(const const_multivector_type& x, multivector_type& y,
              const linalgwrap::Transposed mode = linalgwrap::Transposed::None, const scalar_type c_A = 1,
