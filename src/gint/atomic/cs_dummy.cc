@@ -1,6 +1,5 @@
 #include "cs_dummy.hh"
 
-
 namespace gint {
 namespace atomic {
 namespace cs_dummy {
@@ -8,7 +7,7 @@ namespace cs_dummy {
 // ----------------------------------------------------------------------
 //			    IMPLEMENTATION
 // ----------------------------------------------------------------------
-std::string IntegralCollection::id   = "cs_atomic/dummy";
+std::string IntegralCollection::id = "atomic/cs_dummy";
 std::string IntegralCollection::name = "Dummy implementation of atomic Coulomb Sturmians";
 
 IntegralCollection::IntegralCollection(
