@@ -1,10 +1,10 @@
 #pragma once
 
-#include "gint/config.hh"
 #include "gint/Integral.hh"
 #include "gint/IntegralCollectionBase.hh"
 #include "gint/IntegralCoreBase.hh"
 #include "gint/atomic/static14.hh"  // TODO: Included for the horrible hack!
+#include "gint/config.hh"
 
 #include <krims/ParameterMap.hh>
 #include <sturmint/atomic/cs/cs_atomic.hh>
@@ -67,6 +67,9 @@ public:
   const real_type k, Z;
   const size_t nmax;
 
+  bool has_transpose_operation_mode() const override { return true; }
+  bool has_apply_inverse() const override { return true; }
+
   // Compute alpha*A*x + beta*y into y
   void apply(const const_multivector_type& x, multivector_type& y,
              const linalgwrap::Transposed mode = linalgwrap::Transposed::None, const scalar_type c_A = 1,
@@ -123,6 +126,8 @@ public:
   // TODO: Change basis order from n,l,m to m,l,n to make multiplication
   // contiguous.
   const size_t nmax;
+
+  bool has_transpose_operation_mode() const override { return true; }
 
   void apply(const const_multivector_type& x, multivector_type& y,
              const linalgwrap::Transposed mode = linalgwrap::Transposed::None, const scalar_type c_A = 1,
@@ -187,6 +192,8 @@ public:
   real_type k;  // k-exponent
   const size_t nmax;
 
+  bool has_transpose_operation_mode() const override { return true; }
+
   /** \brief Multiplication with a stored matrix */
   void apply(const const_multivector_type& x, multivector_type& y,
              const linalgwrap::Transposed mode = linalgwrap::Transposed::None, const scalar_type c_A = 1,
@@ -247,6 +254,8 @@ public:
   coefficients_ptr_type coefficients_occupied_ptr;
 
   const int nmax;
+
+  bool has_transpose_operation_mode() const override { return true; }
 
   /** \brief Multiplication with a stored matrix */
   // J_{aq} = J_{ab} X_{bq} = J_{abcd} X_{bq} Cocc_{cp} Cocc_{dp} = J_{abcd} X_{bq} D_{cd}
