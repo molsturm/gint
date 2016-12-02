@@ -7,16 +7,16 @@
 #include <vector>
 
 #include "atomic/static14.hh"
-//#include "atomic/cs_naive.hh"
 #include "atomic/cs_dummy.hh"
+#include "atomic/cs_naive.hh"
 
 
 namespace gint {
   
   static std::map<std::string, create_collection_t<COMPLEX_ATOMIC>*> basis_type_map_ca = {
     {"cs_static14", atomic::static14::IntegralCollection::create},
-    {"cs_dummy",    atomic::cs_dummy::IntegralCollection::create}//,
-    //    {"cs_naive",    atomic::cs_naive::IntegralCollection::create}    
+    {"cs_dummy",    atomic::cs_dummy::IntegralCollection::create},
+    {"cs_naive",    atomic::cs_naive::IntegralCollection::create}    
   };
 
   
