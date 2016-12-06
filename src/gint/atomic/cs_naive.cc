@@ -15,9 +15,9 @@ IntegralCollection::IntegralCollection(
       const krims::ParameterMap& parameters)
       : k_exponent{parameters.at<double>("k_exponent")},
         Z_charge{parameters.at<double>("Z_charge")},
-	basis{parameters.at<int>("m_max"),parameters.at<int>("l_max"),parameters.at<int>("n_len")},
+	basis{parameters.at<int>("n_max"),parameters.at<int>("l_max"),parameters.at<int>("m_max")},
         integral_calculator{basis} {
-	  cerr << "Built integral collection, number of orbitals is " << basis.length << "\n";
+	  //	  cerr << "Built integral collection, number of orbitals is " << basis.length << "\n";
 	}
 
 Integral<real_stored_mtx_type> IntegralCollection::lookup_integral(

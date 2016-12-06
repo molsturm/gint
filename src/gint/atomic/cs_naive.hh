@@ -24,6 +24,17 @@ class NuclearAttractionIntegralCore;
 class KineticIntegralCore;
 class ERICore;
 
+struct nlmCollection: public vector<nlm_t> {
+  int nmax, lmax, mmax;
+  
+  nlmCollection(int nmax, int lmax, int mmax) : nmax(nmax), lmax(lmax), mmax(mmax) {
+    for(int n=1;n<=nmax;n++)
+      for(int l=0; l<=min(lmax,n-1); l++)
+	for(int m=-min(mmax,l); m<=min(mmax,l); m++)
+	  this->push_back(nlm_t{n,l,m});
+  }
+};
+  
 class IntegralCollection : public IntegralCollectionBase<COMPLEX_ATOMIC> {
 public:
   typedef IntegralCollectionBase<COMPLEX_ATOMIC> base_type;
@@ -31,7 +42,7 @@ public:
   static std::string id, name;
 
   real_type k_exponent, Z_charge;
-  const mlnbasis basis;
+  nlmCollection basis;
 
   Atomic integral_calculator;
 
@@ -40,7 +51,7 @@ public:
    * The following parameters are read:
    *   - k_exponent (double): The exponent of all Coulomb sturmians
    *   - Z_charge (double): The nuclear change of the system
-   *   - n_len (int): The maximal principle quantum number is l_max+n_len
+   *   - n_max (int): The maximal principle quantum number 
    *   - l_max (int): Maximal azimuthal quantum number
    *   - m_max (int): Maximal magnetic quantum number
    *
@@ -66,7 +77,7 @@ public:
   typedef typename base_type::scalar_type scalar_type;
 
   const real_type k, Z;
-  const mlnbasis& basis;
+  const vector<nlm_t>& basis;
 
   // Compute alpha*A*x + beta*y into y
   void apply(const const_multivector_type& x, multivector_type& y,
@@ -84,7 +95,7 @@ public:
     if (row != col)
       return 0;
     else {
-      int n = basis.quantum_numbers_from_index(row).n;
+      int n = basis[row].n;
       return -Z * k / n;
     }
   }
@@ -116,7 +127,7 @@ public:
   typedef IntegralCoreBase<real_stored_mtx_type> base_type;
   typedef real_stored_mtx_type stored_matrix_type;
 
-  const mlnbasis& basis;
+  const vector<nlm_t>& basis;
 
   void apply(const const_multivector_type& x, multivector_type& y,
              const linalgwrap::Transposed mode = linalgwrap::Transposed::None, const scalar_type c_A = 1,
@@ -141,7 +152,7 @@ public:
   scalar_type operator()(size_t row, size_t col) const override {
     assert_greater(row, n_rows()) assert_greater(col, n_cols());
 
-    const nlm_t mui = basis.quantum_numbers_from_index(row), muj = basis.quantum_numbers_from_index(col);
+    const nlm_t &mui{basis[row]}, &muj{basis[col]};
 
     return sturmint::atomic::cs::overlap(mui, muj);
   }
@@ -176,7 +187,7 @@ public:
   typedef real_stored_mtx_type stored_matrix_type;
 
   real_type k;  // k-exponent
-  const mlnbasis& basis;
+  const vector<nlm_t>& basis;
 
   /** \brief Multiplication with a stored matrix */
   void apply(const const_multivector_type& x, multivector_type& y,
@@ -192,7 +203,7 @@ public:
 
   /** \brief return an element of the matrix    */
   scalar_type operator()(size_t row, size_t col) const override {
-    const nlm_t mui = basis.quantum_numbers_from_index(row), muj = basis.quantum_numbers_from_index(col);
+    const nlm_t &mui{basis[row]}, muj{basis[col]};
 
     return k * k * sturmint::atomic::cs::kinetic(mui, muj);
   }
@@ -234,7 +245,7 @@ public:
 
   //! The occupied coefficients as a pointer
   coefficients_ptr_type coefficients_occupied_ptr;
-  const mlnbasis& basis;
+  const vector<nlm_t>& basis;
 
   /** \brief Multiplication with a stored matrix */
   // J_{aq} = J_{ab} X_{bq} = J_{abcd} X_{bq} Cocc_{cp} Cocc_{dp} = J_{abcd} X_{bq} D_{cd}
@@ -259,24 +270,24 @@ public:
     assert_dbg(coefficients_occupied_ptr != nullptr, krims::ExcInvalidPointer());
 
     const coefficients_type& Cocc(*coefficients_occupied_ptr);
-    stored_mtx_type density(basis.length, basis.length);
+    stored_mtx_type density(basis.size(), basis.size());
     for (size_t p = 0; p < coefficients_occupied_ptr->n_vectors(); p++) {
       const auto& C = Cocc[p];
-      for (int c = 0; c < basis.length; c++)
-        for (int d = 0; d < basis.length; d++) density(c, d) += C[c] * C[d];
+      for (size_t c = 0; c < basis.size(); c++)
+        for (size_t d = 0; d < basis.size(); d++) density(c, d) += C[c] * C[d];
     }
 
     real_type sum = 0;
 
-    for (int c = 0; c < basis.length; c++) {
+    for (size_t c = 0; c < basis.size(); c++) {
       size_t A = exchange ? c : a;  // Swap b and c if computing exchange // TODO: Check
       size_t C = exchange ? a : c;
 
-      for (int d = 0; d < basis.length; d++) {
+      for (size_t d = 0; d < basis.size(); d++) {
         real_type density_cd = 0;
         for (size_t p = 0; p < Cocc.n_vectors(); p++) density_cd += Cocc[p][c] * Cocc[p][d];
 
-        sum += m_integral_calculator.repulsion_full(A, b, C, d) * density_cd;
+        sum += m_integral_calculator.repulsion(A, b, C, d) * density_cd;
       }
     }
     return k * sum;
@@ -321,8 +332,7 @@ public:
 
   /** \brief Get the friendly name of the integral */
   std::string name() const override {
-    return std::string("Electron Repulsion Integrals, ") + (exchange ? "Exchange" : "Coulomb") +
-           " operator";
+    return std::string("Electron Repulsion Integrals, ")+(exchange? "Exchange" : "Coulomb")+" operator";
   }
 
 private:
