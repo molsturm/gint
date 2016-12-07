@@ -1,14 +1,16 @@
 #pragma once
 
+#include <sturmint/common/common.hh>
+#include <sturmint/atomic/cs/cs_atomic.hh>
+#include <sturmint/atomic/cs_naive/cs_atomic.hh>
+#include <sturmint/harmonic/OrbitalIndex.hh>
+
 #include "gint/Integral.hh"
 #include "gint/IntegralCollectionBase.hh"
 #include "gint/IntegralCoreBase.hh"
 #include "gint/config.hh"
 
 #include <krims/ParameterMap.hh>
-#include <sturmint/atomic/cs/cs_atomic.hh>
-#include <sturmint/atomic/cs_naive/cs_atomic.hh>
-#include <sturmint/harmonic/OrbitalIndex.hh>
 
 namespace gint {
 namespace atomic {
@@ -16,6 +18,8 @@ namespace cs_naive {
 
 #include "gint/real_config.hh"
 
+using namespace sturmint;  
+using namespace sturmint::atomic;
 using namespace sturmint::atomic::cs_naive;
 using namespace sturmint::orbital_index;
 
@@ -252,11 +256,28 @@ public:
   // K_{aq} = K_{ab} X_{bq} = J_{acbd} X_{bq} Cocc_{cp} Cocc_{dp} = J_{acbd} X_{bq} D_{cd}
   void apply(const const_multivector_type& x, multivector_type& y,
              const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
-             const scalar_type alpha = 1, const scalar_type beta = 0) const override {
-    using namespace sturmint::orbital_index;
-    using namespace sturmint::atomic::cs;
+             const scalar_type c_A = 1, const scalar_type c_y = 0) const override {
 
     assert_dbg(coefficients_occupied_ptr != nullptr, krims::ExcInvalidPointer());
+
+    const size_t norb = x.n_rows(), n_vectors = x.n_cols();
+    
+    for (size_t i = 0; i < y.n_rows(); i++)
+      for (size_t j = 0; j < y.n_cols(); j++) y(i, j) = (c_y!=0?  c_y*y(i,j) : 0);
+
+
+    vector<data_real_t> ysum(n_vectors); // Work internally in highest available precision
+    for (size_t a = 0; a < norb; a++) {
+      memset(&ysum[0],0,n_vectors*sizeof(sturmint::data_real_t));
+      for (size_t b = 0; b < norb; b++) {
+        data_real_t JKab = (*this)(a, b);
+
+        for (size_t q = 0; q < n_vectors; q++) {
+          ysum[q] += c_A * JKab * x(b, q);
+        }
+      }
+      for(size_t q=0;q<n_vectors;q++) y(a,q) += ysum[q];
+    }
   }
 
   /** \brief return an element of the matrix    */
@@ -264,8 +285,6 @@ public:
   // K_{ab} = J_{cbad} Cocc_{cp} Cocc_{dp} = J_{acbd} P_{cd}
 
   scalar_type operator()(size_t a, size_t b) const override {
-    using namespace sturmint::atomic::cs_naive;
-    using namespace sturmint::orbital_index;
 
     assert_dbg(coefficients_occupied_ptr != nullptr, krims::ExcInvalidPointer());
 
@@ -277,17 +296,17 @@ public:
         for (size_t d = 0; d < basis.size(); d++) density(c, d) += C[c] * C[d];
     }
 
-    real_type sum = 0;
+    data_real_t sum = 0;
 
     for (size_t c = 0; c < basis.size(); c++) {
       size_t A = exchange ? c : a;  // Swap b and c if computing exchange // TODO: Check
       size_t C = exchange ? a : c;
 
       for (size_t d = 0; d < basis.size(); d++) {
-        real_type density_cd = 0;
+	sturmint::data_real_t density_cd = 0;
         for (size_t p = 0; p < Cocc.n_vectors(); p++) density_cd += Cocc[p][c] * Cocc[p][d];
 
-        sum += m_integral_calculator.repulsion(A, b, C, d) * density_cd;
+        sum += m_integral_calculator.repulsion(basis[A], basis[b], basis[C], basis[d]) * density_cd;
       }
     }
     return k * sum;
