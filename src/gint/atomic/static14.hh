@@ -1,11 +1,11 @@
 #pragma once
 #ifdef GINT_STATIC_INTEGRALS
 
-#include "gint/config.hh"
 #include "Static14Data.hh"
 #include "gint/Integral.hh"
 #include "gint/IntegralCollectionBase.hh"
 #include "gint/IntegralCoreBase.hh"
+#include "gint/config.hh"
 #include <krims/ParameterMap.hh>
 
 namespace gint {
@@ -17,23 +17,22 @@ class NuclearAttractionIntegralCore;
 class KineticIntegralCore;
 class ERICore;
 
-#include "gint/real_config.hh"  
-  
-void apply_stored_matrix(const real_stored_mtx_type& A,
-			const_multivector_type & x,
-			multivector_type& y,
-			const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
-			 const scalar_type c_A = 1, const scalar_type c_y = 0);  
-  
+#include "gint/real_config.hh"
+
+void apply_stored_matrix(const real_stored_mtx_type& A, const_multivector_type& x,
+                         multivector_type& y,
+                         const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
+                         const scalar_type c_A = 1, const scalar_type c_y = 0);
+
 /** This integral collection contains precomputed data for an atomic sturmian
  * basis with n_max = 3 and l_max=2, which yields 14 basis functions.
  *
  * The exponent k and the nuclear charge Z can still be chosen freely.
  */
 class IntegralCollection : public IntegralCollectionBase<COMPLEX_ATOMIC> {
-public:
+ public:
   typedef IntegralCollectionBase<COMPLEX_ATOMIC> base_type;
-  
+
   const static std::string id, name;
   const real_type k_exponent, Z_charge;
 
@@ -55,7 +54,7 @@ public:
 };
 
 class NuclearAttractionIntegralCore : public IntegralCoreBase<real_stored_mtx_type> {
-public:
+ public:
   typedef real_stored_mtx_type stored_mtx_type;
   typedef IntegralCoreBase<real_stored_mtx_type> base_type;
   typedef real_type scalar_type;
@@ -75,27 +74,26 @@ public:
   }
 
   bool has_transpose_operation_mode() const override {
-    return detail::Static14Data<stored_mtx_type>::v0_bb_base.has_transpose_operation_mode();
+    return detail::Static14Data<stored_mtx_type>::v0_bb_base
+          .has_transpose_operation_mode();
   }
 
   // c_A * A * x + c_y * y
-  void apply(const_multivector_type & x,
-             multivector_type& y,
+  void apply(const_multivector_type& x, multivector_type& y,
              const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
              const scalar_type c_A = 1, const scalar_type c_y = 0) const override {
-    apply_stored_matrix(detail::Static14Data<stored_mtx_type>::v0_bb_base,x,y,mode,-k*Z*c_A,c_y);
+    apply_stored_matrix(detail::Static14Data<stored_mtx_type>::v0_bb_base, x, y, mode,
+                        -k * Z * c_A, c_y);
   }
 
   /** Extract a block of a matrix and (optionally) add it to
    * a different matrix.
    */
   virtual void extract_block(
-        stored_matrix_type& M, const size_t start_row,
-        const size_t start_col,
+        stored_matrix_type& M, const size_t start_row, const size_t start_col,
         const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
         const scalar_type c_this = linalgwrap::Constants<scalar_type>::one,
-        const scalar_type c_M =
-              linalgwrap::Constants<scalar_type>::zero) const override {
+        const scalar_type c_M = linalgwrap::Constants<scalar_type>::zero) const override {
     detail::Static14Data<stored_matrix_type>::v0_bb_base.extract_block(
           M, start_row, start_col, mode, -k * Z * c_this, c_M);
   }
@@ -118,7 +116,7 @@ public:
 // Integral cores
 //
 class OverlapIntegralCore : public IntegralCoreBase<real_stored_mtx_type> {
-public:
+ public:
   typedef real_stored_mtx_type stored_mtx_type;
   typedef IntegralCoreBase<stored_mtx_type> base_type;
   typedef real_type scalar_type;
@@ -140,32 +138,30 @@ public:
 
   bool has_apply_inverse() const override { return true; }
 
-  void apply(const_multivector_type & x,
-             multivector_type& y,
+  void apply(const_multivector_type& x, multivector_type& y,
              const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
              const scalar_type c_A = 1, const scalar_type c_y = 0) const override {
-    apply_stored_matrix(detail::Static14Data<stored_mtx_type>::s_bb,x,y,mode,c_A,c_y);
+    apply_stored_matrix(detail::Static14Data<stored_mtx_type>::s_bb, x, y, mode, c_A,
+                        c_y);
   }
 
-  void apply_inverse(const_multivector_type & x,
-		     multivector_type& y,
-		     const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
-		     const scalar_type c_A = 1,
-		     const scalar_type c_y = 0) const override {
-    apply_stored_matrix(detail::Static14Data<stored_mtx_type>::sinv_bb,x,y,mode,c_A,c_y);
+  void apply_inverse(const_multivector_type& x, multivector_type& y,
+                     const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
+                     const scalar_type c_A = 1,
+                     const scalar_type c_y = 0) const override {
+    apply_stored_matrix(detail::Static14Data<stored_mtx_type>::sinv_bb, x, y, mode, c_A,
+                        c_y);
   }
 
   /** Extract a block of a matrix and (optionally) add it to
    * a different matrix.  */
   virtual void extract_block(
-        stored_matrix_type& M, const size_t start_row,
-        const size_t start_col,
+        stored_matrix_type& M, const size_t start_row, const size_t start_col,
         const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
         const scalar_type c_this = linalgwrap::Constants<scalar_type>::one,
-        const scalar_type c_M =
-              linalgwrap::Constants<scalar_type>::zero) const override {
-    detail::Static14Data<stored_matrix_type>::s_bb.extract_block(
-          M, start_row, start_col, mode, c_this, c_M);
+        const scalar_type c_M = linalgwrap::Constants<scalar_type>::zero) const override {
+    detail::Static14Data<stored_matrix_type>::s_bb.extract_block(M, start_row, start_col,
+                                                                 mode, c_this, c_M);
   }
 
   std::unique_ptr<base_type> clone() const override {
@@ -181,7 +177,7 @@ public:
 };
 
 class KineticIntegralCore : public IntegralCoreBase<real_stored_mtx_type> {
-public:
+ public:
   typedef real_stored_mtx_type stored_mtx_type;
   typedef IntegralCoreBase<stored_mtx_type> base_type;
   typedef real_type scalar_type;
@@ -200,25 +196,24 @@ public:
   }
 
   bool has_transpose_operation_mode() const override {
-    return detail::Static14Data<stored_mtx_type>::t_bb_base.has_transpose_operation_mode();
+    return detail::Static14Data<stored_mtx_type>::t_bb_base
+          .has_transpose_operation_mode();
   }
 
-  void apply(const_multivector_type & x,
-             multivector_type& y,
+  void apply(const_multivector_type& x, multivector_type& y,
              const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
              const scalar_type c_A = 1, const scalar_type c_y = 0) const override {
-    apply_stored_matrix(detail::Static14Data<stored_mtx_type>::t_bb_base,x,y,mode,k*k*c_A,c_y);
+    apply_stored_matrix(detail::Static14Data<stored_mtx_type>::t_bb_base, x, y, mode,
+                        k * k * c_A, c_y);
   }
 
   /** Extract a block of a matrix and (optionally) add it to
    * a different matrix.  */
   virtual void extract_block(
-        stored_matrix_type& M, const size_t start_row,
-        const size_t start_col,
+        stored_matrix_type& M, const size_t start_row, const size_t start_col,
         const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
         const scalar_type c_this = linalgwrap::Constants<scalar_type>::one,
-        const scalar_type c_M =
-              linalgwrap::Constants<scalar_type>::zero) const override {
+        const scalar_type c_M = linalgwrap::Constants<scalar_type>::zero) const override {
     detail::Static14Data<stored_matrix_type>::t_bb_base.extract_block(
           M, start_row, start_col, mode, k * k * c_this, c_M);
   }
@@ -238,7 +233,7 @@ public:
 };
 
 class ERICore : public IntegralCoreBase<real_stored_mtx_type> {
-public:
+ public:
   typedef real_stored_mtx_type stored_mtx_type;
   typedef IntegralCoreBase<stored_mtx_type> base_type;
   typedef typename stored_mtx_type::vector_type vector_type;
@@ -248,7 +243,7 @@ public:
 
   //! Is this an exchange or Coulomb operator?
   const bool exchange;
-  
+
   //! The exponent
   const real_type k;
 
@@ -274,7 +269,7 @@ public:
     // where a and b are the same centre, so are c and d
     //
     // or alternatively
-    //               
+    //
     // K_{ab} = \sum_{cd} P_{cd} < ab | cd >
     // where a and c are the same centre, so are b and d
 
@@ -285,7 +280,8 @@ public:
     assert_dbg(coefficients_occupied_ptr != nullptr, krims::ExcInvalidPointer());
 
     // Density matrix expression
-    auto density_bb = outer_prod_sum(*coefficients_occupied_ptr, *coefficients_occupied_ptr);
+    auto density_bb =
+          outer_prod_sum(*coefficients_occupied_ptr, *coefficients_occupied_ptr);
     assert_dbg(density_bb.n_rows() == nbas, krims::ExcInternalError());
     assert_dbg(density_bb.n_cols() == nbas, krims::ExcInternalError());
 
@@ -308,8 +304,9 @@ public:
         const size_t db_pair = d * nbas + b;
 
         // Perform contraction:
-        const scalar_type i_elem = exchange ? i_bbbb(ac_pair, db_pair) : i_bbbb(ab_pair, cd_pair);
-        mat_ab += k*i_elem * density_bb(c, d);
+        const scalar_type i_elem =
+              exchange ? i_bbbb(ac_pair, db_pair) : i_bbbb(ab_pair, cd_pair);
+        mat_ab += k * i_elem * density_bb(c, d);
       }  // d
     }    // c
 
@@ -318,11 +315,11 @@ public:
 
   bool has_transpose_operation_mode() const override { return true; }
 
-  void apply(const_multivector_type& x,
-             multivector_type& y,
-             const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
-             const scalar_type c_A = linalgwrap::Constants<scalar_type>::one,
-             const scalar_type c_y = linalgwrap::Constants<scalar_type>::zero) const override {
+  void apply(
+        const_multivector_type& x, multivector_type& y,
+        const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
+        const scalar_type c_A = linalgwrap::Constants<scalar_type>::one,
+        const scalar_type c_y = linalgwrap::Constants<scalar_type>::zero) const override {
     using namespace linalgwrap;
     const size_t nbas = detail::Static14Data<stored_mtx_type>::nbas;
 
@@ -334,24 +331,22 @@ public:
     assert_sufficiently_tested(mode != Transposed::ConjTrans);
     // All modes are same case since we are symmetric and real, so no
     // switching over mode.
-    
+
     // Scale the current values of y or set them to zero
     // (if c_y == 0): We are now done with c_y and do not
     // need to worry about it any more in this function
-    for(size_t i=0;i<y.n_rows();i++)
-      for(size_t j=0;j<y.n_cols();j++)
-	y(i,j) = (c_y != 0? c_y*y(i,j) : 0);
+    for (size_t i = 0; i < y.n_rows(); i++)
+      for (size_t j = 0; j < y.n_cols(); j++) y(i, j) = (c_y != 0 ? c_y * y(i, j) : 0);
 
     // if c_this == 0 we are done
     if (c_A == Constants<scalar_type>::zero) return;
-    
+
     for (size_t veci = 0; veci < x.n_cols(); ++veci) {
       for (size_t row = 0; row < nbas; ++row) {
         scalar_type sum = 0;
-        for (size_t k = 0; k < nbas; ++k) 
-	  sum += (*this)(row, k) * x(k,veci);
+        for (size_t k = 0; k < nbas; ++k) sum += (*this)(row, k) * x(k, veci);
 
-        y(row,veci) += c_A * sum;
+        y(row, veci) += c_A * sum;
       }  // row
     }    // veci
   }
@@ -359,12 +354,10 @@ public:
   /** Extract a block of a matrix and (optionally) add it to
    * a different matrix.  */
   virtual void extract_block(
-        stored_matrix_type& M, const size_t start_row,
-        const size_t start_col,
+        stored_matrix_type& M, const size_t start_row, const size_t start_col,
         const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
         const scalar_type c_this = linalgwrap::Constants<scalar_type>::one,
-        const scalar_type c_M =
-              linalgwrap::Constants<scalar_type>::zero) const override {
+        const scalar_type c_M = linalgwrap::Constants<scalar_type>::zero) const override {
     using namespace linalgwrap;
 #ifdef DEBUG
     const size_t nbas = detail::Static14Data<stored_matrix_type>::nbas;
@@ -400,8 +393,7 @@ public:
             // data type if scalar is real only.
             // TODO we are kind of calling an internal function here
             linalgwrap::detail::ConjFctr mconj;
-            M(row, col) +=
-                  c_this * mconj((*this)(start_col + col, start_row + row));
+            M(row, col) += c_this * mconj((*this)(start_col + col, start_row + row));
             break;
         }  // mode
       }    // col
@@ -418,23 +410,26 @@ public:
     if (!map.exists(occ_coeff_key)) return;
 
     // Get coefficients as a shared pointer (having ownership)
-    coefficients_occupied_ptr =
-          static_cast<coefficients_ptr_type>(map.at_ptr<coefficients_type>(occ_coeff_key));
+    coefficients_occupied_ptr = static_cast<coefficients_ptr_type>(
+          map.at_ptr<coefficients_type>(occ_coeff_key));
 
     // We will contract the coefficient row index over the number of
     // basis functions.
     if (coefficients_occupied_ptr->n_vectors() == 0) return;
-    assert_size(coefficients_occupied_ptr->n_elem(), detail::Static14Data<stored_mtx_type>::nbas);
+    assert_size(coefficients_occupied_ptr->n_elem(),
+                detail::Static14Data<stored_mtx_type>::nbas);
   }
 
   // TODO use static keys to generate values
   /** \brief Get the identifier of the integral */
-  std::string id() const override { return std::string("static/14/ERI_") + (exchange ? "K" : "J"); }
+  std::string id() const override {
+    return std::string("static/14/ERI_") + (exchange ? "K" : "J");
+  }
 
   /** \brief Get the friendly name of the integral */
   std::string name() const override {
-    return std::string("Electron Repulsion Integrals, ") + (exchange ? "Exchange" : "Coulomb") +
-           " operator";
+    return std::string("Electron Repulsion Integrals, ") +
+           (exchange ? "Exchange" : "Coulomb") + " operator";
   }
 
   ERICore(bool exchange, real_type k) : exchange(exchange), k(k) {}

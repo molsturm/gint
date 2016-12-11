@@ -13,7 +13,7 @@ DefException1(ExcInvalidIntegralParameters, std::string,
 
 template <typename StoredMatrix>
 class Integral : public linalgwrap::LazyMatrix_i<StoredMatrix> {
-public:
+ public:
   typedef linalgwrap::LazyMatrix_i<StoredMatrix> base_type;
   typedef typename base_type::stored_matrix_type stored_matrix_type;
   typedef typename base_type::size_type size_type;
@@ -86,43 +86,39 @@ public:
    * See the documentation of this function in linalgrwap's
    * LazyMatrixExpression class for details.
    */
-  void apply(const linalgwrap::MultiVector<
-                   const linalgwrap::MutableMemoryVector_i<scalar_type>>& x_in,
-             linalgwrap::MultiVector<
-                   linalgwrap::MutableMemoryVector_i<scalar_type>>& y_out,
-             const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
-             const scalar_type c_this = linalgwrap::Constants<scalar_type>::one,
-             const scalar_type c_y =
-                   linalgwrap::Constants<scalar_type>::zero) const override {
+  void apply(
+        const linalgwrap::MultiVector<
+              const linalgwrap::MutableMemoryVector_i<scalar_type>>& x_in,
+        linalgwrap::MultiVector<linalgwrap::MutableMemoryVector_i<scalar_type>>& y_out,
+        const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
+        const scalar_type c_this = linalgwrap::Constants<scalar_type>::one,
+        const scalar_type c_y = linalgwrap::Constants<scalar_type>::zero) const override {
     assert_dbg(m_core_ptr != nullptr, krims::ExcInternalError());
-    assert_size(x_in.n_elem(),    y_out.n_elem());
+    assert_size(x_in.n_elem(), y_out.n_elem());
     assert_size(x_in.n_vectors(), y_out.n_vectors());
 
     // TODO: This will go away when the new multivector interface is implemented.
-    real_multivector_type x(x_in.n_elem(),x_in.n_vectors());
-    real_multivector_type y(x_in.n_elem(),x_in.n_vectors());
+    real_multivector_type x(x_in.n_elem(), x_in.n_vectors());
+    real_multivector_type y(x_in.n_elem(), x_in.n_vectors());
 
-    for(size_t i=0;i<x_in.n_vectors();i++)
-      for(size_t j=0;j<x_in.n_elem();j++){
-	x(j,i) = x_in[i][j];
-	y(j,i) = y_out[i][j];
+    for (size_t i = 0; i < x_in.n_vectors(); i++)
+      for (size_t j = 0; j < x_in.n_elem(); j++) {
+        x(j, i) = x_in[i][j];
+        y(j, i) = y_out[i][j];
       }
     m_core_ptr->apply(x, y, mode, c_this, c_y);
 
-    for(size_t i=0;i<x_in.n_vectors();i++)
-      for(size_t j=0;j<x_in.n_elem();j++)
-	y_out[i][j] = y(j,i);
+    for (size_t i = 0; i < x_in.n_vectors(); i++)
+      for (size_t j = 0; j < x_in.n_elem(); j++) y_out[i][j] = y(j, i);
   }
 
-  template <
-        typename VectorIn, typename VectorOut,
-        linalgwrap::mat_vec_apply_enabled_t<Integral, VectorIn, VectorOut>...>
+  template <typename VectorIn, typename VectorOut,
+            linalgwrap::mat_vec_apply_enabled_t<Integral, VectorIn, VectorOut>...>
   void apply(const linalgwrap::MultiVector<VectorIn>& x,
              linalgwrap::MultiVector<VectorOut>& y,
              const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
              const scalar_type c_this = linalgwrap::Constants<scalar_type>::one,
-             const scalar_type c_y =
-                   linalgwrap::Constants<scalar_type>::zero) const {
+             const scalar_type c_y = linalgwrap::Constants<scalar_type>::zero) const {
     using namespace linalgwrap;
     MultiVector<const MutableMemoryVector_i<scalar_type>> x_wrapped(x);
     MultiVector<MutableMemoryVector_i<scalar_type>> y_wrapped(y);
@@ -136,14 +132,12 @@ public:
    *
    * See LazyMatrixExpression for more details
    */
-  template <
-        typename VectorIn, typename VectorOut,
-        linalgwrap::mat_vec_apply_enabled_t<Integral, VectorIn, VectorOut>...>
-  void apply_inverse(
-        const linalgwrap::MultiVector<VectorIn>& x,
-        linalgwrap::MultiVector<VectorOut>& y,
-        const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
-        const scalar_type c_this = 1, const scalar_type c_y = 0) const {
+  template <typename VectorIn, typename VectorOut,
+            linalgwrap::mat_vec_apply_enabled_t<Integral, VectorIn, VectorOut>...>
+  void apply_inverse(const linalgwrap::MultiVector<VectorIn>& x,
+                     linalgwrap::MultiVector<VectorOut>& y,
+                     const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
+                     const scalar_type c_this = 1, const scalar_type c_y = 0) const {
     using namespace linalgwrap;
     MultiVector<const MutableMemoryVector_i<scalar_type>> x_wrapped(x);
     MultiVector<MutableMemoryVector_i<scalar_type>> y_wrapped(y);
@@ -160,29 +154,26 @@ public:
   virtual void apply_inverse(
         const linalgwrap::MultiVector<
               const linalgwrap::MutableMemoryVector_i<scalar_type>>& x_in,
-        linalgwrap::MultiVector<linalgwrap::MutableMemoryVector_i<scalar_type>>&
-              y_out,
+        linalgwrap::MultiVector<linalgwrap::MutableMemoryVector_i<scalar_type>>& y_out,
         const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
-        const scalar_type c_this = 1,
-        const scalar_type c_y = 0) const override {
+        const scalar_type c_this = 1, const scalar_type c_y = 0) const override {
     assert_dbg(m_core_ptr != nullptr, krims::ExcInternalError());
-    assert_size(x_in.n_elem(),    y_out.n_elem());
+    assert_size(x_in.n_elem(), y_out.n_elem());
     assert_size(x_in.n_vectors(), y_out.n_vectors());
 
     // TODO: This will go away when the new multivector interface is implemented.
-    real_multivector_type x(x_in.n_elem(),x_in.n_vectors());
-    real_multivector_type y(x_in.n_elem(),x_in.n_vectors());
+    real_multivector_type x(x_in.n_elem(), x_in.n_vectors());
+    real_multivector_type y(x_in.n_elem(), x_in.n_vectors());
 
-    for(size_t i=0;i<x_in.n_vectors();i++)
-      for(size_t j=0;j<x_in.n_elem();j++){
-	x(j,i) = x_in[i][j];
-	y(j,i) = y_out[i][j];
+    for (size_t i = 0; i < x_in.n_vectors(); i++)
+      for (size_t j = 0; j < x_in.n_elem(); j++) {
+        x(j, i) = x_in[i][j];
+        y(j, i) = y_out[i][j];
       }
     m_core_ptr->apply_inverse(x, y, mode, c_this, c_y);
 
-    for(size_t i=0;i<x_in.n_vectors();i++)
-      for(size_t j=0;j<x_in.n_elem();j++)
-	y_out[i][j] = y(j,i);
+    for (size_t i = 0; i < x_in.n_vectors(); i++)
+      for (size_t j = 0; j < x_in.n_elem(); j++) y_out[i][j] = y(j, i);
   }
 
   /** Perform a matrix-matrix product.
@@ -213,12 +204,11 @@ public:
    * See the documentation of this function in linalgrwap's
    * LazyMatrixExpression class for details.
    */
-  void extract_block(
-        stored_matrix_type& M, const size_type start_row,
-        const size_type start_col,
-        const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
-        const scalar_type c_this = 1,
-        const scalar_type c_M    = 0) const override {
+  void extract_block(stored_matrix_type& M, const size_type start_row,
+                     const size_type start_col,
+                     const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
+                     const scalar_type c_this = 1,
+                     const scalar_type c_M = 0) const override {
     assert_dbg(m_core_ptr != nullptr, krims::ExcInternalError());
     m_core_ptr->extract_block(M, start_row, start_col, mode, c_this, c_M);
   }
@@ -250,7 +240,7 @@ public:
 
   static const std::string update_key_coefficients;
 
-private:
+ private:
   //! The inner integral core object:
   std::unique_ptr<core_type> m_core_ptr;
 };
@@ -260,11 +250,9 @@ const std::string Integral<StoredMatrix>::update_key_coefficients =
       "coefficients_occupied";
 
 template <typename IntegralCore, typename... Args>
-Integral<typename IntegralCore::stored_matrix_type> make_integral(
-      Args&&... args) {
+Integral<typename IntegralCore::stored_matrix_type> make_integral(Args&&... args) {
   typedef typename IntegralCore::stored_matrix_type stored_matrix_type;
-  return Integral<stored_matrix_type>(
-        krims::make_unique<IntegralCore>(args...));
+  return Integral<stored_matrix_type>(krims::make_unique<IntegralCore>(args...));
 }
 
 }  // namespace gint

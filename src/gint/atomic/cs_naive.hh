@@ -1,8 +1,8 @@
 #pragma once
 
-#include <sturmint/common/common.hh>
 #include <sturmint/atomic/cs/cs_atomic.hh>
 #include <sturmint/atomic/cs_naive/cs_atomic.hh>
+#include <sturmint/common/common.hh>
 #include <sturmint/harmonic/OrbitalIndex.hh>
 
 #include "gint/Integral.hh"
@@ -18,7 +18,7 @@ namespace cs_naive {
 
 #include "gint/real_config.hh"
 
-using namespace sturmint;  
+using namespace sturmint;
 using namespace sturmint::atomic;
 using namespace sturmint::atomic::cs_naive;
 using namespace sturmint::orbital_index;
@@ -28,19 +28,19 @@ class NuclearAttractionIntegralCore;
 class KineticIntegralCore;
 class ERICore;
 
-struct nlmCollection: public vector<nlm_t> {
+struct nlmCollection : public vector<nlm_t> {
   int nmax, lmax, mmax;
-  
+
   nlmCollection(int nmax, int lmax, int mmax) : nmax(nmax), lmax(lmax), mmax(mmax) {
-    for(int n=1;n<=nmax;n++)
-      for(int l=0; l<=min(lmax,n-1); l++)
-	for(int m=-min(mmax,l); m<=min(mmax,l); m++)
-	  this->push_back(nlm_t{n,l,m});
+    for (int n = 1; n <= nmax; n++)
+      for (int l = 0; l <= min(lmax, n - 1); l++)
+        for (int m = -min(mmax, l); m <= min(mmax, l); m++)
+          this->push_back(nlm_t{n, l, m});
   }
 };
-  
+
 class IntegralCollection : public IntegralCollectionBase<COMPLEX_ATOMIC> {
-public:
+ public:
   typedef IntegralCollectionBase<COMPLEX_ATOMIC> base_type;
 
   static std::string id, name;
@@ -55,7 +55,7 @@ public:
    * The following parameters are read:
    *   - k_exponent (double): The exponent of all Coulomb sturmians
    *   - Z_charge (double): The nuclear change of the system
-   *   - n_max (int): The maximal principle quantum number 
+   *   - n_max (int): The maximal principle quantum number
    *   - l_max (int): Maximal azimuthal quantum number
    *   - m_max (int): Maximal magnetic quantum number
    *
@@ -76,7 +76,7 @@ public:
 //			    INTEGRAL CORES
 // ----------------------------------------------------------------------
 class NuclearAttractionIntegralCore : public IntegralCoreBase<real_stored_mtx_type> {
-public:
+ public:
   typedef IntegralCoreBase<real_stored_mtx_type> base_type;
   typedef typename base_type::scalar_type scalar_type;
 
@@ -85,8 +85,8 @@ public:
 
   // Compute alpha*A*x + beta*y into y
   void apply(const const_multivector_type& x, multivector_type& y,
-             const linalgwrap::Transposed mode = linalgwrap::Transposed::None, const scalar_type c_A = 1,
-             const scalar_type c_y = 0) const override {
+             const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
+             const scalar_type c_A = 1, const scalar_type c_y = 0) const override {
     const real_type* x_ptr = x.data().memptr();
     real_type* y_ptr = const_cast<real_type*>(y.data().memptr());
     sturmint::atomic::cs::apply_to_full_vectors::nuclear_attraction<real_type>(
@@ -104,9 +104,13 @@ public:
     }
   }
 
-  NuclearAttractionIntegralCore(const sturmint::atomic::cs_naive::Atomic& integral_calculator,
-                                real_type k, real_type Z)
-        : k(k), Z(Z), basis(integral_calculator.basis), m_integral_calculator(integral_calculator) {}
+  NuclearAttractionIntegralCore(
+        const sturmint::atomic::cs_naive::Atomic& integral_calculator, real_type k,
+        real_type Z)
+        : k(k),
+          Z(Z),
+          basis(integral_calculator.basis),
+          m_integral_calculator(integral_calculator) {}
 
   size_t n_rows() const override { return m_integral_calculator.n_bas(); }
   size_t n_cols() const override { return m_integral_calculator.n_bas(); }
@@ -122,36 +126,38 @@ public:
   /** \brief Get the friendly name of the integral */
   std::string name() const override { return "Nuclear attraction operator"; }
 
-private:
+ private:
   const sturmint::atomic::cs_naive::Atomic& m_integral_calculator;
 };
 
 class OverlapIntegralCore : public IntegralCoreBase<real_stored_mtx_type> {
-public:
+ public:
   typedef IntegralCoreBase<real_stored_mtx_type> base_type;
   typedef real_stored_mtx_type stored_matrix_type;
 
   const vector<nlm_t>& basis;
-  bool has_transpose_operation_mode() const override { return true; }  
+  bool has_transpose_operation_mode() const override { return true; }
   bool has_apply_inverse() const override { return true; }
 
   void apply(const const_multivector_type& x, multivector_type& y,
-             const linalgwrap::Transposed mode = linalgwrap::Transposed::None, const scalar_type c_A = 1,
-             const scalar_type c_y = 0) const override {
+             const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
+             const scalar_type c_A = 1, const scalar_type c_y = 0) const override {
     const real_type* x_ptr = const_cast<const real_type*>(x.data().memptr());
     real_type* y_ptr = const_cast<real_type*>(y.data().memptr());
 
-    sturmint::atomic::cs::apply_to_full_vectors::overlap(basis, x_ptr, y_ptr, c_A, c_y, x.n_cols());
+    sturmint::atomic::cs::apply_to_full_vectors::overlap(basis, x_ptr, y_ptr, c_A, c_y,
+                                                         x.n_cols());
   }
 
   void apply_inverse(const const_multivector_type& x, multivector_type& y,
                      const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
-                     const scalar_type c_A = 1, const scalar_type c_y = 0) const override {
+                     const scalar_type c_A = 1,
+                     const scalar_type c_y = 0) const override {
     const real_type* x_ptr = const_cast<const real_type*>(x.data().memptr());
     real_type* y_ptr = const_cast<real_type*>(y.data().memptr());
 
-    sturmint::atomic::cs::apply_to_full_vectors::overlap_inverse(basis, x_ptr, y_ptr, c_A, c_y,
-                                                                 x.n_cols());
+    sturmint::atomic::cs::apply_to_full_vectors::overlap_inverse(basis, x_ptr, y_ptr, c_A,
+                                                                 c_y, x.n_cols());
   }
 
   /** \brief return an element of the matrix    */
@@ -183,12 +189,12 @@ public:
   /** \brief Get the friendly name of the integral */
   std::string name() const override { return "Overlap operator"; }
 
-private:
+ private:
   const Atomic& m_integral_calculator;
 };
 
 class KineticIntegralCore : public IntegralCoreBase<real_stored_mtx_type> {
-public:
+ public:
   typedef IntegralCoreBase<real_stored_mtx_type> base_type;
   typedef real_stored_mtx_type stored_matrix_type;
 
@@ -197,8 +203,8 @@ public:
 
   /** \brief Multiplication with a stored matrix */
   void apply(const const_multivector_type& x, multivector_type& y,
-             const linalgwrap::Transposed mode = linalgwrap::Transposed::None, const scalar_type c_A = 1,
-             const scalar_type c_y = 0) const override {
+             const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
+             const scalar_type c_A = 1, const scalar_type c_y = 0) const override {
     const real_type* x_ptr = const_cast<const real_type*>(x.data().memptr());
     real_type* y_ptr = const_cast<real_type*>(y.data().memptr());
 
@@ -215,7 +221,9 @@ public:
   }
 
   KineticIntegralCore(const Atomic& integral_calculator, real_type k)
-        : k(k), basis(integral_calculator.basis), m_integral_calculator(integral_calculator) {}
+        : k(k),
+          basis(integral_calculator.basis),
+          m_integral_calculator(integral_calculator) {}
 
   /** \brief Number of rows of the matrix */
   size_t n_rows() const override { return m_integral_calculator.n_bas(); }
@@ -234,12 +242,12 @@ public:
   /** \brief Get the friendly name of the integral */
   std::string name() const override { return "Kinetic energy operator"; }
 
-private:
+ private:
   const Atomic& m_integral_calculator;
 };
 
 class ERICore : public IntegralCoreBase<real_stored_mtx_type> {
-public:
+ public:
   typedef IntegralCoreBase<real_stored_mtx_type> base_type;
   typedef real_stored_mtx_type stored_matrix_type;
   typedef typename stored_mtx_type::vector_type vector_type;
@@ -263,14 +271,14 @@ public:
     assert_dbg(coefficients_occupied_ptr != nullptr, krims::ExcInvalidPointer());
 
     const size_t norb = x.n_rows(), n_vectors = x.n_cols();
-    
+
     for (size_t i = 0; i < y.n_rows(); i++)
-      for (size_t j = 0; j < y.n_cols(); j++) y(i, j) = (c_y!=0?  c_y*y(i,j) : 0);
+      for (size_t j = 0; j < y.n_cols(); j++) y(i, j) = (c_y != 0 ? c_y * y(i, j) : 0);
 
-
-    vector<data_real_t> ysum(n_vectors); // Work internally in highest available precision
+    vector<data_real_t> ysum(
+          n_vectors);  // Work internally in highest available precision
     for (size_t a = 0; a < norb; a++) {
-      memset(&ysum[0],0,n_vectors*sizeof(sturmint::data_real_t));
+      memset(&ysum[0], 0, n_vectors * sizeof(sturmint::data_real_t));
       for (size_t b = 0; b < norb; b++) {
         data_real_t JKab = (*this)(a, b);
 
@@ -278,7 +286,7 @@ public:
           ysum[q] += c_A * JKab * x(b, q);
         }
       }
-      for(size_t q=0;q<n_vectors;q++) y(a,q) += ysum[q];
+      for (size_t q = 0; q < n_vectors; q++) y(a, q) += ysum[q];
     }
   }
 
@@ -305,10 +313,12 @@ public:
       size_t C = exchange ? a : c;
 
       for (size_t d = 0; d < basis.size(); d++) {
-	sturmint::data_real_t density_cd = 0;
-        for (size_t p = 0; p < Cocc.n_vectors(); p++) density_cd += Cocc[p][c] * Cocc[p][d];
+        sturmint::data_real_t density_cd = 0;
+        for (size_t p = 0; p < Cocc.n_vectors(); p++)
+          density_cd += Cocc[p][c] * Cocc[p][d];
 
-        sum += m_integral_calculator.repulsion(basis[A], basis[b], basis[C], basis[d]) * density_cd;
+        sum += m_integral_calculator.repulsion(basis[A], basis[b], basis[C], basis[d]) *
+               density_cd;
       }
     }
     return k * sum;
@@ -328,8 +338,8 @@ public:
     if (!map.exists(occ_coeff_key)) return;
 
     // Get coefficients as a shared pointer (having ownership)
-    coefficients_occupied_ptr =
-          static_cast<coefficients_ptr_type>(map.at_ptr<coefficients_type>(occ_coeff_key));
+    coefficients_occupied_ptr = static_cast<coefficients_ptr_type>(
+          map.at_ptr<coefficients_type>(occ_coeff_key));
 
     // We will contract the coefficient row index over the number of
     // basis functions.
@@ -353,10 +363,11 @@ public:
 
   /** \brief Get the friendly name of the integral */
   std::string name() const override {
-    return std::string("Electron Repulsion Integrals, ")+(exchange? "Exchange" : "Coulomb")+" operator";
+    return std::string("Electron Repulsion Integrals, ") +
+           (exchange ? "Exchange" : "Coulomb") + " operator";
   }
 
-private:
+ private:
   const Atomic& m_integral_calculator;
 };
 

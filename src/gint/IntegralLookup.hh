@@ -6,25 +6,22 @@
 #include <type_traits>
 #include <vector>
 
-#include "atomic/static14.hh"
 #include "atomic/cs_dummy.hh"
 #include "atomic/cs_naive.hh"
-
+#include "atomic/static14.hh"
 
 namespace gint {
-  
-  static std::map<std::string, create_collection_t<COMPLEX_ATOMIC>*> basis_type_map_ca = {
-    {"cs_static14", atomic::static14::IntegralCollection::create},
-    {"cs_dummy",    atomic::cs_dummy::IntegralCollection::create},
-    {"cs_naive",    atomic::cs_naive::IntegralCollection::create}    
-  };
 
-  
+static std::map<std::string, create_collection_t<COMPLEX_ATOMIC>*> basis_type_map_ca = {
+      {"cs_static14", atomic::static14::IntegralCollection::create},
+      {"cs_dummy", atomic::cs_dummy::IntegralCollection::create},
+      {"cs_naive", atomic::cs_naive::IntegralCollection::create}};
+
 /** Get Integral objects for a type of basis function */
 template <OrbitalType otype>
 class IntegralLookup {
 
-public:
+ public:
   typedef IntegralCollectionBase<otype> integral_collection_type;
   typedef typename integral_collection_type::stored_mtx_type stored_mtx_type;
 
@@ -44,7 +41,8 @@ public:
   //      integral_collection_type;
   typedef Integral<stored_mtx_type> integral_type;
 
-  static_assert(!krims::IsComplexNumber<typename stored_mtx_type::scalar_type>::value || (otype == COMPLEX_MOLECULAR),
+  static_assert(!krims::IsComplexNumber<typename stored_mtx_type::scalar_type>::value ||
+                      (otype == COMPLEX_MOLECULAR),
                 "The StoredMatrix should only have a complex scalar type if "
                 "the OrbitalType is COMPLEX_MOLECULAR");
 
@@ -66,7 +64,7 @@ public:
   integral_type operator()(const std::vector<scalar_type>& coefficients,
                            const std::vector<std::string>& integral_names) const;
 
-private:
+ private:
   //! Integral collection to use. Currently we use the precomputed static14.
   std::shared_ptr<IntegralCollectionBase<otype>> m_integral_collection;
 };
@@ -79,7 +77,8 @@ typename IntegralLookup<otype>::integral_type IntegralLookup<otype>::operator()(
 
 template <OrbitalType otype>
 typename IntegralLookup<otype>::integral_type IntegralLookup<otype>::operator()(
-      const std::vector<scalar_type>& /* coefficients */, const std::vector<std::string>& /* integral_names */) const {
+      const std::vector<scalar_type>& /* coefficients */,
+      const std::vector<std::string>& /* integral_names */) const {
   assert_dbg(false, krims::ExcNotImplemented());
   return m_integral_collection("Not implemented");
 }

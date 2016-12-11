@@ -29,7 +29,7 @@ class ERICore;
 // This integral class uses (n,l,m)-ordering: {{n,1,nmax},{l,0,n-1},{m,-l,l}}
 
 class IntegralCollection : public IntegralCollectionBase<COMPLEX_ATOMIC> {
-public:
+ public:
   typedef IntegralCollectionBase<COMPLEX_ATOMIC> base_type;
 
   static std::string id, name;
@@ -60,7 +60,7 @@ public:
 //			    INTEGRAL CORES
 // ----------------------------------------------------------------------
 class NuclearAttractionIntegralCore : public IntegralCoreBase<real_stored_mtx_type> {
-public:
+ public:
   typedef IntegralCoreBase<real_stored_mtx_type> base_type;
   typedef typename base_type::scalar_type scalar_type;
 
@@ -71,12 +71,12 @@ public:
 
   // Compute alpha*A*x + beta*y into y
   void apply(const const_multivector_type& x, multivector_type& y,
-             const linalgwrap::Transposed mode = linalgwrap::Transposed::None, const scalar_type c_A = 1,
-             const scalar_type c_y = 0) const override {
+             const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
+             const scalar_type c_A = 1, const scalar_type c_y = 0) const override {
     const real_type* x_ptr = x.data().memptr();
     real_type* y_ptr = const_cast<real_type*>(y.data().memptr());
-    cs::apply_to_full_vectors::nuclear_attraction_nlm<real_type>(x_ptr, y_ptr, Z * k * c_A, c_y,
-                                                                 x.n_cols(), nmax);
+    cs::apply_to_full_vectors::nuclear_attraction_nlm<real_type>(
+          x_ptr, y_ptr, Z * k * c_A, c_y, x.n_cols(), nmax);
   }
 
   /** \brief return an element of the matrix \f$ {V_0}_{\mu',\mu} = -Zk/n
@@ -91,9 +91,13 @@ public:
     }
   }
 
-  NuclearAttractionIntegralCore(const sturmint::atomic::cs_dummy::Atomic& integral_calculator,
-                                real_type k, real_type Z)
-        : k(k), Z(Z), nmax(integral_calculator.nmax), m_integral_calculator(integral_calculator) {}
+  NuclearAttractionIntegralCore(
+        const sturmint::atomic::cs_dummy::Atomic& integral_calculator, real_type k,
+        real_type Z)
+        : k(k),
+          Z(Z),
+          nmax(integral_calculator.nmax),
+          m_integral_calculator(integral_calculator) {}
 
   /** \brief Number of rows of the matrix */
   size_t n_rows() const override { return m_integral_calculator.n_bas(); }
@@ -112,12 +116,12 @@ public:
   /** \brief Get the friendly name of the integral */
   std::string name() const override { return "Nuclear attraction operator"; }
 
-private:
+ private:
   const sturmint::atomic::cs_dummy::Atomic& m_integral_calculator;
 };
 
 class OverlapIntegralCore : public IntegralCoreBase<real_stored_mtx_type> {
-public:
+ public:
   typedef IntegralCoreBase<real_stored_mtx_type> base_type;
   typedef real_stored_mtx_type stored_matrix_type;
 
@@ -130,18 +134,21 @@ public:
   bool has_apply_inverse() const override { return true; }
 
   void apply(const const_multivector_type& x, multivector_type& y,
-             const linalgwrap::Transposed mode = linalgwrap::Transposed::None, const scalar_type c_A = 1,
-             const scalar_type c_y = 0) const override {
+             const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
+             const scalar_type c_A = 1, const scalar_type c_y = 0) const override {
     const real_type* x_ptr = const_cast<const real_type*>(x.data().memptr());
     real_type* y_ptr = const_cast<real_type*>(y.data().memptr());
 
-    sturmint::atomic::cs::apply_to_full_vectors::overlap_nlm(x_ptr, y_ptr, c_A, c_y, x.n_cols(), nmax);
+    sturmint::atomic::cs::apply_to_full_vectors::overlap_nlm(x_ptr, y_ptr, c_A, c_y,
+                                                             x.n_cols(), nmax);
   }
 
   void apply_inverse(const const_multivector_type& x, multivector_type& y,
                      const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
-                     const scalar_type c_A = 1, const scalar_type c_y = 0) const override {
-    // TODO: Huge hack, but we don't really want to bother with overlap_inverse apply for nlm-order right
+                     const scalar_type c_A = 1,
+                     const scalar_type c_y = 0) const override {
+    // TODO: Huge hack, but we don't really want to bother with overlap_inverse apply for
+    // nlm-order right
     // now.
     //       How to do that: Compute inverse for each (l,m)-block: jump around in vector.
     using namespace static14;
@@ -180,12 +187,12 @@ public:
   /** \brief Get the friendly name of the integral */
   std::string name() const override { return "Overlap operator"; }
 
-private:
+ private:
   const Atomic& m_integral_calculator;
 };
 
 class KineticIntegralCore : public IntegralCoreBase<real_stored_mtx_type> {
-public:
+ public:
   typedef IntegralCoreBase<real_stored_mtx_type> base_type;
   typedef real_stored_mtx_type stored_matrix_type;
 
@@ -196,8 +203,8 @@ public:
 
   /** \brief Multiplication with a stored matrix */
   void apply(const const_multivector_type& x, multivector_type& y,
-             const linalgwrap::Transposed mode = linalgwrap::Transposed::None, const scalar_type c_A = 1,
-             const scalar_type c_y = 0) const override {
+             const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
+             const scalar_type c_A = 1, const scalar_type c_y = 0) const override {
     const real_type* x_ptr = const_cast<const real_type*>(x.data().memptr());
     real_type* y_ptr = const_cast<real_type*>(y.data().memptr());
 
@@ -216,7 +223,9 @@ public:
   }
 
   KineticIntegralCore(const Atomic& integral_calculator, real_type k)
-        : k(k), nmax(integral_calculator.nmax), m_integral_calculator(integral_calculator) {}
+        : k(k),
+          nmax(integral_calculator.nmax),
+          m_integral_calculator(integral_calculator) {}
 
   /** \brief Number of rows of the matrix */
   size_t n_rows() const override { return m_integral_calculator.n_bas(); }
@@ -235,12 +244,12 @@ public:
   /** \brief Get the friendly name of the integral */
   std::string name() const override { return "Kinetic energy operator"; }
 
-private:
+ private:
   const Atomic& m_integral_calculator;
 };
 
 class ERICore : public IntegralCoreBase<real_stored_mtx_type> {
-public:
+ public:
   typedef IntegralCoreBase<real_stored_mtx_type> base_type;
   typedef real_stored_mtx_type stored_matrix_type;
   typedef typename stored_mtx_type::vector_type vector_type;
@@ -327,8 +336,8 @@ public:
     if (!map.exists(occ_coeff_key)) return;
 
     // Get coefficients as a shared pointer (having ownership)
-    coefficients_occupied_ptr =
-          static_cast<coefficients_ptr_type>(map.at_ptr<coefficients_type>(occ_coeff_key));
+    coefficients_occupied_ptr = static_cast<coefficients_ptr_type>(
+          map.at_ptr<coefficients_type>(occ_coeff_key));
 
     // We will contract the coefficient row index over the number of
     // basis functions.
@@ -354,11 +363,11 @@ public:
 
   /** \brief Get the friendly name of the integral */
   std::string name() const override {
-    return std::string("Electron Repulsion Integrals, ") + (exchange ? "Exchange" : "Coulomb") +
-           " operator";
+    return std::string("Electron Repulsion Integrals, ") +
+           (exchange ? "Exchange" : "Coulomb") + " operator";
   }
 
-private:
+ private:
   const Atomic& m_integral_calculator;
 };
 

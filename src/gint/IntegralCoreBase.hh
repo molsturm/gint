@@ -1,9 +1,9 @@
 #pragma once
+#include "config.hh"
 #include <krims/ParameterMap.hh>
 #include <krims/Subscribable.hh>
 #include <linalgwrap/Base/Interfaces.hh>
 #include <linalgwrap/MultiVector.hh>
-#include "config.hh"
 
 namespace gint {
 
@@ -12,7 +12,7 @@ namespace gint {
 // TODO we might want to be able to make subscriptions to this thing
 template <typename StoredMatrix>
 class IntegralCoreBase /* : public linalgwrap::Subscribable */ {
-public:
+ public:
   typedef StoredMatrix stored_matrix_type;
   typedef typename stored_matrix_type::scalar_type scalar_type;
 
@@ -50,12 +50,10 @@ public:
    * vector type, but we're not there yet.
    */
   virtual void apply(
-     // NB: This will change when the new multivector interface is implemented.		     
-        const_real_multivector_type &x,
-	real_multivector_type& y,
+        // NB: This will change when the new multivector interface is implemented.
+        const_real_multivector_type& x, real_multivector_type& y,
         const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
-        const scalar_type c_this = 1,
-        const scalar_type c_y = 0) const = 0;
+        const scalar_type c_this = 1, const scalar_type c_y = 0) const = 0;
 
   /** \brief Compute the Inverse-Multivector application
    *
@@ -65,15 +63,13 @@ public:
    * See LazyMatrixExpression for more details
    */
   virtual void apply_inverse(
-        const_real_multivector_type &/*x*/,
-	real_multivector_type& /*y*/,
+        const_real_multivector_type& /*x*/, real_multivector_type& /*y*/,
         const linalgwrap::Transposed /*mode*/ = linalgwrap::Transposed::None,
         const scalar_type /*c_this*/ = 1, const scalar_type /*c_y*/ = 0) const {
-    assert_throw(false,
-                 krims::ExcDisabled("The apply_inverse function is in general "
-                                    "very expensive and is only implemented in "
-                                    "some cases. Use the function "
-                                    "has_apply_inverse() to check when."));
+    assert_throw(false, krims::ExcDisabled("The apply_inverse function is in general "
+                                           "very expensive and is only implemented in "
+                                           "some cases. Use the function "
+                                           "has_apply_inverse() to check when."));
   }
 
   /** Perform a matrix-matrix product.
@@ -90,8 +86,7 @@ public:
         const stored_matrix_type& in, stored_matrix_type& out,
         const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
         const scalar_type c_this = linalgwrap::Constants<scalar_type>::one,
-        const scalar_type c_out =
-              linalgwrap::Constants<scalar_type>::zero) const {
+        const scalar_type c_out = linalgwrap::Constants<scalar_type>::zero) const {
     // TODO for simplicity we do not force this method to be implemented
     // at the moment
     assert_dbg(false, krims::ExcNotImplemented());
@@ -115,17 +110,15 @@ public:
    * LazyMatrixExpression class for details.
    */
   virtual void extract_block(
-        stored_matrix_type& M, const size_t start_row,
-        const size_t start_col,
+        stored_matrix_type& M, const size_t start_row, const size_t start_col,
         const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
-        const scalar_type c_A = 1,
-        const scalar_type c_M = 0) const {
+        const scalar_type c_A = 1, const scalar_type c_M = 0) const {
     using namespace linalgwrap;
-      
-    const auto &A(*this);
+
+    const auto& A(*this);
 
     assert_dbg(mode == Transposed::None || has_transpose_operation_mode(),
-	       ExcUnsupportedOperationMode(mode));
+               ExcUnsupportedOperationMode(mode));
     assert_finite(c_A);
     assert_finite(c_M);
     // check that we do not overshoot the indices
@@ -137,14 +130,15 @@ public:
       assert_greater_equal(start_col + M.n_cols(), A.n_cols());
     }
     assert_sufficiently_tested(mode != Transposed::ConjTrans);
-    
 
-    if(c_M == 0)  M.set_zero();
-    else          M *= c_M;
-    
-    for(size_t i=start_row, i0=0; i<start_row + M.n_rows(); i++,i0++)
-      for(size_t j=start_col, j0=0; j<start_col + M.n_cols(); j++,j0++)
-	M(i0,j0) += c_A*A(i,j);
+    if (c_M == 0)
+      M.set_zero();
+    else
+      M *= c_M;
+
+    for (size_t i = start_row, i0 = 0; i < start_row + M.n_rows(); i++, i0++)
+      for (size_t j = start_col, j0 = 0; j < start_col + M.n_cols(); j++, j0++)
+        M(i0, j0) += c_A * A(i, j);
   }
 
   /** \brief Clone the expression */

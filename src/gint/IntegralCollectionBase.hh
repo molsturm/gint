@@ -5,11 +5,16 @@
 
 namespace gint {
 
-typedef enum { REAL_ATOMIC, COMPLEX_ATOMIC, REAL_MOLECULAR, COMPLEX_MOLECULAR } OrbitalType;
+typedef enum {
+  REAL_ATOMIC,
+  COMPLEX_ATOMIC,
+  REAL_MOLECULAR,
+  COMPLEX_MOLECULAR
+} OrbitalType;
 
 template <OrbitalType otype>
 class IntegralCollectionBase {
-public:
+ public:
   constexpr static OrbitalType orbital_type = otype;
 
   typedef typename std::conditional<otype == COMPLEX_MOLECULAR, complex_stored_mtx_type,
@@ -20,14 +25,14 @@ public:
   // NB: Are these necessary?
   virtual ~IntegralCollectionBase() = default;
   IntegralCollectionBase& operator=(const IntegralCollectionBase&) = default;
-  IntegralCollectionBase& operator=(IntegralCollectionBase&&)      = default;
-  IntegralCollectionBase(const IntegralCollectionBase&)            = default;
-  IntegralCollectionBase(IntegralCollectionBase&&)                 = default;
-  IntegralCollectionBase()                                         = default;
+  IntegralCollectionBase& operator=(IntegralCollectionBase&&) = default;
+  IntegralCollectionBase(const IntegralCollectionBase&) = default;
+  IntegralCollectionBase(IntegralCollectionBase&&) = default;
+  IntegralCollectionBase() = default;
 };
 
 template <OrbitalType otype>
-using create_collection_t =
-      std::shared_ptr<IntegralCollectionBase<otype>>(const krims::ParameterMap& parameters);
+using create_collection_t = std::shared_ptr<IntegralCollectionBase<otype>>(
+      const krims::ParameterMap& parameters);
 
 }  // namespace gint

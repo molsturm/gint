@@ -25,8 +25,7 @@ TEST_CASE("Quick atomic static14 test", "[quicktest static14]") {
         {"basis_type", "cs_static14"},
   };
 
-  IntegralDummyTests<int_lookup_type, refdata_type>::run_all(
-        int_lookup_type(params));
+  IntegralDummyTests<int_lookup_type, refdata_type>::run_all(int_lookup_type(params));
 }
 
 }  // namespace tests
