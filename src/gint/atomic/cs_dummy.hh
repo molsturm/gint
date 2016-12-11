@@ -147,6 +147,9 @@ class OverlapIntegralCore : public IntegralCoreBase<real_stored_mtx_type> {
                      const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
                      const scalar_type c_A = 1,
                      const scalar_type c_y = 0) const override {
+#ifndef GINT_STATIC_INTEGRALS
+    static_assert(false, "Need GINT_STATIC_INTEGRALS=ON for cs_dummy for now.");
+#endif
     // TODO: Huge hack, but we don't really want to bother with overlap_inverse apply for
     // nlm-order right
     // now.

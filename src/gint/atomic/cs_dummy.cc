@@ -14,7 +14,16 @@ IntegralCollection::IntegralCollection(const krims::ParameterMap& parameters)
       : k_exponent{parameters.at<double>("k_exponent")},
         Z_charge{parameters.at<double>("Z_charge")},
         n_max{parameters.at<int>("n_max")},
-        integral_calculator{n_max} {}
+        integral_calculator{n_max} {
+  assert_throw(n_max > 0, ExcInvalidIntegralParameters(
+                                "Maximum principle quantum number (" +
+                                std::to_string(n_max) + ") needs to be greater 0."));
+  assert_throw(n_max <= 3,
+               ExcInvalidIntegralParameters(
+                     "cs_dummy is only implemented up to n_max==3. You provided "
+                     "a maximum principle quantum number of " +
+                     std::to_string(n_max) + ", which is too large."));
+}
 
 Integral<real_stored_mtx_type> IntegralCollection::lookup_integral(
       const std::string& integral_name) const {

@@ -33,7 +33,9 @@ class Integral : public linalgwrap::LazyMatrix_i<StoredMatrix> {
     assert_dbg(m_core_ptr != nullptr, krims::ExcInvalidPointer());
   }
 
-  Integral(const Integral& I) : Integral{I.m_core_ptr->clone()} {}
+  Integral(const Integral& I) : Integral{I.m_core_ptr->clone()} {
+    assert_dbg(m_core_ptr != nullptr, krims::ExcInvalidPointer());
+  }
 
   Integral& operator=(const Integral& I) {
     m_core_ptr = I.m_core_ptr->clone();
