@@ -16,8 +16,26 @@ IntegralCollection::IntegralCollection(const krims::ParameterMap& parameters)
         basis{parameters.at<int>("n_max"), parameters.at<int>("l_max"),
               parameters.at<int>("m_max")},
         integral_calculator{basis} {
-  //	  cerr << "Built integral collection, number of orbitals is " << basis.length <<
-  //"\n";
+  int n_max = parameters.at<int>("n_max");
+  int l_max = parameters.at<int>("l_max");
+  int m_max = parameters.at<int>("m_max");
+
+  assert_throw(0 < n_max && n_max <= 14,
+               ExcInvalidIntegralParameters(
+                     "Maximum principle quantum number (" + std::to_string(n_max) +
+                     ") needs to be in the range [1,14] for cs_naive, since higher "
+                     "values are not yet implemented."));
+  assert_throw(0 <= l_max && l_max <= 4,
+               ExcInvalidIntegralParameters(
+                     "Maximum angular momentum quantum number (" + std::to_string(l_max) +
+                     ") needs to be in the range [0,4] for cs_naive, since higher values "
+                     "are not yet implemented."));
+  assert_throw(
+        0 <= m_max && m_max <= 4,
+        ExcInvalidIntegralParameters("Maximum magnetic momentum quantum number (" +
+                                     std::to_string(m_max) +
+                                     ") needs to be in the range [0,4] for cs_naive, "
+                                     "since higher values are not yet implemented."));
 }
 
 Integral<real_stored_mtx_type> IntegralCollection::lookup_integral(
