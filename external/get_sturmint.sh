@@ -36,7 +36,7 @@ BRANCH=""
 WHAT="sturmint"
 
 # Interval: How often to update:
-INTERVAL="1 hour"
+INTERVAL="3600"  # == 1 hour
 
 # File to use in order to test a successful checkout
 CHECKFILE="CMakeLists.txt"

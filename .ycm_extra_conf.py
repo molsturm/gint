@@ -35,8 +35,14 @@ flags = [
     # https://programmers.stackexchange.com/questions/122608#124574
     '-Wall',
     '-Wextra',
-    '-Werror',
+    '-Wnon-virtual-dtor',
+    '-Woverloaded-virtual',
+    '-Wold-style-cast',
+    '-Wcast-align',
+    '-Wconversion',
+    '-Wsign-conversion',
     '-pedantic',
+    '-Werror',
     # Generate unwind information
     '-fexceptions',
     # Compile debug code as well
@@ -51,6 +57,7 @@ flags = [
     '-DGINT_STATIC_INTEGRALS',
     # Compile as c++14
     '-std=c++14',
+    #
     # Treat .h header files as c++:
     '-x', 'c++',
     # Include other libraries and show errors and 

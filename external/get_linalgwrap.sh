@@ -27,7 +27,7 @@
 # Settings
 #
 # The git repo to checkout
-FROM="https://github.com/linalgwrap/linalgwrap"
+FROM="https://github.com/linalgwrap/linalgwrap.git"
 
 # Branch to checkout (empty for default)
 BRANCH=""
@@ -35,8 +35,8 @@ BRANCH=""
 # Folder to check it out to
 WHAT="linalgwrap"
 
-# Interval: How often to update:
-INTERVAL="1 hour"
+# Interval: How often to update (in seconds)
+INTERVAL="3600" # == 1 hour
 
 # File to use in order to test a successful checkout
 CHECKFILE="CMakeLists.txt"

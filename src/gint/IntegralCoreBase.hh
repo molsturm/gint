@@ -16,6 +16,13 @@ class IntegralCoreBase /* : public linalgwrap::Subscribable */ {
   typedef StoredMatrix stored_matrix_type;
   typedef typename stored_matrix_type::scalar_type scalar_type;
 
+  IntegralCoreBase() = default;
+  IntegralCoreBase(const IntegralCoreBase&) = default;
+  IntegralCoreBase(IntegralCoreBase&&) = default;
+  IntegralCoreBase& operator=(const IntegralCoreBase&) = default;
+  IntegralCoreBase& operator=(IntegralCoreBase&&) = default;
+  virtual ~IntegralCoreBase() = default;
+
   /** \brief Number of rows of the matrix */
   virtual size_t n_rows() const = 0;
 
