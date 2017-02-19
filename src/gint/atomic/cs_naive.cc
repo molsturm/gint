@@ -10,7 +10,7 @@ namespace cs_naive {
 std::string IntegralCollection::id = "cs_atomic/naive";
 std::string IntegralCollection::name = "Naive implementation of atomic Coulomb Sturmians";
 
-IntegralCollection::IntegralCollection(const krims::ParameterMap& parameters)
+IntegralCollection::IntegralCollection(const krims::GenMap& parameters)
       : k_exponent{parameters.at<double>("k_exponent")},
         Z_charge{parameters.at<double>("Z_charge")},
         basis{parameters.at<int>("n_max"), parameters.at<int>("l_max"),

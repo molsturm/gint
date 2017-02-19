@@ -1,7 +1,7 @@
 #pragma once
 #include "Integral.hh"
 #include "config.hh"
-#include <krims/ParameterMap.hh>
+#include <krims/GenMap.hh>
 
 namespace gint {
 
@@ -32,7 +32,7 @@ class IntegralCollectionBase {
 };
 
 template <OrbitalType otype>
-using create_collection_t = std::shared_ptr<IntegralCollectionBase<otype>>(
-      const krims::ParameterMap& parameters);
+using create_collection_t =
+      std::shared_ptr<IntegralCollectionBase<otype>>(const krims::GenMap& parameters);
 
 }  // namespace gint

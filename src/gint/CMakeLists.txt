@@ -11,7 +11,7 @@ set(GINT_SOURCES
 
 # Dump the current version as an include file.
 include_krims_cmake_module(WriteVersionHeader)
-write_version_header("${CMAKE_BINARY_DIR}/src/gint/version_defs.hh")
+write_version_header("${gint_BINARY_DIR}/src/gint/version_defs.hh")
 
 # Add the libraries for Debug and Release builds:
 drb_add_library(gint
@@ -36,17 +36,17 @@ drb_target_link_libraries(RELEASE gint ${GINT_DEPENDENCIES_RELEASE})
 # set the installation property for these targets:
 install(TARGETS ${gint_TARGETS}
 	EXPORT GintTargets
-	DESTINATION lib 
+	DESTINATION lib
 	COMPONENT library
 )
 
 # install the includes:
-install(DIRECTORY . 
+install(DIRECTORY .
 	DESTINATION "include/gint"
 	COMPONENT devel
 	FILES_MATCHING PATTERN "*.hh"
 )
-install(FILES "${CMAKE_CURRENT_BINARY_DIR}/version_defs.hh"
+install(FILES "${gint_BINARY_DIR}/src/gint/version_defs.hh"
 	DESTINATION "include/gint"
 	COMPONENT devel
 )

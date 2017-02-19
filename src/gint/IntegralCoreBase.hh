@@ -1,6 +1,6 @@
 #pragma once
 #include "config.hh"
-#include <krims/ParameterMap.hh>
+#include <krims/GenMap.hh>
 #include <krims/Subscribable.hh>
 #include <linalgwrap/Base/Interfaces.hh>
 #include <linalgwrap/MultiVector.hh>
@@ -152,9 +152,9 @@ class IntegralCoreBase /* : public linalgwrap::Subscribable */ {
   virtual std::unique_ptr<IntegralCoreBase> clone() const = 0;
 
   /** \brief Update the internal data of all objects in this expression
-   *         given the ParameterMap
+   *         given the GenMap
    * */
-  virtual void update(const krims::ParameterMap&) {}
+  virtual void update(const krims::GenMap&) {}
 
   /** Friendly name of the integral */
   virtual std::string name() const = 0;

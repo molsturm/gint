@@ -1,6 +1,6 @@
 #pragma once
 #include <catch.hpp>
-#include <krims/ParameterMap.hh>
+#include <krims/GenMap.hh>
 #include <linalgwrap/TestingUtils.hh>
 #include <linalgwrap/io.hh>
 

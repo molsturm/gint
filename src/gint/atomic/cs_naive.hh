@@ -10,7 +10,7 @@
 #include "gint/IntegralCoreBase.hh"
 #include "gint/config.hh"
 
-#include <krims/ParameterMap.hh>
+#include <krims/GenMap.hh>
 
 namespace gint {
 namespace atomic {
@@ -61,13 +61,13 @@ class IntegralCollection : public IntegralCollectionBase<COMPLEX_ATOMIC> {
    *
    * The order of the basis is {{m,-m_max,m_max},{l,Abs[m],l_max},{n,l+1,l+n_len}}.
    */
-  IntegralCollection(const krims::ParameterMap& parameters);
+  IntegralCollection(const krims::GenMap& parameters);
 
   /** Lookup an integral by its identifier string */
   integral_matrix_type lookup_integral(const std::string& integral_id) const override;
 
   /** Create an integral collection for a particular basis set defined by parameters */
-  static std::shared_ptr<base_type> create(const krims::ParameterMap& parameters) {
+  static std::shared_ptr<base_type> create(const krims::GenMap& parameters) {
     return std::make_shared<IntegralCollection>(parameters);
   }
 };
@@ -331,8 +331,8 @@ class ERICore : public IntegralCoreBase<real_stored_mtx_type> {
           m_integral_calculator(integral_calculator) {}
 
   /** \brief Update the internal data of all objects in this expression
-   *         given the ParameterMap                                     */
-  virtual void update(const krims::ParameterMap& map) override {
+   *         given the GenMap                                     */
+  virtual void update(const krims::GenMap& map) override {
     const std::string occ_coeff_key = Integral<stored_mtx_type>::update_key_coefficients;
 
     if (!map.exists(occ_coeff_key)) return;

@@ -1,7 +1,7 @@
 #pragma once
 #include "Integral.hh"
 #include "IntegralCollectionBase.hh"
-#include <krims/ParameterMap.hh>
+#include <krims/GenMap.hh>
 #include <linalgwrap/LazyMatrixExpression.hh>
 #include <type_traits>
 #include <vector>
@@ -54,7 +54,7 @@ class IntegralLookup {
    *                          (Default: "", which will yield an error)
    *
    *  */
-  IntegralLookup(const krims::ParameterMap& parameters);
+  IntegralLookup(const krims::GenMap& parameters);
 
   /** Return a particular integral, given an id */
   integral_type operator()(const std::string& integral_id) const;

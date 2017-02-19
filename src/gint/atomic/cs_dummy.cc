@@ -10,7 +10,7 @@ namespace cs_dummy {
 std::string IntegralCollection::id = "atomic/cs_dummy";
 std::string IntegralCollection::name = "Dummy implementation of atomic Coulomb Sturmians";
 
-IntegralCollection::IntegralCollection(const krims::ParameterMap& parameters)
+IntegralCollection::IntegralCollection(const krims::GenMap& parameters)
       : k_exponent{parameters.at<double>("k_exponent")},
         Z_charge{parameters.at<double>("Z_charge")},
         n_max{parameters.at<int>("n_max")},

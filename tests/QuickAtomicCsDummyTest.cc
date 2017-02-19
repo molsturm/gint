@@ -18,7 +18,7 @@ TEST_CASE("Quick atomic cs_dummy test", "[quicktest cs_dummy]") {
   typedef SturmianTestData<real_stored_mtx_type> refdata_type;
 
   // Setup parameters for the integral library
-  const krims::ParameterMap params{
+  const krims::GenMap params{
         {"k_exponent", refdata_type::k_exp},
         {"Z_charge", refdata_type::Z},
         {"n_max", 3},

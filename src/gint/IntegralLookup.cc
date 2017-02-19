@@ -4,7 +4,7 @@
 namespace gint {
 
 template <>
-IntegralLookup<COMPLEX_ATOMIC>::IntegralLookup(const krims::ParameterMap& parameters) {
+IntegralLookup<COMPLEX_ATOMIC>::IntegralLookup(const krims::GenMap& parameters) {
   std::string basis_type =
         parameters.at("basis_type", std::string("No basis_type supplied"));
 

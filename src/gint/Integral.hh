@@ -216,9 +216,9 @@ class Integral : public linalgwrap::LazyMatrix_i<StoredMatrix> {
   }
 
   /** \brief Update the internal data of all objects in this expression
-   *         given the ParameterMap
+   *         given the GenMap
    * */
-  void update(const krims::ParameterMap& p) override {
+  void update(const krims::GenMap& p) override {
     assert_dbg(m_core_ptr != nullptr, krims::ExcInternalError());
     m_core_ptr->update(p);
   }

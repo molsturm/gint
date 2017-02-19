@@ -11,7 +11,7 @@ const std::string IntegralCollection::id = "atomic/static14";
 const std::string IntegralCollection::name =
       "Fully precomputed integral data for 14 sturmians";
 
-IntegralCollection::IntegralCollection(const krims::ParameterMap& parameters)
+IntegralCollection::IntegralCollection(const krims::GenMap& parameters)
       : k_exponent{parameters.at<double>("k_exponent")},
         Z_charge{parameters.at<double>("Z_charge")} {}
 
