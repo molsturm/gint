@@ -27,7 +27,8 @@ TEST_CASE("Quick atomic cs_naive test", "[quicktest cs_naive]") {
         {"basis_type", "cs_naive"},
   };
 
-  IntegralDummyTests<int_lookup_type, refdata_type>::run_all(int_lookup_type(params));
+  IntegralDummyTests<int_lookup_type, refdata_type>::run_all("cs_naive: ",
+                                                             int_lookup_type(params));
 }
 
 }  // namespace tests
