@@ -13,7 +13,9 @@
 namespace gint {
 
 static std::map<std::string, create_collection_t<COMPLEX_ATOMIC>*> basis_type_map_ca = {
+#ifdef GINT_STATIC_INTEGRALS
       {"cs_static14", atomic::static14::IntegralCollection::create},
+#endif  // GINT_STATIC_INTEGRALS
       {"cs_dummy", atomic::cs_dummy::IntegralCollection::create},
       {"cs_naive", atomic::cs_naive::IntegralCollection::create}};
 
