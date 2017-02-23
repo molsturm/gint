@@ -5,6 +5,7 @@ set(GINT_SOURCES
   version.cc
   IntegralLookup.cc
   atomic/static14.cc
+  IntegralType.cc
   atomic/cs_dummy.cc
   atomic/cs_naive.cc
 )
