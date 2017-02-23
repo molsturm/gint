@@ -24,11 +24,11 @@ struct IntegralDummyTests {
 
   static void run_all(const std::string& prefix, const IntegralLookup& integrals) {
     // Obtain integral objects:
-    integral_type S_bb = integrals("overlap");
-    integral_type T_bb = integrals("kinetic");
-    integral_type V0_bb = integrals("nuclear_attraction");
-    integral_type J_bb = integrals("coulomb");
-    integral_type K_bb = integrals("exchange");
+    integral_type S_bb = integrals.lookup_integral("overlap");
+    integral_type T_bb = integrals.lookup_integral("kinetic");
+    integral_type V0_bb = integrals.lookup_integral("nuclear_attraction");
+    integral_type J_bb = integrals.lookup_integral("coulomb");
+    integral_type K_bb = integrals.lookup_integral("exchange");
 
     // The update key we need to update the lazy coulomb and exchange matrices
     const std::string update_key = integral_type::update_key_coefficients;

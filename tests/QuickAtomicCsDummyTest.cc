@@ -10,7 +10,7 @@ using namespace linalgwrap;
 using namespace krims;
 
 TEST_CASE("Quick atomic cs_dummy test", "[quicktest cs_dummy]") {
-  const OrbitalType otype = COMPLEX_ATOMIC;
+  const OrbitalType otype = OrbitalType::COMPLEX_ATOMIC;
   typedef IntegralLookup<otype> int_lookup_type;
 
   // The reference data for atomic coulomb sturmians
@@ -22,7 +22,7 @@ TEST_CASE("Quick atomic cs_dummy test", "[quicktest cs_dummy]") {
         {"k_exponent", refdata_type::k_exp},
         {"Z_charge", refdata_type::Z},
         {"n_max", 3},
-        {"basis_type", "cs_dummy"},
+        {"basis_type", "atomic/cs_dummy"},
   };
 
   IntegralDummyTests<int_lookup_type, refdata_type>::run_all("cs_dummy: ",
