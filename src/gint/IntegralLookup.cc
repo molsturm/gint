@@ -4,17 +4,20 @@
 #include "atomic/cs_dummy.hh"
 #include "atomic/cs_naive.hh"
 #include "atomic/cs_static14.hh"
+#include "gaussian/libint.hh"
 
 namespace gint {
 
 /** Function which registers the default basis types, which are present
  *  in this implementation of gint by default. */
 void register_gint_basis_types() {
-  typedef IntegralLookup<OrbitalType::COMPLEX_ATOMIC> ca_t;
-// typedef IntegralLookup<OrbitalType::COMPLEX_MOLECULAR> cm_t;
-// typedef IntegralLookup<OrbitalType::REAL_ATOMIC> ra_t;
-// typedef IntegralLookup<OrbitalType::REAL_MOLECULAR> rm_t;
+  // typedef IntegralLookup<OrbitalType::COMPLEX_MOLECULAR> cm_t;
+  // typedef IntegralLookup<OrbitalType::REAL_ATOMIC> ra_t;
 
+  //
+  // Complex atomic
+  //
+  typedef IntegralLookup<OrbitalType::COMPLEX_ATOMIC> ca_t;
 #ifdef GINT_HAVE_STATIC_INTEGRALS
   ca_t::register_basis_type(atomic::cs_static14::IntegralCollection::id,
                             atomic::cs_static14::IntegralCollection::create);
@@ -23,6 +26,15 @@ void register_gint_basis_types() {
                             atomic::cs_dummy::IntegralCollection::create);
   ca_t::register_basis_type(atomic::cs_naive::IntegralCollection::id,
                             atomic::cs_naive::IntegralCollection::create);
+
+  //
+  // Real molecular
+  //
+  typedef IntegralLookup<OrbitalType::REAL_MOLECULAR> rm_t;
+#ifdef GINT_HAVE_LIBINT
+  rm_t::register_basis_type(gaussian::libint::IntegralCollection::id,
+                            gaussian::libint::IntegralCollection::create);
+#endif  // GINT_HAVE_LIBINT
 }
 
 /** Once flag, which makes sure that the registration function above is only
@@ -58,9 +70,9 @@ IntegralLookup<otype>::IntegralLookup(const krims::GenMap& parameters) {
 
 // Explicitly instantiate the parts we need:
 template class IntegralLookup<OrbitalType::COMPLEX_ATOMIC>;
-// TODO Does not compile at the moment:
-//   template class IntegralLookup<OrbitalType::COMPLEX_MOLECULAR>;
 template class IntegralLookup<OrbitalType::REAL_ATOMIC>;
 template class IntegralLookup<OrbitalType::REAL_MOLECULAR>;
+// TODO Does not compile at the moment:
+//   template class IntegralLookup<OrbitalType::COMPLEX_MOLECULAR>;
 
 }  // namespace gint

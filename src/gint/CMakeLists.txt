@@ -5,11 +5,13 @@ set(GINT_SOURCES
   version.cc
   IntegralLookup.cc
   IntegralType.cc
+
   atomic/cs_static14.cc
   atomic/cs_dummy.cc
   atomic/cs_naive.cc
   chemistry/Atom.cc
   chemistry/Molecule.cc
+  gaussian/libint.cc
 )
 
 # Dump the current version as an include file.
