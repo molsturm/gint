@@ -2,7 +2,7 @@
 #ifdef GINT_STATIC_INTEGRALS
 namespace gint {
 namespace atomic {
-namespace static14 {
+namespace cs_static14 {
 namespace detail {
 
 template <typename StoredMatrix>
@@ -3416,7 +3416,7 @@ const StoredMatrix Static14Data<StoredMatrix>::i_bbbb_base{
 /* clang-format on */
 
 }  // namespace detail
-}  // namespace static14
+}  // namespace cs_static14
 }  // namespace atomic
 }  // namespace gint
 #endif

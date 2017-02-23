@@ -3,10 +3,9 @@
 #include "gint/Integral.hh"
 #include "gint/IntegralCollectionBase.hh"
 #include "gint/IntegralCoreBase.hh"
-#include "gint/atomic/static14.hh"  // TODO: Included for the horrible hack!
+#include "gint/atomic/cs_static14.hh"  // TODO: Included for the horrible hack!
 #include "gint/config.hh"
 
-#include <krims/GenMap.hh>
 #include <sturmint/atomic/cs/cs_atomic.hh>
 #include <sturmint/atomic/cs_dummy/cs_atomic.hh>
 #include <sturmint/atomic/data/cs_dummy.hh>
@@ -16,10 +15,14 @@ namespace gint {
 namespace atomic {
 namespace cs_dummy {
 
-#include "gint/real_config.hh"
-
 using namespace sturmint::atomic;
 using namespace sturmint::atomic::cs_dummy;
+
+// In this namespace all things are real:
+typedef real_type scalar_type;
+typedef real_stored_mtx_type stored_mtx_type;
+typedef real_multivector_type multivector_type;
+typedef const_real_multivector_type const_multivector_type;
 
 class OverlapIntegralCore;
 class NuclearAttractionIntegralCore;
@@ -28,11 +31,12 @@ class ERICore;
 
 // This integral class uses (n,l,m)-ordering: {{n,1,nmax},{l,0,n-1},{m,-l,l}}
 
-class IntegralCollection : public IntegralCollectionBase<COMPLEX_ATOMIC> {
+class IntegralCollection final
+      : public IntegralCollectionBase<OrbitalType::COMPLEX_ATOMIC> {
  public:
-  typedef IntegralCollectionBase<COMPLEX_ATOMIC> base_type;
+  typedef IntegralCollectionBase<OrbitalType::COMPLEX_ATOMIC> base_type;
 
-  static std::string id, name;
+  const static std::string basis_id, basis_name;
 
   real_type k_exponent, Z_charge;
   int n_max;
@@ -47,18 +51,19 @@ class IntegralCollection : public IntegralCollectionBase<COMPLEX_ATOMIC> {
    */
   IntegralCollection(const krims::GenMap& parameters);
 
-  /** Lookup an integral by its identifier string */
-  integral_matrix_type lookup_integral(const std::string& integral_id) const override;
+  /** Lookup an integral by its type */
+  integral_matrix_type lookup_integral(IntegralType type) const override;
 
   /** Create an integral collection for a particular basis set defined by parameters */
-  static std::shared_ptr<base_type> create(const krims::GenMap& parameters) {
-    return std::make_shared<IntegralCollection>(parameters);
+  static std::unique_ptr<base_type> create(const krims::GenMap& parameters) {
+    return krims::make_unique<IntegralCollection>(parameters);
   }
 };
 
-// ----------------------------------------------------------------------
-//			    INTEGRAL CORES
-// ----------------------------------------------------------------------
+//
+// Integral Cores
+//
+
 class NuclearAttractionIntegralCore : public IntegralCoreBase<real_stored_mtx_type> {
  public:
   typedef IntegralCoreBase<real_stored_mtx_type> base_type;
@@ -72,31 +77,18 @@ class NuclearAttractionIntegralCore : public IntegralCoreBase<real_stored_mtx_ty
   // Compute alpha*A*x + beta*y into y
   void apply(const const_multivector_type& x, multivector_type& y,
              const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
-             const scalar_type c_A = 1, const scalar_type c_y = 0) const override {
-    const real_type* x_ptr = x.data().memptr();
-    real_type* y_ptr = const_cast<real_type*>(y.data().memptr());
-    cs::apply_to_full_vectors::nuclear_attraction_nlm<real_type>(
-          x_ptr, y_ptr, Z * k * c_A, c_y, x.n_cols(), nmax);
-  }
+             const scalar_type c_A = 1, const scalar_type c_y = 0) const override;
 
   /** \brief return an element of the matrix \f$ {V_0}_{\mu',\mu} = -Zk/n
    * \delta_{\mu',\mu} \f$ */
-  scalar_type operator()(size_t row, size_t col) const override {
-    using sturmint::orbital_index::nlmbasis;
-    if (row != col)
-      return 0;
-    else {
-      int n = nlmbasis::quantum_numbers_from_index(row).n;
-      return -Z * k / n;
-    }
-  }
+  scalar_type operator()(size_t row, size_t col) const override;
 
   NuclearAttractionIntegralCore(
         const sturmint::atomic::cs_dummy::Atomic& integral_calculator, real_type k,
         real_type Z)
         : k(k),
           Z(Z),
-          nmax(integral_calculator.nmax),
+          nmax(static_cast<size_t>(integral_calculator.nmax)),
           m_integral_calculator(integral_calculator) {}
 
   /** \brief Number of rows of the matrix */
@@ -111,10 +103,10 @@ class NuclearAttractionIntegralCore : public IntegralCoreBase<real_stored_mtx_ty
   }
 
   /** \brief Get the identifier of the integral */
-  std::string id() const override { return "atomic/cs_dummy/nuclear_attraction"; }
-
-  /** \brief Get the friendly name of the integral */
-  std::string name() const override { return "Nuclear attraction operator"; }
+  IntegralIdentifier id() const override {
+    return IntegralIdentifier{IntegralCollection::basis_id,
+                              IntegralType::nuclear_attraction};
+  }
 
  private:
   const sturmint::atomic::cs_dummy::Atomic& m_integral_calculator;
@@ -128,47 +120,21 @@ class OverlapIntegralCore : public IntegralCoreBase<real_stored_mtx_type> {
   /** \brief Multiplication with a stored matrix */
   // TODO: Change basis order from n,l,m to m,l,n to make multiplication
   // contiguous.
-  const size_t nmax;
+  const int nmax;
 
   bool has_transpose_operation_mode() const override { return true; }
   bool has_apply_inverse() const override { return true; }
 
   void apply(const const_multivector_type& x, multivector_type& y,
              const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
-             const scalar_type c_A = 1, const scalar_type c_y = 0) const override {
-    const real_type* x_ptr = const_cast<const real_type*>(x.data().memptr());
-    real_type* y_ptr = const_cast<real_type*>(y.data().memptr());
-
-    sturmint::atomic::cs::apply_to_full_vectors::overlap_nlm(x_ptr, y_ptr, c_A, c_y,
-                                                             x.n_cols(), nmax);
-  }
+             const scalar_type c_A = 1, const scalar_type c_y = 0) const override;
 
   void apply_inverse(const const_multivector_type& x, multivector_type& y,
                      const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
-                     const scalar_type c_A = 1,
-                     const scalar_type c_y = 0) const override {
-#ifndef GINT_STATIC_INTEGRALS
-    static_assert(false, "Need GINT_STATIC_INTEGRALS=ON for cs_dummy for now.");
-#endif
-    // TODO: Huge hack, but we don't really want to bother with overlap_inverse apply for
-    // nlm-order right
-    // now.
-    //       How to do that: Compute inverse for each (l,m)-block: jump around in vector.
-    using namespace static14;
-    const auto& Sinv(detail::Static14Data<stored_mtx_type>::sinv_bb);
-    static14::apply_stored_matrix(Sinv, x, y, mode, c_A, c_y);
-  }
+                     const scalar_type c_A = 1, const scalar_type c_y = 0) const override;
 
   /** \brief return an element of the matrix    */
-  scalar_type operator()(size_t row, size_t col) const override {
-    using sturmint::orbital_index::nlmbasis;
-    assert_greater(row, n_rows()) assert_greater(col, n_cols());
-
-    const nlm_t mui = nlmbasis::quantum_numbers_from_index(row),
-                muj = nlmbasis::quantum_numbers_from_index(col);
-
-    return sturmint::atomic::cs::overlap(mui, muj);
-  }
+  scalar_type operator()(size_t row, size_t col) const override;
 
   OverlapIntegralCore(const Atomic& integral_calculator)
         : nmax(integral_calculator.nmax), m_integral_calculator(integral_calculator) {}
@@ -185,10 +151,9 @@ class OverlapIntegralCore : public IntegralCoreBase<real_stored_mtx_type> {
   }
 
   /** \brief Get the identifier of the integral */
-  std::string id() const override { return "atomic/cs_dummy/overlap"; }
-
-  /** \brief Get the friendly name of the integral */
-  std::string name() const override { return "Overlap operator"; }
+  IntegralIdentifier id() const override {
+    return {IntegralCollection::basis_id, IntegralType::overlap};
+  }
 
  private:
   const Atomic& m_integral_calculator;
@@ -200,30 +165,17 @@ class KineticIntegralCore : public IntegralCoreBase<real_stored_mtx_type> {
   typedef real_stored_mtx_type stored_matrix_type;
 
   real_type k;  // k-exponent
-  const size_t nmax;
+  const int nmax;
 
   bool has_transpose_operation_mode() const override { return true; }
 
   /** \brief Multiplication with a stored matrix */
   void apply(const const_multivector_type& x, multivector_type& y,
              const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
-             const scalar_type c_A = 1, const scalar_type c_y = 0) const override {
-    const real_type* x_ptr = const_cast<const real_type*>(x.data().memptr());
-    real_type* y_ptr = const_cast<real_type*>(y.data().memptr());
-
-    sturmint::atomic::cs::apply_to_full_vectors::overlap_nlm<scalar_type>(
-          x_ptr, y_ptr, (-0.5L * k * k) * c_A, c_y, x.n_cols(), nmax);
-    y += c_A * k * k * x;  // kinetic(x) = k^2*x-1/2 overlap(x)
-  }
+             const scalar_type c_A = 1, const scalar_type c_y = 0) const override;
 
   /** \brief return an element of the matrix    */
-  scalar_type operator()(size_t row, size_t col) const override {
-    using sturmint::orbital_index::nlmbasis;
-    const nlm_t mui = nlmbasis::quantum_numbers_from_index(row),
-                muj = nlmbasis::quantum_numbers_from_index(col);
-
-    return k * k * sturmint::atomic::cs::kinetic(mui, muj);
-  }
+  scalar_type operator()(size_t row, size_t col) const override;
 
   KineticIntegralCore(const Atomic& integral_calculator, real_type k)
         : k(k),
@@ -242,10 +194,9 @@ class KineticIntegralCore : public IntegralCoreBase<real_stored_mtx_type> {
   }
 
   /** \brief Get the identifier of the integral */
-  std::string id() const override { return "atomic/cs_dummy/kinetic"; }
-
-  /** \brief Get the friendly name of the integral */
-  std::string name() const override { return "Kinetic energy operator"; }
+  IntegralIdentifier id() const override {
+    return {IntegralCollection::basis_id, IntegralType::kinetic};
+  }
 
  private:
   const Atomic& m_integral_calculator;
@@ -270,60 +221,18 @@ class ERICore : public IntegralCoreBase<real_stored_mtx_type> {
   bool has_transpose_operation_mode() const override { return true; }
 
   /** \brief Multiplication with a stored matrix */
-  // J_{aq} = J_{ab} X_{bq} = J_{abcd} X_{bq} Cocc_{cp} Cocc_{dp} = J_{abcd} X_{bq} D_{cd}
-  // K_{aq} = K_{ab} X_{bq} = J_{acbd} X_{bq} Cocc_{cp} Cocc_{dp} = J_{acbd} X_{bq} D_{cd}
+  // J_{aq} = J_{ab} X_{bq} = J_{abcd} X_{bq} Cocc_{cp} Cocc_{dp} = J_{abcd} X_{bq}
+  // D_{cd}
+  // K_{aq} = K_{ab} X_{bq} = J_{acbd} X_{bq} Cocc_{cp} Cocc_{dp} = J_{acbd} X_{bq}
+  // D_{cd}
   void apply(const const_multivector_type& x, multivector_type& y,
              const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
-             const scalar_type alpha = 1, const scalar_type beta = 0) const override {
-    using namespace sturmint::orbital_index;
-    using namespace sturmint::atomic::cs_dummy;
-
-    assert_dbg(coefficients_occupied_ptr != nullptr, krims::ExcInvalidPointer());
-
-    for (size_t i = 0; i < y.n_rows(); i++)
-      for (size_t j = 0; j < y.n_cols(); j++) y(i, j) = (beta != 0 ? beta * y(i, j) : 0);
-
-    for (size_t a = 0; a < norb; a++)
-      for (size_t b = 0; b < norb; b++) {
-        real_type JKab = (*this)(a, b);
-
-        for (size_t q = 0; q < x.n_cols(); q++) {
-          y(a, q) += alpha * JKab * x(b, q);
-        }
-      }
-  }
-
-  scalar_type operator()(size_t a, size_t b) const override { return simple1_ver(a, b); }
+             const scalar_type alpha = 1, const scalar_type beta = 0) const override;
 
   /** \brief return an element of the matrix    */
   // J_{ab} = J_{abcd} Cocc_{cp} Cocc_{dp} = J_{abcd} P_{cd}
   // K_{ab} = J_{cbad} Cocc_{cp} Cocc_{dp} = J_{acbd} P_{cd}
-  scalar_type simple1_ver(size_t a, size_t b) const {
-    using namespace sturmint::atomic::cs_dummy;
-    using namespace sturmint::orbital_index;
-
-    assert_dbg(coefficients_occupied_ptr != nullptr, krims::ExcInvalidPointer());
-
-    const coefficients_type& Cocc(*coefficients_occupied_ptr);
-
-    stored_mtx_type density(norb, norb);
-    for (size_t p = 0; p < coefficients_occupied_ptr->n_vectors(); p++) {
-      const auto& C = Cocc[p];
-      for (size_t c = 0; c < norb; c++)
-        for (size_t d = 0; d < norb; d++) density(c, d) += C[c] * C[d];
-    }
-
-    real_type sum = 0;
-    for (size_t c = 0; c < norb; c++) {
-      size_t A = exchange ? c : a;  // Swap b and c if computing exchange // TODO: Check
-      size_t C = exchange ? a : c;
-
-      size_t i_abc = norb * (C + norb * (b + norb * A));
-
-      for (size_t d = 0; d < norb; d++) sum += repulsion14[i_abc + d] * density(c, d);
-    }
-    return k * sum;
-  }
+  scalar_type operator()(size_t a, size_t b) const override;
 
   ERICore(const Atomic& integral_calculator, bool exchange, real_type k)
         : exchange(exchange),
@@ -333,20 +242,7 @@ class ERICore : public IntegralCoreBase<real_stored_mtx_type> {
 
   /** \brief Update the internal data of all objects in this expression
    *         given the GenMap                                     */
-  virtual void update(const krims::GenMap& map) override {
-    const std::string occ_coeff_key = Integral<stored_mtx_type>::update_key_coefficients;
-
-    if (!map.exists(occ_coeff_key)) return;
-
-    // Get coefficients as a shared pointer (having ownership)
-    coefficients_occupied_ptr = static_cast<coefficients_ptr_type>(
-          map.at_ptr<coefficients_type>(occ_coeff_key));
-
-    // We will contract the coefficient row index over the number of
-    // basis functions.
-    if (coefficients_occupied_ptr->n_vectors() == 0) return;
-    assert_size(coefficients_occupied_ptr->n_elem(), m_integral_calculator.n_bas());
-  }
+  virtual void update(const krims::GenMap& map) override;
 
   /** \brief Number of rows of the matrix */
   size_t n_rows() const override { return m_integral_calculator.n_bas(); }
@@ -360,19 +256,152 @@ class ERICore : public IntegralCoreBase<real_stored_mtx_type> {
   }
 
   /** \brief Get the identifier of the integral */
-  std::string id() const override {
-    return std::string("atomic/cs_dummy/ERI_") + (exchange ? "K" : "J");
-  }
-
-  /** \brief Get the friendly name of the integral */
-  std::string name() const override {
-    return std::string("Electron Repulsion Integrals, ") +
-           (exchange ? "Exchange" : "Coulomb") + " operator";
+  IntegralIdentifier id() const override {
+    return {IntegralCollection::basis_id,
+            (exchange ? IntegralType::exchange : IntegralType::coulomb)};
   }
 
  private:
   const Atomic& m_integral_calculator;
 };
+
+//
+// ---------------------------------------------------------------------------
+//
+
+inline void NuclearAttractionIntegralCore::apply(const const_multivector_type& x,
+                                                 multivector_type& y,
+                                                 const linalgwrap::Transposed mode,
+                                                 const scalar_type c_A,
+                                                 const scalar_type c_y) const {
+  assert_finite(c_A);
+  assert_finite(c_y);
+  assert_size(x.n_cols(), y.n_cols());
+  assert_size(x.n_rows(), n_cols());
+  assert_size(y.n_rows(), n_rows());
+  assert_sufficiently_tested(mode != linalgwrap::Transposed::ConjTrans);
+  // All modes are same case since we are symmetric and real, so no
+  // switching over mode.
+
+  const real_type* x_ptr = x.data().memptr();
+  real_type* y_ptr = const_cast<real_type*>(y.data().memptr());
+  cs::apply_to_full_vectors::nuclear_attraction_nlm<real_type>(x_ptr, y_ptr, Z * k * c_A,
+                                                               c_y, x.n_cols(), nmax);
+}
+
+inline scalar_type NuclearAttractionIntegralCore::operator()(size_t row,
+                                                             size_t col) const {
+  assert_greater(row, n_rows());
+  assert_greater(col, n_cols());
+
+  using sturmint::orbital_index::nlmbasis;
+  if (row != col)
+    return 0;
+  else {
+    int n = nlmbasis::quantum_numbers_from_index(row).n;
+    return -Z * k / n;
+  }
+}
+
+// -----
+
+inline void OverlapIntegralCore::apply(const const_multivector_type& x,
+                                       multivector_type& y,
+                                       const linalgwrap::Transposed mode,
+                                       const scalar_type c_A,
+                                       const scalar_type c_y) const {
+  assert_finite(c_A);
+  assert_finite(c_y);
+  assert_size(x.n_cols(), y.n_cols());
+  assert_size(x.n_rows(), n_cols());
+  assert_size(y.n_rows(), n_rows());
+  assert_sufficiently_tested(mode != linalgwrap::Transposed::ConjTrans);
+  // All modes are same case since we are symmetric and real, so no
+  // switching over mode.
+
+  const real_type* x_ptr = const_cast<const real_type*>(x.data().memptr());
+  real_type* y_ptr = const_cast<real_type*>(y.data().memptr());
+
+  sturmint::atomic::cs::apply_to_full_vectors::overlap_nlm(x_ptr, y_ptr, c_A, c_y,
+                                                           x.n_cols(), nmax);
+}
+
+inline void OverlapIntegralCore::apply_inverse(const const_multivector_type& x,
+                                               multivector_type& y,
+                                               const linalgwrap::Transposed mode,
+                                               const scalar_type c_A,
+                                               const scalar_type c_y) const {
+  assert_finite(c_A);
+  assert_finite(c_y);
+  assert_size(x.n_cols(), y.n_cols());
+  assert_size(x.n_rows(), n_rows());
+  assert_size(y.n_rows(), n_cols());
+  assert_sufficiently_tested(mode != linalgwrap::Transposed::ConjTrans);
+// All modes are same case since we are symmetric and real, so no
+// switching over mode.
+
+#ifndef GINT_STATIC_INTEGRALS
+  static_assert(false, "Need GINT_STATIC_INTEGRALS=ON for cs_dummy for now.");
+#endif
+  // TODO: Huge hack, but we don't really want to bother with overlap_inverse apply for
+  // nlm-order right
+  // now.
+  //       How to do that: Compute inverse for each (l,m)-block: jump around in vector.
+  using namespace cs_static14;
+  const auto& Sinv(detail::Static14Data<stored_mtx_type>::sinv_bb);
+  cs_static14::apply_stored_matrix(Sinv, x, y, mode, c_A, c_y);
+}
+
+inline scalar_type OverlapIntegralCore::operator()(size_t row, size_t col) const {
+  using sturmint::orbital_index::nlmbasis;
+  assert_greater(row, n_rows());
+  assert_greater(col, n_cols());
+
+  const unsigned short urow = static_cast<unsigned short>(row);
+  const unsigned short ucol = static_cast<unsigned short>(col);
+  const nlm_t mui = nlmbasis::quantum_numbers_from_index(urow),
+              muj = nlmbasis::quantum_numbers_from_index(ucol);
+
+  return static_cast<scalar_type>(sturmint::atomic::cs::overlap(mui, muj));
+}
+
+// -----
+
+inline void KineticIntegralCore::apply(const const_multivector_type& x,
+                                       multivector_type& y,
+                                       const linalgwrap::Transposed mode,
+                                       const scalar_type c_A,
+                                       const scalar_type c_y) const {
+  assert_finite(c_A);
+  assert_finite(c_y);
+  assert_size(x.n_cols(), y.n_cols());
+  assert_size(x.n_rows(), n_cols());
+  assert_size(y.n_rows(), n_rows());
+  assert_sufficiently_tested(mode != linalgwrap::Transposed::ConjTrans);
+  // All modes are same case since we are symmetric and real, so no
+  // switching over mode.
+
+  const real_type* x_ptr = const_cast<const real_type*>(x.data().memptr());
+  real_type* y_ptr = const_cast<real_type*>(y.data().memptr());
+
+  const scalar_type c_kkA = static_cast<scalar_type>(-0.5L * k * k * c_A);
+  sturmint::atomic::cs::apply_to_full_vectors::overlap_nlm<scalar_type>(
+        x_ptr, y_ptr, c_kkA, c_y, static_cast<int>(x.n_cols()), nmax);
+  y += c_A * k * k * x;  // kinetic(x) = k^2*x-1/2 overlap(x)
+}
+
+inline scalar_type KineticIntegralCore::operator()(size_t row, size_t col) const {
+  using sturmint::orbital_index::nlmbasis;
+  assert_greater(row, n_rows());
+  assert_greater(col, n_cols());
+
+  const unsigned short urow = static_cast<unsigned short>(row);
+  const unsigned short ucol = static_cast<unsigned short>(col);
+  const nlm_t mui = nlmbasis::quantum_numbers_from_index(urow),
+              muj = nlmbasis::quantum_numbers_from_index(ucol);
+
+  return static_cast<scalar_type>(k * k * sturmint::atomic::cs::kinetic(mui, muj));
+}
 
 }  // namespace cs_dummy
 }  // namespace atomic
