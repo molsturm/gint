@@ -228,16 +228,15 @@ class Integral : public linalgwrap::LazyMatrix_i<StoredMatrix> {
     return lazy_matrix_expression_ptr_type(new Integral<StoredMatrix>(*this));
   }
 
-  /** \brief Get the identifier of the integral */
-  std::string id() const {
+  /** Identifier of the integral, the structure which is guaranteed
+   *  to be unique for each different integral.
+   *
+   * \note The returned object contains functions to access the type of the
+   * integral as human readable strings.
+   **/
+  IntegralIdentifier id() const {
     assert_dbg(m_core_ptr != nullptr, krims::ExcInternalError());
     return m_core_ptr->id();
-  }
-
-  /** \brief Get the friendly name of the integral */
-  std::string name() const {
-    assert_dbg(m_core_ptr != nullptr, krims::ExcInternalError());
-    return m_core_ptr->name();
   }
 
   static const std::string update_key_coefficients;

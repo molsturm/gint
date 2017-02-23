@@ -1,4 +1,5 @@
 #pragma once
+#include "IntegralIdentifier.hh"
 #include "config.hh"
 #include <krims/GenMap.hh>
 #include <krims/Subscribable.hh>
@@ -8,10 +9,10 @@
 namespace gint {
 
 // TODO Why does this exist? Could one not use a LazyMatrixExpression all along?
+// This stuff could be explicitly instantiated with real and complex stored matrix types.
 
-// TODO we might want to be able to make subscriptions to this thing
 template <typename StoredMatrix>
-class IntegralCoreBase /* : public linalgwrap::Subscribable */ {
+class IntegralCoreBase {
  public:
   typedef StoredMatrix stored_matrix_type;
   typedef typename stored_matrix_type::scalar_type scalar_type;
@@ -156,11 +157,9 @@ class IntegralCoreBase /* : public linalgwrap::Subscribable */ {
    * */
   virtual void update(const krims::GenMap&) {}
 
-  /** Friendly name of the integral */
-  virtual std::string name() const = 0;
-
-  /** Identifier of the integral */
-  virtual std::string id() const = 0;
+  /** Identifier of the integral, the structure which is guaranteed
+   *  to be unique for each different integral. */
+  virtual IntegralIdentifier id() const = 0;
 };
 
 }  // namespace gint
