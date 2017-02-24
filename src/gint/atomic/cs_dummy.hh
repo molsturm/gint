@@ -36,7 +36,7 @@ class IntegralCollection final
  public:
   typedef IntegralCollectionBase<OrbitalType::COMPLEX_ATOMIC> base_type;
 
-  const static std::string basis_id, basis_name;
+  const static std::string id;
 
   real_type k_exponent, Z_charge;
   int n_max;
@@ -54,6 +54,11 @@ class IntegralCollection final
   /** Lookup an integral by its type */
   integral_matrix_type lookup_integral(IntegralType type) const override;
 
+  const std::string& basis_id() const override { return id; }
+  std::string basis_name() const override {
+    return "Dummy implementation of atomic Coulomb Sturmians";
+  }
+
   /** Create an integral collection for a particular basis set defined by parameters */
   static std::unique_ptr<base_type> create(const krims::GenMap& parameters) {
     return krims::make_unique<IntegralCollection>(parameters);
@@ -70,7 +75,7 @@ class NuclearAttractionIntegralCore : public IntegralCoreBase<real_stored_mtx_ty
   typedef typename base_type::scalar_type scalar_type;
 
   const real_type k, Z;
-  const size_t nmax;
+  const int nmax;
 
   bool has_transpose_operation_mode() const override { return true; }
 
@@ -88,7 +93,7 @@ class NuclearAttractionIntegralCore : public IntegralCoreBase<real_stored_mtx_ty
         real_type Z)
         : k(k),
           Z(Z),
-          nmax(static_cast<size_t>(integral_calculator.nmax)),
+          nmax(integral_calculator.nmax),
           m_integral_calculator(integral_calculator) {}
 
   /** \brief Number of rows of the matrix */
@@ -104,8 +109,7 @@ class NuclearAttractionIntegralCore : public IntegralCoreBase<real_stored_mtx_ty
 
   /** \brief Get the identifier of the integral */
   IntegralIdentifier id() const override {
-    return IntegralIdentifier{IntegralCollection::basis_id,
-                              IntegralType::nuclear_attraction};
+    return IntegralIdentifier{IntegralCollection::id, IntegralType::nuclear_attraction};
   }
 
  private:
@@ -152,7 +156,7 @@ class OverlapIntegralCore : public IntegralCoreBase<real_stored_mtx_type> {
 
   /** \brief Get the identifier of the integral */
   IntegralIdentifier id() const override {
-    return {IntegralCollection::basis_id, IntegralType::overlap};
+    return {IntegralCollection::id, IntegralType::overlap};
   }
 
  private:
@@ -195,7 +199,7 @@ class KineticIntegralCore : public IntegralCoreBase<real_stored_mtx_type> {
 
   /** \brief Get the identifier of the integral */
   IntegralIdentifier id() const override {
-    return {IntegralCollection::basis_id, IntegralType::kinetic};
+    return {IntegralCollection::id, IntegralType::kinetic};
   }
 
  private:
@@ -257,7 +261,7 @@ class ERICore : public IntegralCoreBase<real_stored_mtx_type> {
 
   /** \brief Get the identifier of the integral */
   IntegralIdentifier id() const override {
-    return {IntegralCollection::basis_id,
+    return {IntegralCollection::id,
             (exchange ? IntegralType::exchange : IntegralType::coulomb)};
   }
 
@@ -285,8 +289,8 @@ inline void NuclearAttractionIntegralCore::apply(const const_multivector_type& x
 
   const real_type* x_ptr = x.data().memptr();
   real_type* y_ptr = const_cast<real_type*>(y.data().memptr());
-  cs::apply_to_full_vectors::nuclear_attraction_nlm<real_type>(x_ptr, y_ptr, Z * k * c_A,
-                                                               c_y, x.n_cols(), nmax);
+  cs::apply_to_full_vectors::nuclear_attraction_nlm<real_type>(
+        x_ptr, y_ptr, Z * k * c_A, c_y, static_cast<int>(x.n_cols()), nmax);
 }
 
 inline scalar_type NuclearAttractionIntegralCore::operator()(size_t row,
@@ -298,7 +302,8 @@ inline scalar_type NuclearAttractionIntegralCore::operator()(size_t row,
   if (row != col)
     return 0;
   else {
-    int n = nlmbasis::quantum_numbers_from_index(row).n;
+    const auto urow = static_cast<unsigned short>(row);
+    int n = nlmbasis::quantum_numbers_from_index(urow).n;
     return -Z * k / n;
   }
 }
@@ -322,8 +327,8 @@ inline void OverlapIntegralCore::apply(const const_multivector_type& x,
   const real_type* x_ptr = const_cast<const real_type*>(x.data().memptr());
   real_type* y_ptr = const_cast<real_type*>(y.data().memptr());
 
-  sturmint::atomic::cs::apply_to_full_vectors::overlap_nlm(x_ptr, y_ptr, c_A, c_y,
-                                                           x.n_cols(), nmax);
+  sturmint::atomic::cs::apply_to_full_vectors::overlap_nlm(
+        x_ptr, y_ptr, c_A, c_y, static_cast<int>(x.n_cols()), nmax);
 }
 
 inline void OverlapIntegralCore::apply_inverse(const const_multivector_type& x,

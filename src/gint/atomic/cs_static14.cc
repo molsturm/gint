@@ -5,9 +5,7 @@ namespace gint {
 namespace atomic {
 namespace cs_static14 {
 
-const std::string IntegralCollection::basis_id = "atomic/cs_static14";
-const std::string IntegralCollection::basis_name =
-      "Fully precomputed integral data for 14 sturmians";
+const std::string IntegralCollection::id = "atomic/cs_static14";
 
 IntegralCollection::IntegralCollection(const krims::GenMap& parameters)
       : k_exponent{parameters.at<double>("k_exponent")},

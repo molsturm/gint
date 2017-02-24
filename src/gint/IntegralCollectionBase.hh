@@ -27,11 +27,10 @@ enum class OrbitalType {
  *    - A function ``std::unique_ptr<IntegralCollectionBase<otype>> create(
  *      const krims::GenMap&)``
  *      which creates an object of said collection using the provided parameters.
- *    - A ``const std::string basis_id`` which is used as the id of the basis /
+ *    - A ``const std::string id`` which is used as the id of the basis /
  *      integral collection. A user of the IntegralLookup library will need these
- *      ids as keys to request the integrals in the said collection.
- *    - A ``const std::string basis_name`` which is used as a friendly name of the
- *      basis type.
+ *      ids as keys to request the integrals in the said collection
+ *      (This should be returned by basis_id)
  * */
 template <OrbitalType otype>
 class IntegralCollectionBase {
@@ -53,6 +52,12 @@ class IntegralCollectionBase {
 
   /** Lookup an integral in this collection by its integral type */
   virtual integral_matrix_type lookup_integral(IntegralType type) const = 0;
+
+  /** Obtain the id string of the collection / basis type */
+  virtual const std::string& basis_id() const = 0;
+
+  /** Obtain the friendly name of the collection / basis type */
+  virtual std::string basis_name() const = 0;
 
   virtual ~IntegralCollectionBase() = default;
   IntegralCollectionBase& operator=(const IntegralCollectionBase&) = default;

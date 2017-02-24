@@ -46,7 +46,7 @@ class IntegralCollection final
  public:
   typedef IntegralCollectionBase<OrbitalType::COMPLEX_ATOMIC> base_type;
 
-  const static std::string basis_id, basis_name;
+  const static std::string id;
 
   real_type k_exponent, Z_charge;
   nlmCollection basis;
@@ -68,6 +68,14 @@ class IntegralCollection final
 
   /** Lookup an integral by its type */
   integral_matrix_type lookup_integral(IntegralType type) const override;
+
+  /** Obtain the id string of the collection / basis type */
+  const std::string& basis_id() const override { return id; }
+
+  /** Obtain the friendly name of the collection / basis type */
+  std::string basis_name() const override {
+    return "Naive implementation of atomic Coulomb Sturmians";
+  }
 
   /** Create an integral collection for a particular basis set defined by parameters */
   static std::unique_ptr<base_type> create(const krims::GenMap& parameters) {
@@ -114,7 +122,7 @@ class NuclearAttractionIntegralCore final
   }
 
   IntegralIdentifier id() const override {
-    return {IntegralCollection::basis_id, IntegralType::nuclear_attraction};
+    return {IntegralCollection::id, IntegralType::nuclear_attraction};
   }
 
  private:
@@ -157,7 +165,7 @@ class OverlapIntegralCore final : public IntegralCoreBase<real_stored_mtx_type> 
 
   /** \brief Get the identifier of the integral */
   IntegralIdentifier id() const override {
-    return {IntegralCollection::basis_id, IntegralType::overlap};
+    return {IntegralCollection::id, IntegralType::overlap};
   }
 
  private:
@@ -198,7 +206,7 @@ class KineticIntegralCore final : public IntegralCoreBase<real_stored_mtx_type> 
 
   /** \brief Get the identifier of the integral */
   IntegralIdentifier id() const override {
-    return {IntegralCollection::basis_id, IntegralType::kinetic};
+    return {IntegralCollection::id, IntegralType::kinetic};
   }
 
  private:
@@ -255,7 +263,7 @@ class ERICore final : public IntegralCoreBase<real_stored_mtx_type> {
 
   /** \brief Get the identifier of the integral */
   IntegralIdentifier id() const override {
-    return {IntegralCollection::basis_id,
+    return {IntegralCollection::id,
             (exchange ? IntegralType::exchange : IntegralType::coulomb)};
   }
 

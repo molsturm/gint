@@ -46,6 +46,22 @@ class IntegralLookup {
   //                               const std::vector<std::string>& integral_type_keys)
   //                               const;
 
+  /** Return the basis type id of the basis type to which this object is i initialised
+   *
+   * \note Usually this is equivalent to the value supplied as the ``basis_type``
+   *       parameter upon construction of this object.
+   * */
+  const std::string& basis_id() const {
+    assert_dbg(m_integral_collection_ptr != nullptr, krims::ExcInternalError());
+    return m_integral_collection_ptr->basis_id();
+  }
+
+  /** Return the friendly name of the basis type to which this object is initialised */
+  const std::string basis_type() const {
+    assert_dbg(m_integral_collection_ptr != nullptr, krims::ExcInternalError());
+    return m_integral_collection_ptr->basis_type();
+  }
+
   /** Register a basis type with this integral lookup object
    *
    * \param basis_type    The string needed to lookup integrals of this basis later.

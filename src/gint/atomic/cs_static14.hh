@@ -37,7 +37,7 @@ class IntegralCollection final
  public:
   typedef IntegralCollectionBase<OrbitalType::COMPLEX_ATOMIC> base_type;
 
-  const static std::string basis_id, basis_name;
+  const static std::string id;
   const real_type k_exponent, Z_charge;
 
   /** Construct collection object from a set of parameters
@@ -50,6 +50,14 @@ class IntegralCollection final
 
   /** Lookup an integral by its type */
   integral_matrix_type lookup_integral(IntegralType type) const override;
+
+  /** Obtain the id string of the collection / basis type */
+  const std::string& basis_id() const override { return id; }
+
+  /** Obtain the friendly name of the collection / basis type */
+  std::string basis_name() const override {
+    return "Fully precomputed integral data for 14 sturmians";
+  }
 
   /** Create an integral collection for a particular basis set defined by parameters */
   static std::unique_ptr<base_type> create(const krims::GenMap& parameters) {
@@ -112,7 +120,7 @@ class NuclearAttractionIntegralCore final
 
   /** \brief Get the identifier of the integral */
   IntegralIdentifier id() const override {
-    return {IntegralCollection::basis_id, IntegralType::nuclear_attraction};
+    return {IntegralCollection::id, IntegralType::nuclear_attraction};
   }
 
   NuclearAttractionIntegralCore(real_type k, real_type Z) : k(k), Z(Z) {}
@@ -172,7 +180,7 @@ class OverlapIntegralCore final : public IntegralCoreBase<real_stored_mtx_type> 
   }
 
   IntegralIdentifier id() const override {
-    return {IntegralCollection::basis_id, IntegralType::overlap};
+    return {IntegralCollection::id, IntegralType::overlap};
   }
 };
 
@@ -224,7 +232,7 @@ class KineticIntegralCore final : public IntegralCoreBase<real_stored_mtx_type> 
 
   /** \brief Get the identifier of the integral */
   IntegralIdentifier id() const override {
-    return IntegralIdentifier{IntegralCollection::basis_id, IntegralType::kinetic};
+    return IntegralIdentifier{IntegralCollection::id, IntegralType::kinetic};
   }
 
   KineticIntegralCore(real_type k) : k(k) {}
@@ -280,7 +288,7 @@ class ERICore final : public IntegralCoreBase<real_stored_mtx_type> {
 
   /** \brief Get the identifier of the integral */
   IntegralIdentifier id() const override {
-    return {IntegralCollection::basis_id,
+    return {IntegralCollection::id,
             (exchange ? IntegralType::exchange : IntegralType::coulomb)};
   }
 

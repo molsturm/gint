@@ -4,9 +4,7 @@ namespace gint {
 namespace atomic {
 namespace cs_naive {
 
-const std::string IntegralCollection::basis_id = "atomic/cs_naive";
-const std::string IntegralCollection::basis_name =
-      "Naive implementation of atomic Coulomb Sturmians";
+const std::string IntegralCollection::id = "atomic/cs_naive";
 
 IntegralCollection::IntegralCollection(const krims::GenMap& parameters)
       : k_exponent{parameters.at<double>("k_exponent")},
