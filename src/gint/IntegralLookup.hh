@@ -57,9 +57,9 @@ class IntegralLookup {
   }
 
   /** Return the friendly name of the basis type to which this object is initialised */
-  const std::string basis_type() const {
+  const std::string basis_name() const {
     assert_dbg(m_integral_collection_ptr != nullptr, krims::ExcInternalError());
-    return m_integral_collection_ptr->basis_type();
+    return m_integral_collection_ptr->basis_name();
   }
 
   /** Register a basis type with this integral lookup object
