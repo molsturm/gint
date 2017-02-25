@@ -46,7 +46,8 @@ endif()
 
 # Try to find sturmint somewhere
 find_package(sturmint ${STURMINT_VERSION} QUIET CONFIG)
-string(TOUPPER "${PROJECT_NAME}" PROJECT_UPPER)
+mark_as_advanced(sturmint_DIR)
+
 if ("${sturmint_DIR}" STREQUAL "sturmint_DIR-NOTFOUND")
 	if (AUTOCHECKOUT_MISSING_REPOS)
 		execute_process(
