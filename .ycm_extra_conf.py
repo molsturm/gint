@@ -55,6 +55,7 @@ flags = [
     '-DSTURMINT_HAVE_CXX14',
     '-DGINT_HAVE_CXX14',
     '-DGINT_HAVE_STATIC_INTEGRALS',
+    '-DGINT_HAVE_LIBINT',
     # Compile as c++14
     '-std=c++14',
     #
@@ -65,18 +66,18 @@ flags = [
     # To suppress errors shown here, use "-isystem" 
     # instead of "-I"
     '-I', 'src',
-    '-isystem', './external/krims/src',
-    '-isystem', './external/linalgwrap/src',
-    '-isystem', './external/sturmint/src',
-    '-isystem', './external/rapidcheck/include',
-    '-isystem', './external/rapidcheck/ext/catch/include',
+    '-isystem', 'external/krims/src',
+    '-isystem', 'external/linalgwrap/src',
+    '-isystem', 'external/sturmint/src',
+    '-isystem', 'external/rapidcheck/include',
+    '-isystem', 'external/rapidcheck/ext/catch/include',
     '-isystem', '../krims/src',
     '-isystem', '../linalgwrap/src',
     '-isystem', '../sturmint/src',
     '-isystem', '../rapidcheck/include',
     '-isystem', '../rapidcheck/ext/catch/include',
-    # Explicit clang includes:
-    '-isystem', '/usr/lib/ycmd/clang_includes',
+    '-isystem', 'build/external/libint/include',
+    '-isystem', '/usr/include/eigen3',
 ]
 
 def DirectoryOfThisScript():

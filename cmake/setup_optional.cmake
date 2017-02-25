@@ -1,14 +1,14 @@
 # Setup optional dependencies and features
 # alters these things
 #
-# 	GINT_DEPENDENCIES			everyone needs these libraries
+# 	GINT_DEPENDENCIES		everyone needs these libraries
 # 	GINT_DEPENDENCIES_DEBUG		debug mode needs these extras
-# 	GINT_DEPENDENCIES_RELEASE		release mode needs these extras
+# 	GINT_DEPENDENCIES_RELEASE	release mode needs these extras
 # 	GINT_DEPENDENCIES_TEST		tests need these extra libraries
 #
-#       GINT_DEFINITIONS			definitions for all compilation
+#       GINT_DEFINITIONS		definitions for all compilation
 #       GINT_DEFINITIONS_DEBUG		definitions for debug mode
-#       GINT_DEFINITIONS_RELEASE		definitions for release mode
+#       GINT_DEFINITIONS_RELEASE	definitions for release mode
 #
 
 ####################
@@ -21,6 +21,19 @@ endif()
 if (NOT CMAKE_CXX_STANDARD VERSION_LESS 17)
 	message(STATUS "Detected C++17 support: Setting GINT_HAVE_CXX17")
 	LIST(APPEND GINT_DEFINITIONS "GINT_HAVE_CXX17")
+endif()
+
+################
+#--  Libint2 --#
+################
+option(GINT_ENABLE_LIBINT "Enable use of the libint library." OFF)
+if (GINT_ENABLE_LIBINT)
+	# Find at least version 2.3.0
+	set(LIBINT_VERSION 2.3.0)
+	include(cmake/findLibint.cmake)
+
+	LIST(APPEND GINT_DEFINITIONS "GINT_HAVE_LIBINT")
+	set(GINT_DEPENDENCIES ${LIBINT_TARGET})
 endif()
 
 ##########################
