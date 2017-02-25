@@ -1,5 +1,5 @@
 #pragma once
-#ifdef GINT_STATIC_INTEGRALS
+#ifdef GINT_HAVE_STATIC_INTEGRALS
 namespace gint {
 namespace atomic {
 namespace cs_static14 {
@@ -3419,4 +3419,4 @@ const StoredMatrix Static14Data<StoredMatrix>::i_bbbb_base{
 }  // namespace cs_static14
 }  // namespace atomic
 }  // namespace gint
-#endif
+#endif  // GINT_HAVE_STATIC_INTEGRALS

@@ -345,12 +345,11 @@ inline void OverlapIntegralCore::apply_inverse(const const_multivector_type& x,
 // All modes are same case since we are symmetric and real, so no
 // switching over mode.
 
-#ifndef GINT_STATIC_INTEGRALS
-  static_assert(false, "Need GINT_STATIC_INTEGRALS=ON for cs_dummy for now.");
+#ifndef GINT_HAVE_STATIC_INTEGRALS
+  static_assert(false, "Need GINT_ENABLE_STATIC_INTEGRALS=ON for cs_dummy for now.");
 #endif
   // TODO: Huge hack, but we don't really want to bother with overlap_inverse apply for
-  // nlm-order right
-  // now.
+  // nlm-order right now.
   //       How to do that: Compute inverse for each (l,m)-block: jump around in vector.
   using namespace cs_static14;
   const auto& Sinv(detail::Static14Data<stored_mtx_type>::sinv_bb);

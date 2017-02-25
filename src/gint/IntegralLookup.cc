@@ -15,10 +15,10 @@ void register_gint_basis_types() {
 // typedef IntegralLookup<OrbitalType::REAL_ATOMIC> ra_t;
 // typedef IntegralLookup<OrbitalType::REAL_MOLECULAR> rm_t;
 
-#ifdef GINT_STATIC_INTEGRALS
+#ifdef GINT_HAVE_STATIC_INTEGRALS
   ca_t::register_basis_type(atomic::cs_static14::IntegralCollection::id,
                             atomic::cs_static14::IntegralCollection::create);
-#endif  // GINT_STATIC_INTEGRALS
+#endif  // GINT_HAVE_STATIC_INTEGRALS
   ca_t::register_basis_type(atomic::cs_dummy::IntegralCollection::id,
                             atomic::cs_dummy::IntegralCollection::create);
   ca_t::register_basis_type(atomic::cs_naive::IntegralCollection::id,

@@ -54,7 +54,7 @@ flags = [
     '-DKRIMS_HAVE_CXX14',
     '-DSTURMINT_HAVE_CXX14',
     '-DGINT_HAVE_CXX14',
-    '-DGINT_STATIC_INTEGRALS',
+    '-DGINT_HAVE_STATIC_INTEGRALS',
     # Compile as c++14
     '-std=c++14',
     #

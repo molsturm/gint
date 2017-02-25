@@ -1,5 +1,5 @@
 #pragma once
-#ifdef GINT_STATIC_INTEGRALS
+#ifdef GINT_HAVE_STATIC_INTEGRALS
 
 #include "Static14Data.hh"
 #include "gint/Integral.hh"
@@ -299,4 +299,4 @@ class ERICore final : public IntegralCoreBase<real_stored_mtx_type> {
 }  // namespace atomic
 }  // namespace gint
 
-#endif
+#endif  // GINT_HAVE_STATIC_INTEGRALS

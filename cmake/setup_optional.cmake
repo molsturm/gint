@@ -23,11 +23,13 @@ if (NOT CMAKE_CXX_STANDARD VERSION_LESS 17)
 	LIST(APPEND GINT_DEFINITIONS "GINT_HAVE_CXX17")
 endif()
 
-#############################
-#-- Experimental features --#
-#############################
-option(GINT_STATIC_INTEGRALS "Compile pre-computed static integrals into the library (useful for testing)" OFF)
-if(GINT_STATIC_INTEGRALS)
-	message(STATUS "Enable pre-computed static integrals")
-	LIST(APPEND GINT_DEFINITIONS "GINT_STATIC_INTEGRALS")
+##########################
+#--  Static integrals  --#
+##########################
+option(GINT_ENABLE_STATIC_INTEGRALS "Enable a basis types which consist entirely of pre-computed integral data. \
+(Increases binary size, but useful for testing)" OFF)
+
+if(GINT_ENABLE_STATIC_INTEGRALS)
+	message(STATUS "Enabled pre-computed static integrals")
+	LIST(APPEND GINT_DEFINITIONS "GINT_HAVE_STATIC_INTEGRALS")
 endif()

@@ -1,4 +1,4 @@
-#ifdef GINT_STATIC_INTEGRALS
+#ifdef GINT_HAVE_STATIC_INTEGRALS
 #include "SturmianTestData.hh"
 #include "integral_quick_tests.hh"
 #include <gint/IntegralLookup.hh>
@@ -31,4 +31,4 @@ TEST_CASE("Quick atomic static14 test", "[quicktest static14]") {
 
 }  // namespace tests
 }  // namespace gint
-#endif
+#endif  // GINT_HAVE_STATIC_INTEGRALS

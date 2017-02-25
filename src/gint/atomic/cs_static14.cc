@@ -1,4 +1,4 @@
-#ifdef GINT_STATIC_INTEGRALS
+#ifdef GINT_HAVE_STATIC_INTEGRALS
 #include "cs_static14.hh"
 
 namespace gint {
@@ -202,4 +202,4 @@ void ERICore::update(const krims::GenMap& map) {
 }  // namespace atomic
 }  // namespace gint
 
-#endif  // ifdef GINT_STATIC_INTEGRALS
+#endif  // ifdef GINT_HAVE_STATIC_INTEGRALS
