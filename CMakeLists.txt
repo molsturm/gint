@@ -47,6 +47,9 @@ message("\n# Configuring ${PROJECT_NAME}\n#")
 include_directories("${gint_SOURCE_DIR}/src")
 include_directories("${gint_BINARY_DIR}/src")
 
+# Extra module path for this project:
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_LIST_DIR}/cmake/modules")
+
 # enable testing of this project
 enable_testing()
 
