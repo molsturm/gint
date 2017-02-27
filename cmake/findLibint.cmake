@@ -71,6 +71,27 @@ function(SETUP_LIBINT2_FOR_EXTERNAL_BUILD TARGET)
 	add_dependencies(${TARGET} libint)
 endfunction()
 
+function(SETUP_SYSTEM_LIBINT TARGET VERSION)
+	find_package(Libint2 ${VERSION} QUIET MODULE)
+	if (NOT LIBINT_FOUND)
+		return()
+	endif()
+
+	# Run find_package again, but this time do not be quiet:
+	find_package(Libint2 ${VERSION} REQUIRED MODULE)
+
+	# Setup link target
+	add_library(${TARGET}  INTERFACE IMPORTED GLOBAL)
+	set_target_properties(${TARGET}  PROPERTIES
+		INTERFACE_LINK_LIBRARIES ${LIBINT_LIBRARIES}
+		INTERFACE_SYSTEM_INCLUDE_DIRECTORIES ${LIBINT_INCLUDE_DIRS}
+	# TODO properly adapt this!
+	#	INTERFACE_COMPILE_DEFINITIONS "-DDATADIR=../../../../../libint_install/share/libint/2.2.0-beta1/basis/"
+	)
+
+	set(LIBINT_VERSION ${LIBINT_VERSION} PARENT_SCOPE)
+endfunction()
+
 #
 # -------
 #
@@ -84,34 +105,23 @@ endif()
 # Note: Eigen is available under Eigen3::Eigen
 find_package(Eigen3 REQUIRED)
 
-find_package(Libint2 ${LIBINT_VERSION} QUIET MODULE)
-if (NOT LIBINT_FOUND)
-	if (AUTOCHECKOUT_MISSING_REPOS)
-		message(STATUS "Setting up libint2 as an external project")
+if (LIBINT_SEARCH_SYSTEM STREQUAL "" OR LIBINT_SEARCH_SYSTEM)
+	set(LIBINT_TARGET "System::libint")
+	SETUP_SYSTEM_LIBINT(${LIBINT_TARGET} ${LIBINT_VERSION})
+	target_link_libraries(${LIBINT_TARGET} INTERFACE Eigen3::Eigen)
 
-		# The libint target name:
-		set(LIBINT_TARGET "External::libint")
-		SETUP_LIBINT2_FOR_EXTERNAL_BUILD(${LIBINT_TARGET})
-		target_link_libraries(${LIBINT_TARGET} INTERFACE Eigen3::Eigen)
+	message(STATUS "Found libint version ${LIBINT_VERSION} at ${LIBINT_LIBRARY}")
+	return()
+endif()
+if(AUTOCHECKOUT_MISSING_REPOS)
+	set(LIBINT_TARGET "External::libint")
+	SETUP_LIBINT2_FOR_EXTERNAL_BUILD(${LIBINT_TARGET})
+	target_link_libraries(${LIBINT_TARGET} INTERFACE Eigen3::Eigen)
 
-		return()
-	endif()
-
-	message(FATAL_ERROR "Could not find libint library.
-Either provide hints to the installation using the cmake variables LIBINT_INCLUDE_DIR
-and LIBINT_LIBRARY or enable autocheckout via '-DAUTOCHECKOUT_MISSING_REPOS=ON'.")
+	message(STATUS "Setting up libint2 as an external project")
+	return()
 endif()
 
-# Run find_package again, but this time do not be quiet:
-find_package(Libint2 ${LIBINT_VERSION} REQUIRED MODULE)
-message(STATUS "Found libint version ${LIBINT_VERSION} at ${LIBINT_LIBRARY}")
-
-# Setup link target
-set(LIBINT_TARGET "System::libint")
-add_library(${LIBINT_TARGET}  INTERFACE IMPORTED GLOBAL)
-set_target_properties(${LIBINT_TARGET}  PROPERTIES
-	INTERFACE_LINK_LIBRARIES ${LIBINT_LIBRARIES} Eigen3::Eigen
-	INTERFACE_SYSTEM_INCLUDE_DIRECTORIES ${LIBINT_INCLUDE_DIRS}
-# TODO properly adapt this!
-#	INTERFACE_COMPILE_DEFINITIONS "-DDATADIR=../../../../../libint_install/share/libint/2.2.0-beta1/basis/"
-)
+message(FATAL_ERROR "Could not find libint library.
+Either provide hints to the installation using the cmake variables LIBINT_INCLUDE_DIR
+and LIBINT_LIBRARY or enable autocheckout via '-DAUTOCHECKOUT_MISSING_REPOS=ON'.")

@@ -26,11 +26,15 @@ endif()
 ################
 #--  Libint2 --#
 ################
-option(GINT_ENABLE_LIBINT "Enable use of the libint library." OFF)
+option(GINT_ENABLE_LIBINT "Enable the libint library to compute Gaussian integrals." OFF)
+option(GINT_USE_SYSTEM_LIBINT "Enable the use of a system-provided libint library" ON)
 if (GINT_ENABLE_LIBINT)
 	# Find at least version 2.3.0
 	set(LIBINT_VERSION 2.3.0)
+	set(LIBINT_SEARCH_SYSTEM ${GINT_USE_SYSTEM_LIBINT})
 	include(cmake/findLibint.cmake)
+	unset(LIBINT_VERSION)
+	unset(LIBINT_SEARCH_SYSTEM)
 
 	LIST(APPEND GINT_DEFINITIONS "GINT_HAVE_LIBINT")
 	set(GINT_DEPENDENCIES ${LIBINT_TARGET})
