@@ -114,6 +114,7 @@ void ERICore::update(const krims::GenMap& map) {
   // We will contract the coefficient row index over the number of
   // basis functions.
   if (coefficients_occupied_ptr->n_vectors() == 0) return;
+  assert_size(coefficients_occupied_ptr->n_elem(), norb);
 }
 
 }  // namespace cs_dummy
