@@ -49,6 +49,12 @@ function(SETUP_LIBINT2_FOR_EXTERNAL_BUILD TARGET)
 		"--with-cxxgen-optflags=${INNER_COMPILE_OPTS} -std=c++${CMAKE_CXX_STANDARD}"
 	)
 
+	if (BUILD_SHARED_LIBS)
+		# Enable position-independent code such that we can link libint
+		# into a shared libgint.so object.
+		set (CONFIGURE_OPTS "--with-pic" ${CONFIGURE_OPTS})
+	endif()
+
 	include(DefaultExternalProjects)
 	setup_autotools_project(libint
 		CONFIGURE_OPTS ${CONFIGURE_OPTS}
@@ -56,13 +62,17 @@ function(SETUP_LIBINT2_FOR_EXTERNAL_BUILD TARGET)
 		GIT_TAG "v2.3.0-beta.3"
 		#
 		# TODO Find out how to test libint ... e.g. TEST_COMMAND make check
+
+		# This has to be the last option!
+		CONFIGURE_OPTS ${CONFIGURE_OPTS}
 	)
 	ExternalProject_Get_Property(libint install_dir)
+	set(LINKFILE "${install_dir}/lib/libint2.a")
 
 	# Setup target as an external imported library and set the include dir.
 	add_library(${TARGET} INTERFACE IMPORTED GLOBAL)
 	set_target_properties(${TARGET} PROPERTIES
-		INTERFACE_LINK_LIBRARIES "${install_dir}/lib/libint2.a"
+		INTERFACE_LINK_LIBRARIES "${LINKFILE}"
 	)
 	include_directories(SYSTEM "${install_dir}/include")
 
@@ -81,8 +91,8 @@ function(SETUP_SYSTEM_LIBINT TARGET VERSION)
 	find_package(Libint2 ${VERSION} REQUIRED MODULE)
 
 	# Setup link target
-	add_library(${TARGET}  INTERFACE IMPORTED GLOBAL)
-	set_target_properties(${TARGET}  PROPERTIES
+	add_library(${TARGET} INTERFACE IMPORTED GLOBAL)
+	set_target_properties(${TARGET} PROPERTIES
 		INTERFACE_LINK_LIBRARIES ${LIBINT_LIBRARIES}
 		INTERFACE_SYSTEM_INCLUDE_DIRECTORIES ${LIBINT_INCLUDE_DIRS}
 	# TODO properly adapt this!
@@ -108,10 +118,12 @@ find_package(Eigen3 REQUIRED)
 if (LIBINT_SEARCH_SYSTEM STREQUAL "" OR LIBINT_SEARCH_SYSTEM)
 	set(LIBINT_TARGET "System::libint")
 	SETUP_SYSTEM_LIBINT(${LIBINT_TARGET} ${LIBINT_VERSION})
-	target_link_libraries(${LIBINT_TARGET} INTERFACE Eigen3::Eigen)
+	if (LIBINT_FOUND)
+		target_link_libraries(${LIBINT_TARGET} INTERFACE Eigen3::Eigen)
 
-	message(STATUS "Found libint version ${LIBINT_VERSION} at ${LIBINT_LIBRARY}")
-	return()
+		message(STATUS "Found libint version ${LIBINT_VERSION} at ${LIBINT_LIBRARY}")
+		return()
+	endif()
 endif()
 if(AUTOCHECKOUT_MISSING_REPOS)
 	set(LIBINT_TARGET "External::libint")

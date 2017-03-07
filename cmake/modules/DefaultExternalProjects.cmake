@@ -24,23 +24,28 @@ if (CMAKE_VERSION VERSION_GREATER 3.1)
 	cmake_policy(SET CMP0054 NEW)
 endif()
 include(ExternalProject)
+include(CMakeParseArguments)
 
-function(setup_autotools_project NAME CONFIGURE_OPTS OPTS)
+function(setup_autotools_project NAME)
 	# Setup an external project which is configured and built
 	# using autotools.
 	#
 	# Syntax:
-	#   setup_autotools_project(project CONFIGURE_OPTS "--with-blubber"
+	#   setup_autotools_project(project
 	#          GIT_REPOSITORY "https://gitserver/repo.git"
+	#          CONFIGURE_OPTS "--with-blubber"
 	#   )
 	#
-	# Basically the name is the first argument, followed by the configure
-	# options and all other options valid to ExternalProject_Add.
+	# Basically the name is the first argument, followed by the usual options
+	# to ExternalProject_Add and then as a last argument CONFIGURE_OPTS.
+	#
+	# Note: This order is important!
 	#
 
-	if (NOT ${CONFIGURE_OPTS} STREQUAL "CONFIGURE_OPTS")
-		message(FATAL_ERROR "Second argument of setup_autotools_project needs to be CONFIGURE_OPTS")
-	endif()
+	set(options )
+	set(oneValueArgs )
+	set(multiValueArgs CONFIGURE_OPTS)
+	cmake_parse_arguments(SAP "${options}" "${oneValueArgs}" "${multiValueArgs}"  ${ARGN})
 
 	# Disable automatic updates in case of cmake > 3.2
 	if (CMAKE_VERSION VERSION_GREATER 3.2)
@@ -105,10 +110,15 @@ fi
 exit 0
 "	)
 
+	# TODO The problem with this behaviour is that it can lead to double-parallelisation:
+	#      Both the building of the external project and of the outer cmake build try to access
+	#      all cpus.
+	option(${NAME}_BUILD_PARALLEL "Build external integral libraries in parallel." ON)
+
 	# Determine the processor count for parallel build
 	include(ProcessorCount)
 	ProcessorCount(NCPU)
-	if (NOT NCPU EQUAL 0)
+	if (NOT NCPU EQUAL 0 AND ${NAME}_BUILD_PARALLEL)
 		set(MAKE_ARGS -j ${NCPU})
 	endif()
 
@@ -116,11 +126,11 @@ exit 0
 		PREFIX "${PROJECT_BINARY_DIR}/external/${NAME}"
 		${UPDATE_OPTIONS}
 		#
-		CONFIGURE_COMMAND /bin/sh ${configure_wrap} <SOURCE_DIR> --prefix=<INSTALL_DIR> ${OPTS}
+		CONFIGURE_COMMAND /bin/sh ${configure_wrap} <SOURCE_DIR> --prefix=<INSTALL_DIR> ${SAP_CONFIGURE_OPTS}
 		BUILD_COMMAND make ${MAKE_ARGS}
 		INSTALL_COMMAND make ${MAKE_ARGS} install
 		#
-		${ARGN}
+		${SAP_UNPARSED_ARGUMENTS}
 	)
 endfunction()
 
