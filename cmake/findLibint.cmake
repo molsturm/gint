@@ -63,6 +63,8 @@ function(SETUP_LIBINT2_FOR_EXTERNAL_BUILD TARGET)
 		#
 		# TODO Find out how to test libint ... e.g. TEST_COMMAND make check
 
+		CHECKPOINT_TO "<INSTALL_DIR>/lib/libint2.a"
+		CHECKPOINT_FROM "<BINARY_DIR>/lib/.libs/libint2.a"
 		# This has to be the last option!
 		CONFIGURE_OPTS ${CONFIGURE_OPTS}
 	)

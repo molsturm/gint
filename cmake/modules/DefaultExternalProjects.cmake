@@ -33,19 +33,32 @@ function(setup_autotools_project NAME)
 	# Syntax:
 	#   setup_autotools_project(project
 	#          GIT_REPOSITORY "https://gitserver/repo.git"
+	#          CHECKPOINT_FROM "fromfile"
+	#          CHECKPOINT_TO "fromfile"
 	#          CONFIGURE_OPTS "--with-blubber"
 	#   )
 	#
 	# Basically the name is the first argument, followed by the usual options
 	# to ExternalProject_Add and then as a last argument CONFIGURE_OPTS.
 	#
+	# The other options allow to define two checkpoint files. Make install
+	# will only be called if CHECKPOINT_FROM is newer than CHECKPOINT_TO
+	#
 	# Note: This order is important!
 	#
 
 	set(options )
-	set(oneValueArgs )
+	set(oneValueArgs CHECKPOINT_TO CHECKPOINT_FROM)
 	set(multiValueArgs CONFIGURE_OPTS)
 	cmake_parse_arguments(SAP "${options}" "${oneValueArgs}" "${multiValueArgs}"  ${ARGN})
+
+	# Set to the default special values, which mean that this feature is ignored
+	if ("${SAP_CHECKPOINT_TO}" STREQUAL "")
+		set(SAP_CHECKPOINT_TO "<none>")
+	endif()
+	if ("${SAP_CHECKPOINT_FROM}" STREQUAL "")
+		set(SAP_CHECKPOINT_FROM "<none>")
+	endif()
 
 	# Disable automatic updates in case of cmake > 3.2
 	if (CMAKE_VERSION VERSION_GREATER 3.2)
@@ -110,6 +123,42 @@ fi
 exit 0
 "	)
 
+	set(install_wrap "${PROJECT_BINARY_DIR}/scripts/autotools_install.sh")
+	file(WRITE ${install_wrap}
+"#!/bin/sh
+
+# Script which calls make install in the current directory
+# but only if a certain checkpoint file is not older than the
+# last time make install was run.
+
+# ------------------------------------------------
+
+CHECKPOINT_FROM=\"$1\"
+CHECKPOINT_TO=\"$2\"
+shift
+shift
+
+FORCE_INSTALL=0
+if [ \"$CHECKPOINT_FROM\" = \"<none>\" ] && [ \"$CHECKPOINT_TO\" = \"<none>\" ]; then
+	FORCE_INSTALL=1
+fi
+
+if [ ! -f \"$CHECKPOINT_FROM\" ]; then
+	echo \"Could not find checkpoint from file $CHECKPOINT_FROM\" >&2
+	exit 1
+fi
+
+if [ \"x$FORCE_INSTALL\" = "x1" ] || [ ! -f \"$CHECKPOINT_TO\" ] || [ \"$CHECKPOINT_FROM\" -nt \"$CHECKPOINT_TO\" ]; then
+	make $@ install
+	exit $?
+fi
+
+exit 0
+"	)
+
+
+
+
 	# TODO The problem with this behaviour is that it can lead to double-parallelisation:
 	#      Both the building of the external project and of the outer cmake build try to access
 	#      all cpus.
@@ -128,7 +177,7 @@ exit 0
 		#
 		CONFIGURE_COMMAND /bin/sh ${configure_wrap} <SOURCE_DIR> --prefix=<INSTALL_DIR> ${SAP_CONFIGURE_OPTS}
 		BUILD_COMMAND make ${MAKE_ARGS}
-		INSTALL_COMMAND make ${MAKE_ARGS} install
+		INSTALL_COMMAND /bin/sh ${install_wrap} ${SAP_CHECKPOINT_FROM} ${SAP_CHECKPOINT_TO} ${MAKE_ARGS} install
 		#
 		${SAP_UNPARSED_ARGUMENTS}
 	)
