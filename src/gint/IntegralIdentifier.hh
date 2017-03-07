@@ -28,17 +28,17 @@ namespace gint {
  * (which identifies the basis type) and of an IntegralType enum
  * object.
  */
-class IntegralIdentifier : std::pair<std::string, IntegralType> {
+class IntegralIdentifier : public std::pair<std::string, IntegralType> {
  public:
   typedef std::pair<std::string, IntegralType> base_type;
   using base_type::pair;
 
   /** Return the string identifying the basis type */
-  std::string basis() const { return base_type::first; }
+  const std::string& basis() const { return base_type::first; }
 
   /** Return the IntegralType object which gives the type of the integral
    * operator (overlap, kinetic, ...) */
-  IntegralType integral_type() const { return base_type::second; }
+  const IntegralType& integral_type() const { return base_type::second; }
 
   /** Return the friendly name of this integral type
    *
