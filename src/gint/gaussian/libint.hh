@@ -1,6 +1,7 @@
 #pragma once
 #ifdef GINT_HAVE_LIBINT
 
+#include <functional>
 #include <krims/SubscriptionPointer.hh>
 #include <libint2.hpp>
 
@@ -55,45 +56,28 @@ class LibintSystem : public krims::Subscribable {
     return m_point_charges;
   }
 
+  /** Access to the number of shells (1s, 2s, 2p, ...)*/
+  size_t n_shells() const { return m_basis.size(); }
+
+  /** Access to the total number of basis functions */
+  size_t n_bas() const { return static_cast<size_t>(m_basis.nbf()); }
+
  private:
   libint2::BasisSet m_basis;
   krims::SubscriptionPointer<const Molecule> m_structure_ptr;
   std::vector<std::pair<double, std::array<double, 3>>> m_point_charges;
 };
 
-/** When initialised with a LibintSystem it computes and makes available some data which
- * is needed to work with libint shell pairs */
-struct LibintShellData {
-  /** Return the index of the first basis function of a particular shell */
-  size_t first_bfct(size_t shell) const { return shell2bf[shell]; }
+/** Information about a particular shell */
+struct LibintShell {
+  //! Shell index
+  size_t index;
 
-  /** Return the number of basis functions of a particular shell */
-  size_t n_bfct(size_t shell) const { return m_system_ptr->basis()[shell].size(); }
+  //! Number of basis functions in this shell
+  size_t n_bfct;
 
-  /** Return the shell range which covers the requested index range
-   * in the basis functions.
-   *
-   * In other words if only some basis function indices are required,
-   * this function returns the range of shells which need to be computed
-   * in order to compute the values for all basis functions.
-   * Note that it is very likely that extra values at the beginning and
-   * the end will be computed as well.
-   */
-  krims::Range<size_t> shell_range(krims::Range<size_t> bfct_indices) const;
-
-  /** The map shell index to index of first basis function of the shell
-   *  Obtain the map shell index to basis function index
-   *  E.g. shell2bf[0] = index of the first basis function in shell 0
-   *       shell2bf[1] = index of the first basis function in shell 1
-   */
-  const std::vector<size_t> shell2bf;
-
-  explicit LibintShellData(const LibintSystem& system)
-        : shell2bf(system.basis().shell2bf()), m_system_ptr("LibintBasisData", system) {}
-
- private:
-  // Pointer to the molecular system info we use:
-  krims::SubscriptionPointer<const LibintSystem> m_system_ptr;
+  //! Index of the first basis function of this shell
+  size_t first_bfct;
 };
 
 /** IntegralCollection for the libint integral objects */
@@ -149,22 +133,67 @@ class LibintIntegralCoreBase : public IntegralCoreBase<real_stored_mtx_type> {
    */
   LibintIntegralCoreBase(const LibintSystem& system, const LibintGlobalInit& global)
         : m_system_ptr("LibIntOneElectronIntegralCore", system),
-          m_n_bas(static_cast<size_t>(m_system_ptr->basis().nbf())),
           m_global_ptr("LibIntOneElectronIntegralCore", global) {}
 
-  size_t n_rows() const override { return m_n_bas; }
-  size_t n_cols() const override { return m_n_bas; }
-  size_t n_bas() const { return m_n_bas; }
+  size_t n_rows() const override { return m_system_ptr->n_bas(); }
+  size_t n_cols() const override { return m_system_ptr->n_bas(); }
+
+  scalar_type operator()(size_t row, size_t col) const override;
+
+  void extract_block(stored_matrix_type& M, const size_t start_row,
+                     const size_t start_col,
+                     const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
+                     const scalar_type c_A = 1, const scalar_type c_M = 0) const override;
+
+  void apply(const const_multivector_type& x, multivector_type& y,
+             const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
+             const scalar_type c_A = 1, const scalar_type c_y = 0) const override;
 
  protected:
   /** Return the system object */
   const LibintSystem& system() const { return *m_system_ptr; }
 
+  /** Type of a computational kernel for the compute function below.
+   *
+   * For each pair of shell indices (e.g. 1s, 2s, 2p, ...) the kernel function
+   * is called once.
+   */
+  typedef std::function<void(LibintShell, LibintShell, const scalar_type*)> kernel_type;
+
+  // TODO Calling a lambda is faster than calling via a std::function object.
+  //      Try to think of a way to achieve this.
+
+  //@{
+  /** Call a kernel function for each pair of shells of the basis set.
+   *
+   * Optionally one can supply ranges of *basis* indices in rows and columns.
+   * The function will then only loop over shell indices which cover the requested
+   * range of rows and columns.
+   *
+   * Note that the kernel may well be called with a larger amount of data present
+   * than what was requested.
+   *
+   * \param row_shells   The range of row shell indices to work on (optional)
+   * \param col_shells   The range of column shell indices to work on (optional)
+   * \param kernel  The kernel function to excecute for each pair of shell indices
+   *                This function should take 3 arguments:
+   *                        - size_t            Row indices to compute data for
+   *                        - size_t            Col indices to compute data for
+   *                        - const scalar_type*  Buffer of the integral values.
+   **/
+  virtual void compute(const krims::Range<size_t>& rows, const krims::Range<size_t>& cols,
+                       kernel_type&& kernel) const = 0;
+
+  void compute(kernel_type&& kernel) const {
+    assert_dbg(n_rows() == n_cols(), krims::ExcInternalError());
+    const auto full_range = krims::range(n_rows());
+    compute(full_range, full_range, std::forward<kernel_type>(kernel));
+  }
+  //@}
+
  private:
   // Pointer to the molecular system info we use:
   krims::SubscriptionPointer<const LibintSystem> m_system_ptr;
-
-  size_t m_n_bas;  //< Cache for number of basis functions.
 
   // Pointer to the global libint2 state we need
   krims::SubscriptionPointer<const LibintGlobalInit> m_global_ptr;
@@ -186,17 +215,6 @@ class OneElecIntegralCore final : public LibintIntegralCoreBase {
                       const LibintGlobalInit& global)
         : base_type(system, global), m_operator(op) {}
 
-  scalar_type operator()(size_t row, size_t col) const override;
-
-  void extract_block(stored_matrix_type& M, const size_t start_row,
-                     const size_t start_col,
-                     const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
-                     const scalar_type c_A = 1, const scalar_type c_M = 0) const override;
-
-  void apply(const const_multivector_type& x, multivector_type& y,
-             const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
-             const scalar_type c_A = 1, const scalar_type c_y = 0) const override;
-
   std::unique_ptr<core_base_type> clone() const override {
     return std::unique_ptr<core_base_type>(new OneElecIntegralCore(*this));
   }
@@ -217,31 +235,8 @@ class OneElecIntegralCore final : public LibintIntegralCoreBase {
   }
 
  protected:
-  //@{
-  /** Call a kernel function for each shell set.
-   *
-   * Optionally one can supply ranges of rows and columns to work on.
-   * Only the shell indices which are within the given ranges are then
-   * computed.
-   *
-   * \param kernel  The kernel function to excecute for each pair of shell indices
-   *                This function should take 3 arguments:
-   *                        - size_t            Index of the row shell we work on
-   *                        - size_t            Index of the col shell we work on
-   *                        - const real_type*  Buffer of the integral values.
-   * \param row_range   The range of row shell indices to work on (optional)
-   * \param col_range   The range of column shell indices to work on (optional)
-   **/
-  template <typename Kernel>
-  void compute_kernel(const krims::Range<size_t>& rows, const krims::Range<size_t>& cols,
-                      Kernel&& kernel) const;
-
-  template <typename Kernel>
-  void compute_kernel(Kernel&& kernel) const {
-    const auto full_range = krims::range(base_type::system().basis().size());
-    compute_kernel(full_range, full_range, std::forward<Kernel>(kernel));
-  }
-  //@}
+  virtual void compute(const krims::Range<size_t>& rows, const krims::Range<size_t>& cols,
+                       typename base_type::kernel_type&& kernel) const override;
 
  private:
   // Integral operator this core computes.
@@ -266,17 +261,6 @@ class ERICore final : public LibintIntegralCoreBase {
   ERICore(bool exchange_, const LibintSystem& system, const LibintGlobalInit& global)
         : base_type(system, global), exchange(exchange_) {}
 
-  scalar_type operator()(size_t a, size_t b) const override;
-
-  void extract_block(stored_matrix_type& M, const size_t start_row,
-                     const size_t start_col,
-                     const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
-                     const scalar_type c_A = 1, const scalar_type c_M = 0) const override;
-
-  void apply(const const_multivector_type& x, multivector_type& y,
-             const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
-             const scalar_type c_A = 1, const scalar_type c_y = 0) const override;
-
   std::unique_ptr<core_base_type> clone() const override {
     return std::unique_ptr<core_base_type>(new ERICore(*this));
   }
@@ -290,6 +274,10 @@ class ERICore final : public LibintIntegralCoreBase {
    *         given the GenMap
    **/
   void update(const krims::GenMap& map) override;
+
+ protected:
+  void compute(const krims::Range<size_t>& rows, const krims::Range<size_t>& cols,
+               kernel_type&& kernel) const override;
 };
 
 }  // namespace libint
