@@ -8,6 +8,8 @@ set(GINT_SOURCES
   atomic/cs_static14.cc
   atomic/cs_dummy.cc
   atomic/cs_naive.cc
+  chemistry/Atom.cc
+  chemistry/Molecule.cc
 )
 
 # Dump the current version as an include file.

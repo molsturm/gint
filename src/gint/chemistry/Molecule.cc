@@ -17,23 +17,15 @@
 // along with gint. If not, see <http://www.gnu.org/licenses/>.
 //
 
-#pragma once
-#include "Atom.hh"
-#include <krims/Subscribable.hh>
+#include "Molecule.hh"
 
 namespace gint {
 
-/** Data structure describing a molecule as a std::vector of atoms */
-class Molecule : public std::vector<Atom>, public krims::Subscribable {
- public:
-  using std::vector<Atom>::vector;
-
-  typedef std::vector<Atom> base_type;
-
-  /** Return the number of atoms in this molecule */
-  size_t n_atoms() const { return base_type::size(); }
-};
-
-std::ostream& operator<<(std::ostream& o, const Molecule& molec);
+std::ostream& operator<<(std::ostream& o, const Molecule& molec) {
+  auto it = std::begin(molec);
+  if (it != std::end(molec)) o << *(it++);
+  for (; it != std::end(molec); ++it) o << '\n' << *it;
+  return o;
+}
 
 }  // namespace gint
