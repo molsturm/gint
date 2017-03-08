@@ -29,6 +29,18 @@ class NuclearAttractionIntegralCore;
 class KineticIntegralCore;
 class ERICore;
 
+
+  struct nlmCollection : public vector<nlm_t> {
+    int nmax, lmax, mmax;
+
+    nlmCollection(int nmax, int lmax, int mmax) : nmax(nmax), lmax(lmax), mmax(mmax) {
+      for (int n = 1; n <= nmax; n++)
+	for (int l = 0; l <= min(lmax, n - 1); l++)
+	  for (int m = -min(mmax, l); m <= min(mmax, l); m++)
+	    this->push_back(nlm_t{n, l, m});
+    }
+  };
+
 // This integral class uses (n,l,m)-ordering: {{n,1,nmax},{l,0,n-1},{m,-l,l}}
 
 class IntegralCollection final
@@ -37,9 +49,10 @@ class IntegralCollection final
   typedef IntegralCollectionBase<OrbitalType::COMPLEX_ATOMIC> base_type;
 
   const static std::string id;
-
   real_type k_exponent, Z_charge;
-  int n_max;
+  string repulsiondata_filename;
+  vector<nlm_t> basis;
+  
   sturmint::atomic::cs_dummy::Atomic integral_calculator;
 
   /** Construct collection object from a set of parameters
@@ -75,7 +88,7 @@ class NuclearAttractionIntegralCore : public IntegralCoreBase<real_stored_mtx_ty
   typedef typename base_type::scalar_type scalar_type;
 
   const real_type k, Z;
-  const int nmax;
+  const vector<nlm_t> &basis;
 
   bool has_transpose_operation_mode() const override { return true; }
 
@@ -93,7 +106,7 @@ class NuclearAttractionIntegralCore : public IntegralCoreBase<real_stored_mtx_ty
         real_type Z)
         : k(k),
           Z(Z),
-          nmax(integral_calculator.nmax),
+          basis(integral_calculator.basis),
           m_integral_calculator(integral_calculator) {}
 
   /** \brief Number of rows of the matrix */
@@ -124,7 +137,7 @@ class OverlapIntegralCore : public IntegralCoreBase<real_stored_mtx_type> {
   /** \brief Multiplication with a stored matrix */
   // TODO: Change basis order from n,l,m to m,l,n to make multiplication
   // contiguous.
-  const int nmax;
+  const vector<nlm_t> &basis;
 
   bool has_transpose_operation_mode() const override { return true; }
   bool has_apply_inverse() const override { return true; }
@@ -141,7 +154,7 @@ class OverlapIntegralCore : public IntegralCoreBase<real_stored_mtx_type> {
   scalar_type operator()(size_t row, size_t col) const override;
 
   OverlapIntegralCore(const Atomic& integral_calculator)
-        : nmax(integral_calculator.nmax), m_integral_calculator(integral_calculator) {}
+        : basis(integral_calculator.basis), m_integral_calculator(integral_calculator) {}
 
   /** \brief Number of rows of the matrix */
   size_t n_rows() const override { return m_integral_calculator.n_bas(); }
@@ -169,7 +182,7 @@ class KineticIntegralCore : public IntegralCoreBase<real_stored_mtx_type> {
   typedef real_stored_mtx_type stored_matrix_type;
 
   real_type k;  // k-exponent
-  const int nmax;
+  const vector<nlm_t> &basis;
 
   bool has_transpose_operation_mode() const override { return true; }
 
@@ -183,7 +196,7 @@ class KineticIntegralCore : public IntegralCoreBase<real_stored_mtx_type> {
 
   KineticIntegralCore(const Atomic& integral_calculator, real_type k)
         : k(k),
-          nmax(integral_calculator.nmax),
+          basis(integral_calculator.basis),
           m_integral_calculator(integral_calculator) {}
 
   /** \brief Number of rows of the matrix */
@@ -220,7 +233,7 @@ class ERICore : public IntegralCoreBase<real_stored_mtx_type> {
   //! The occupied coefficients as a pointer
   coefficients_ptr_type coefficients_occupied_ptr;
 
-  const int nmax;
+  const vector<nlm_t> &basis;
 
   bool has_transpose_operation_mode() const override { return true; }
 
@@ -241,7 +254,7 @@ class ERICore : public IntegralCoreBase<real_stored_mtx_type> {
   ERICore(const Atomic& integral_calculator, bool exchange, real_type k)
         : exchange(exchange),
           k(k),
-          nmax(integral_calculator.nmax),
+          basis(integral_calculator.basis),
           m_integral_calculator(integral_calculator) {}
 
   /** \brief Update the internal data of all objects in this expression
@@ -289,8 +302,8 @@ inline void NuclearAttractionIntegralCore::apply(const const_multivector_type& x
 
   const real_type* x_ptr = x.data().memptr();
   real_type* y_ptr = const_cast<real_type*>(y.data().memptr());
-  cs::apply_to_full_vectors::nuclear_attraction_nlm<real_type>(
-        x_ptr, y_ptr, Z * k * c_A, c_y, static_cast<int>(x.n_cols()), nmax);
+  cs::apply_to_full_vectors::nuclear_attraction<real_type>(basis,
+        x_ptr, y_ptr, Z * k * c_A, c_y, x.n_cols() );
 }
 
 inline scalar_type NuclearAttractionIntegralCore::operator()(size_t row,
@@ -327,8 +340,8 @@ inline void OverlapIntegralCore::apply(const const_multivector_type& x,
   const real_type* x_ptr = const_cast<const real_type*>(x.data().memptr());
   real_type* y_ptr = const_cast<real_type*>(y.data().memptr());
 
-  sturmint::atomic::cs::apply_to_full_vectors::overlap_nlm(
-        x_ptr, y_ptr, c_A, c_y, static_cast<int>(x.n_cols()), nmax);
+  sturmint::atomic::cs::apply_to_full_vectors::overlap(basis,
+        x_ptr, y_ptr, c_A, c_y, x.n_cols());
 }
 
 inline void OverlapIntegralCore::apply_inverse(const const_multivector_type& x,
@@ -389,8 +402,8 @@ inline void KineticIntegralCore::apply(const const_multivector_type& x,
   real_type* y_ptr = const_cast<real_type*>(y.data().memptr());
 
   const scalar_type c_kkA = static_cast<scalar_type>(-0.5L * k * k * c_A);
-  sturmint::atomic::cs::apply_to_full_vectors::overlap_nlm<scalar_type>(
-        x_ptr, y_ptr, c_kkA, c_y, static_cast<int>(x.n_cols()), nmax);
+  sturmint::atomic::cs::apply_to_full_vectors::overlap<scalar_type>(basis,
+        x_ptr, y_ptr, c_kkA, c_y, x.n_cols());
   y += c_A * k * k * x;  // kinetic(x) = k^2*x-1/2 overlap(x)
 }
 

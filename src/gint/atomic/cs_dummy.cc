@@ -9,16 +9,16 @@ const std::string IntegralCollection::id = "atomic/cs_dummy";
 IntegralCollection::IntegralCollection(const krims::GenMap& parameters)
       : k_exponent{parameters.at<double>("k_exponent")},
         Z_charge{parameters.at<double>("Z_charge")},
-        n_max{parameters.at<int>("n_max")},
-        integral_calculator{n_max} {
-  assert_throw(n_max > 0, ExcInvalidIntegralParameters(
-                                "Maximum principle quantum number (" +
-                                std::to_string(n_max) + ") needs to be greater 0."));
-  assert_throw(n_max <= 3,
-               ExcInvalidIntegralParameters(
-                     "cs_dummy is only implemented up to n_max==3. You provided "
-                     "a maximum principle quantum number of " +
-                     std::to_string(n_max) + ", which is too large."));
+	repulsiondata_filename{parameters.at<string>("repulsiondata_filename")}
+{  
+  if(parameters.exists("nlmbasis")){
+    basis                  = parameters.at<const vector<nlm_t> >("nlmbasis");
+  } else {
+    basis = nlmCollection(parameters.at<int>("n_max"),
+			  parameters.at<int>("l_max"),
+			  parameters.at<int>("m_max"));
+  }
+  integral_calculator = sturmint::atomic::cs_dummy::Atomic(basis,repulsiondata_filename);
 }
 
 Integral<real_stored_mtx_type> IntegralCollection::lookup_integral(
