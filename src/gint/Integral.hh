@@ -24,11 +24,13 @@ class Integral : public linalgwrap::LazyMatrix_i<StoredMatrix> {
 
   /** \name Constructor, destructor and assignment */
   ///@{
+  /** Default constructor: gives rise to an unusable integral object */
+  Integral() : m_core_ptr(nullptr) {}
+
   /** Construct from unique pointer of the integral core.
    *
    * \note That we need a pointer here, since we pass implementations
    * of the core_type */
-
   Integral(std::unique_ptr<core_type> c) : m_core_ptr{std::move(c)} {
     assert_dbg(m_core_ptr != nullptr, krims::ExcInvalidPointer());
   }
