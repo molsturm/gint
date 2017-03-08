@@ -20,9 +20,11 @@ struct SturmianTestData {
   static const stored_matrix_type Sref;
   static const stored_matrix_type V0ref;
   static const stored_matrix_type Tref;
+
   static const mulvector_type coeffref_bo_1;
   static const stored_matrix_type Jref_for_coeff_1;
   static const stored_matrix_type Kref_for_coeff_1;
+
   static const mulvector_type coeffref_bo_2;
   static const stored_matrix_type Jref_for_coeff_2;
   static const stored_matrix_type Kref_for_coeff_2;

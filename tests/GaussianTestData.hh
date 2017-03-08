@@ -1,0 +1,220 @@
+//
+// Copyright (C) 2017 by the gint authors
+//
+// This file is part of gint.
+//
+// gint is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// gint is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with gint. If not, see <http://www.gnu.org/licenses/>.
+//
+
+#pragma once
+#include <gint/chemistry/Molecule.hh>
+#include <linalgwrap/MultiVector.hh>
+
+namespace gint {
+namespace tests {
+/** Gaussian test data for
+ * A water molecule computed with sto-3g.
+ */
+template <typename StoredMatrix>
+struct GaussianTestData {
+  typedef StoredMatrix stored_matrix_type;
+  typedef typename stored_matrix_type::vector_type vector_type;
+  typedef linalgwrap::MultiVector<vector_type> mulvector_type;
+
+  static const gint::Molecule molecule;
+  static const std::string basis;
+
+  static const stored_matrix_type Sref;
+  static const stored_matrix_type V0ref;
+  static const stored_matrix_type Tref;
+
+  static const mulvector_type coeffref_bo_1;
+  static const stored_matrix_type Jref_for_coeff_1;
+  static const stored_matrix_type Kref_for_coeff_1;
+
+  static const mulvector_type coeffref_bo_2;
+  static const stored_matrix_type Jref_for_coeff_2;
+  static const stored_matrix_type Kref_for_coeff_2;
+};
+
+//
+// ---------------------------------------------------
+//
+
+template <typename StoredMatrix>
+const gint::Molecule GaussianTestData<StoredMatrix>::molecule{
+      {8.0, 0, 0, 0},                       //
+      {1.0, 0, 0, 1.79523981918493678355},  //
+      {1.0, 1.69319460841021406111, 0, -.59904318177013153724}};
+
+template <typename StoredMatrix>
+const std::string GaussianTestData<StoredMatrix>::basis = "sto-3g";
+
+// TODO The test data we have here is all but good, since it is computed from a test
+// program by Max Scheurer (https://github.com/maxscheurer/QMax), which is by itself not
+// really tested thoroughly. For generating the data we used commit
+// 9e3fa74f06d5c4a951d917ec3b773b19d21001c5
+// (https://github.com/maxscheurer/QMax/tree/9e3fa74f06d5c4a951d917ec3b773b19d21001c5).
+
+// These values come from an initial libint computation with QMax
+template <typename StoredMatrix>
+const StoredMatrix GaussianTestData<StoredMatrix>::Sref{
+      {1, 0.2367039365108476, 0, 0, 0, 0.05490733277514916, 0.05485222429201972},
+      {0.2367039365108476, 1, 0, 0, 0, 0.4795432926083404, 0.4792639837233043},
+      {0, 0, 1, 0, 0, 0, 0.3731331556148025},
+      {0, 0, 0, 1, 0, 0, 0},
+      {0, 0, 0, 0, 1, 0.395943414392163, -0.1320125115288978},
+      {0.05490733277514916, 0.4795432926083404, 0, 0, 0.3959434143921631, 1,
+       0.2382998827632857},
+      {0.05485222429201972, 0.4792639837233043, 0.3731331556148025, 0,
+       -0.1320125115288978, 0.2382998827632857, 1}};
+
+// These values come from an initial libint computation with QMax
+template <typename StoredMatrix>
+const StoredMatrix GaussianTestData<StoredMatrix>::V0ref{
+      {-61.73226393212038, -7.446722425830957, -0.01484408273598395, 0,
+       -0.01050800913944318, -1.778006278998262, -1.776191236907942},
+      {-7.446722425830957, -10.15031706867491, -0.1741563410804738, 0,
+       -0.1232538077200708, -3.915435679526126, -3.912619136891395},
+      {-0.01484408273598395, -0.1741563410804738, -10.10525999396635, 0,
+       0.03992723284349602, -0.05488096037322993, -2.767616577920244},
+      {0, 0, 0, -9.992405733310914, 0, 0, 0},
+      {-0.01050800913944318, -0.1232538077200708, 0.03992723284349602, 0,
+       -10.13363741535622, -2.917930937720389, 0.9209648187522257},
+      {-1.778006278998262, -3.915435679526126, -0.05488096037322995, 0,
+       -2.917930937720389, -5.856089773060689, -1.548910908641628},
+      {-1.776191236907942, -3.912619136891395, -2.767616577920245, 0, 0.920964818752225,
+       -1.548910908641628, -5.854454660976605}};
+
+// These values come from an initial libint computation with QMax
+template <typename StoredMatrix>
+const StoredMatrix GaussianTestData<StoredMatrix>::Tref{
+      {29.00319994553958, -0.1680109393164922, 0, 0, 0, -0.00199451471826585,
+       -0.00202556432502005},
+      {-0.1680109393164923, 0.8081279549303477, 0, 0, 0, 0.1321007332738663,
+       0.1318938117590565},
+      {0, 0, 2.528731198194764, 0, 0, 0, 0.2729433343958038},
+      {0, 0, 0, 2.528731198194764, 0, 0, 0},
+      {0, 0, 0, 0, 2.528731198194764, 0.289851683445435, -0.0965658895128011},
+      {-0.001994514718265855, 0.1321007332738663, 0, 0, 0.289851683445435,
+       0.760031883566609, 0.005599567413895164},
+      {-0.002025564325020057, 0.1318938117590565, 0.2729433343958038, 0,
+       -0.09656588951280111, 0.005599567413895164, 0.760031883566609}};
+
+// These values come from an initial libint computation with QMax
+template <typename StoredMatrix>
+const typename GaussianTestData<StoredMatrix>::mulvector_type
+      GaussianTestData<StoredMatrix>::coeffref_bo_1{
+            {-0.9941004662126923, 0.2329021227870738, 6.507812447259417e-05,
+             0.1002272862887637, 0.},
+            {-0.02677501570297192, -0.8318938528500165, -0.0003550775154018296,
+             -0.523411182064719, 0.},
+            {-0.003462809752396074, -0.1032057046731821, -0.3463886135147889,
+             0.6482950041815756, 0.},
+            {0., 0., 0., 0., 1.},
+            {-0.00245195457452141, -0.07311192036748801, 0.490270022013735,
+             0.4581801791600849, 0.},
+            {0.006084408612274174, -0.1602775465194205, 0.4414999642593938,
+             0.2691404127547924, 0.},
+            {0.006078550072096659, -0.160110737830299, -0.4415208604106275,
+             0.2693812301177038, 0.}};
+
+// These values come from an initial libint computation with QMax
+template <typename StoredMatrix>
+const StoredMatrix GaussianTestData<StoredMatrix>::Jref_for_coeff_1{
+      {8.694692731740414, 1.640194247930099, -0.003357814110906122, 0,
+       -0.002372253093864208, 0.3830790269075287, 0.382691765929254},
+      {1.640194247930099, 4.10554173748513, 0.01330111066612296, 0, 0.009408848740220114,
+       1.663442258900952, 1.662318150079006},
+      {-0.003357814110906122, 0.01330111066612296, 4.099825509762463, 0,
+       0.0008632985289664811, 0.007665104834115167, 1.195737394776485},
+      {0, 0, 0, 4.10562420125826, 0, 0, 0},
+      {-0.002372253093864208, 0.009408848740220114, 0.0008632985289664811, 0,
+       4.099231451618988, 1.266272487916351, -0.4149202325610107},
+      {0.3830790269075285, 1.663442258900952, 0.007665104834115167, 0, 1.266272487916351,
+       2.579396684625305, 0.6867388754981282},
+      {0.382691765929254, 1.662318150079006, 1.195737394776485, 0, -0.4149202325610107,
+       0.6867388754981282, 2.578745387343474}};
+
+// These values come from an initial libint computation with QMax
+template <typename StoredMatrix>
+const StoredMatrix GaussianTestData<StoredMatrix>::Kref_for_coeff_1{
+      {4.884849493378267, 0.827577608872996, 0.002323084876033623, 0,
+       0.001644127792268211, 0.2014395097162948, 0.2012405219130948},
+      {0.8275776088729957, 1.312555408666604, -0.04664423025767082, 0,
+       -0.03294433008053173, 0.5779405933541052, 0.5775892751838678},
+      {0.002323084876033619, -0.04664423025767074, 0.965838033695644, 0,
+       0.05174209768428244, 0.01162101841426817, 0.4186962284501485},
+      {0, 0, 0, 1.135230738424465, 0, 0, 0},
+      {0.001644127792268208, -0.03294433008053172, 0.05174209768428244, 0,
+       0.9293793162387635, 0.440137871877276, -0.1358092022250787},
+      {0.2014395097162948, 0.577940593354105, 0.01162101841426818, 0, 0.4401378718772762,
+       0.6462702628218575, 0.2119387401369229},
+      {0.2012405219130947, 0.5775892751838679, 0.4186962284501484, 0, -0.1358092022250787,
+       0.2119387401369229, 0.6460168357849159}};
+
+// These values come from an initial libint computation with QMax
+template <typename StoredMatrix>
+const typename GaussianTestData<StoredMatrix>::mulvector_type
+      GaussianTestData<StoredMatrix>::coeffref_bo_2{
+            {-1.001648289090928, -0.2358292861638416, -7.82873181081353e-05,
+             -0.09290239165960189, 0.},
+            {0.008187700714779622, 1.106905449462704, 0.0003006012711721269,
+             0.3888727699439261, 0.},
+            {0.0004093274015321752, 0.3906704633077474, 0.6352684014454821,
+             -0.7566405423170121, 0.},
+            {0., 0., 0., 0., 1.},
+            {0.0002901586268742178, 0.2767289096577192, -0.898454439796881,
+             -0.5348551225297929, 0.},
+            {-0.002460157772306498, -0.1896786278413867, 0.1846578291023987,
+             0.03283393407314484, 0.},
+            {-0.002457835966327736, -0.1893968219312644, -0.1846737564721999,
+             0.0328385703698565, 0.}};
+
+// These values come from an initial libint computation with QMax
+template <typename StoredMatrix>
+const StoredMatrix GaussianTestData<StoredMatrix>::Jref_for_coeff_2{
+      {9.391355793912396, 1.793215581650206, 0.001751600812563819, 0,
+       0.001239916722571526, 0.4188628035460423, 0.4184395911572307},
+      {1.793215581650206, 4.440571705533569, -0.00262212829649734, 0,
+       -0.001858616826821781, 1.750077934227974, 1.748872637688523},
+      {0.001751600812563819, -0.00262212829649734, 4.435674951949759, 0,
+       0.0009686150796666382, -0.001512665489220125, 1.225225400210231},
+      {0, 0, 0, 4.439376179333134, 0, 0, 0},
+      {0.001239916722571526, -0.001858616826821781, 0.0009686150796666382, 0,
+       4.434982257658501, 1.300831116173669, -0.435083842416031},
+      {0.4188628035460423, 1.750077934227974, -0.001512665489220125, 0, 1.300831116173669,
+       2.547800313004365, 0.703023048545719},
+      {0.4184395911572306, 1.748872637688523, 1.225225400210231, 0, -0.435083842416031,
+       0.7030230485457191, 2.546999597374948}};
+
+// These values come from an initial libint computation with QMax
+template <typename StoredMatrix>
+const StoredMatrix GaussianTestData<StoredMatrix>::Kref_for_coeff_2{
+      {4.93000061366757, 0.8626995774198227, 0.0006484819396790705, 0,
+       0.0004590866871140166, 0.2112025349714096, 0.2109938593478467},
+      {0.8626995774198223, 1.43854597242203, 3.446170734713178e-05, 0,
+       2.045910395428053e-05, 0.4983412530244841, 0.4979715869152226},
+      {0.000648481939679073, 3.44617073471179e-05, 1.184651221340363, 0,
+       0.0009102173307540345, -0.0005688063996994053, 0.2592897982514572},
+      {0, 0, 0, 1.189661738127859, 0, 0, 0},
+      {0.000459086687114013, 2.045910395427012e-05, 0.0009102173307540362, 0,
+       1.183992962192796, 0.275392284090545, -0.09234255725394212},
+      {0.2112025349714096, 0.498341253024484, -0.0005688063996994105, 0,
+       0.275392284090545, 0.2590354158321955, 0.1553357717227692},
+      {0.2109938593478466, 0.4979715869152224, 0.2592897982514573, 0,
+       -0.09234255725394208, 0.1553357717227692, 0.2586970903543309}};
+
+}  // namespace tests
+}  // namespace gint

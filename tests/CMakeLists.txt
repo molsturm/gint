@@ -5,6 +5,7 @@ set(GINT_TESTS_SOURCES
   QuickAtomicCsDummyTest.cc
   QuickAtomicStatic14Test.cc
   QuickAtomicCsNaiveTest.cc
+  QuickLibintTests.cc
   main.cc
 )
 

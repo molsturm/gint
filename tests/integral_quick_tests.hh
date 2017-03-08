@@ -36,12 +36,15 @@ struct IntegralDummyTests {
     // TODO Tolerance levels (with normed vectors all default
     //    => what happens if we loosen the restriction
     //    => try this!
+    NumCompAccuracyLevel symmetric_tol = NumCompAccuracyLevel::Higher;
     NumCompAccuracyLevel equality_tol = NumCompAccuracyLevel::Default;
     NumCompAccuracyLevel apply_tol = NumCompAccuracyLevel::Default;
     NumCompAccuracyLevel applyinv_tol = NumCompAccuracyLevel::Default;
 
     SECTION(prefix + "Test overlap") {
-      CHECK(S_bb.is_symmetric());
+      // TODO Replace by better function once in krims:
+      double hackish_tolerance = numcomp(1.0).tolerance(symmetric_tol).tolerance();
+      CHECK(S_bb.is_symmetric(hackish_tolerance));
       REQUIRE(S_bb == numcomp(data::Sref).tolerance(equality_tol));
       check_apply_to_identity(S_bb, data::Sref, apply_tol);
       CHECK(rc::check(prefix + "Test apply overlap to pointer vectors",
@@ -70,11 +73,15 @@ struct IntegralDummyTests {
         RC_ASSERT((res2 == numcomp(vec).tolerance(applyinv_tol)));
       };
 
-      CHECK(rc::check(prefix + "Test apply_inverse of overlap", test));
+      if (S_bb.has_apply_inverse()) {
+        CHECK(rc::check(prefix + "Test apply_inverse of overlap", test));
+      }
     }
 
     SECTION(prefix + "Test nuclear attraction") {
-      CHECK(V0_bb.is_symmetric());
+      // TODO Replace by better function once in krims:
+      double hackish_tolerance = numcomp(1.0).tolerance(symmetric_tol).tolerance();
+      CHECK(V0_bb.is_symmetric(hackish_tolerance));
       REQUIRE(V0_bb == numcomp(data::V0ref).tolerance(equality_tol));
       CHECK(rc::check(prefix + "Test apply nuclear attraction to pointer vectors",
                       make_apply_ptr_vector_test(V0_bb, data::V0ref, apply_tol)));
@@ -83,7 +90,9 @@ struct IntegralDummyTests {
     }
 
     SECTION(prefix + "Test kinetic") {
-      CHECK(T_bb.is_symmetric());
+      // TODO Replace by better function once in krims:
+      double hackish_tolerance = numcomp(1.0).tolerance(symmetric_tol).tolerance();
+      CHECK(T_bb.is_symmetric(hackish_tolerance));
       REQUIRE(T_bb == numcomp(data::Tref).tolerance(equality_tol));
       check_apply_to_identity(T_bb, data::Tref, apply_tol);
       CHECK(rc::check(prefix + "Test apply kinetic to pointer vectors",
@@ -95,7 +104,9 @@ struct IntegralDummyTests {
     SECTION(prefix + "Test coulomb: Test case 1") {
       J_bb.update({{update_key, static_cast<coefficients_type>(data::coeffref_bo_1)}});
 
-      CHECK(J_bb.is_symmetric());
+      // TODO Replace by better function once in krims:
+      double hackish_tolerance = numcomp(1.0).tolerance(symmetric_tol).tolerance();
+      CHECK(J_bb.is_symmetric(hackish_tolerance));
       REQUIRE(J_bb == numcomp(data::Jref_for_coeff_1).tolerance(equality_tol));
       check_apply_to_identity(J_bb, data::Jref_for_coeff_1, apply_tol);
       CHECK(rc::check(
@@ -108,7 +119,9 @@ struct IntegralDummyTests {
     SECTION(prefix + "Test coulomb: Test case 2") {
       J_bb.update({{update_key, static_cast<coefficients_type>(data::coeffref_bo_2)}});
 
-      CHECK(J_bb.is_symmetric());
+      // TODO Replace by better function once in krims:
+      double hackish_tolerance = numcomp(1.0).tolerance(symmetric_tol).tolerance();
+      CHECK(J_bb.is_symmetric(hackish_tolerance));
       REQUIRE(J_bb == numcomp(data::Jref_for_coeff_2).tolerance(equality_tol));
       check_apply_to_identity(J_bb, data::Jref_for_coeff_2, apply_tol);
       CHECK(rc::check(
@@ -121,7 +134,9 @@ struct IntegralDummyTests {
     SECTION(prefix + "Test exchange: Test case 1") {
       K_bb.update({{update_key, static_cast<coefficients_type>(data::coeffref_bo_1)}});
 
-      CHECK(K_bb.is_symmetric());
+      // TODO Replace by better function once in krims:
+      double hackish_tolerance = numcomp(1.0).tolerance(symmetric_tol).tolerance();
+      CHECK(K_bb.is_symmetric(hackish_tolerance));
       REQUIRE(K_bb == numcomp(data::Kref_for_coeff_1).tolerance(equality_tol));
       check_apply_to_identity(K_bb, data::Kref_for_coeff_1, apply_tol);
       CHECK(rc::check(
@@ -134,7 +149,9 @@ struct IntegralDummyTests {
     SECTION(prefix + "Test exchange: Test case 2") {
       K_bb.update({{update_key, static_cast<coefficients_type>(data::coeffref_bo_2)}});
 
-      CHECK(K_bb.is_symmetric());
+      // TODO Replace by better function once in krims:
+      double hackish_tolerance = numcomp(1.0).tolerance(symmetric_tol).tolerance();
+      CHECK(K_bb.is_symmetric(hackish_tolerance));
       REQUIRE(K_bb == numcomp(data::Kref_for_coeff_2).tolerance(equality_tol));
       check_apply_to_identity(K_bb, data::Kref_for_coeff_2, apply_tol);
       CHECK(rc::check(
