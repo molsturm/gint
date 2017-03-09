@@ -8,6 +8,9 @@
 
 namespace gint {
 
+// TODO This orbitaltype interface is awkward and makes coding against this in a
+// basis-independent fashion rather annoying.
+
 /** Get Integral objects for a type of basis function */
 template <OrbitalType otype>
 class IntegralLookup {
