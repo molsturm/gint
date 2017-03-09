@@ -27,11 +27,23 @@ endif()
 #--  Libint2 --#
 ################
 option(GINT_ENABLE_LIBINT "Enable the libint library to compute Gaussian integrals." OFF)
-option(GINT_USE_SYSTEM_LIBINT "Enable the use of a system-provided libint library" ON)
+option(GINT_LIBINT_USE_SYSTEM "Enable the use of a system-provided libint library" OFF)
+set(GINT_LIBINT_MAX_AM 6 CACHE STRING
+"Maximal angular momentum libint can perform integrals over. \
+Choose a smaller value to get a faster build."
+)   # Note: ORCA uses a value of 7 (up to K) in the setting above.
+
 if (GINT_ENABLE_LIBINT)
-	# Find at least version 2.3.0
-	set(LIBINT_VERSION 2.3.0)
-	set(LIBINT_SEARCH_SYSTEM ${GINT_USE_SYSTEM_LIBINT})
+	# Check options:
+	if (GINT_LIBINT_MAX_AM LESS 4)
+		message(FATAL_ERROR "GINT_LIBINT_MAX_AM needs to be at least 4")
+	endif()
+
+	# Forward parameters to included module
+	set(LIBINT_VERSION 2.3.0) # We need at least this version
+	set(LIBINT_SEARCH_SYSTEM ${GINT_LIBINT_USE_SYSTEM})
+	set(LIBINT_MAX_AM ${GINT_LIBINT_MAX_AM})
+
 	include(cmake/findLibint.cmake)
 	unset(LIBINT_VERSION)
 	unset(LIBINT_SEARCH_SYSTEM)

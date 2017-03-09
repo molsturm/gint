@@ -148,15 +148,13 @@ if [ ! -f \"$CHECKPOINT_FROM\" ]; then
 	exit 1
 fi
 
-if [ \"x$FORCE_INSTALL\" = "x1" ] || [ ! -f \"$CHECKPOINT_TO\" ] || [ \"$CHECKPOINT_FROM\" -nt \"$CHECKPOINT_TO\" ]; then
+if [ \"x$FORCE_INSTALL\" = \"x1\" ] || [ ! -f \"$CHECKPOINT_TO\" ] || [ \"$CHECKPOINT_FROM\" -nt \"$CHECKPOINT_TO\" ]; then
 	make $@ install
 	exit $?
 fi
 
 exit 0
 "	)
-
-
 
 
 	# TODO The problem with this behaviour is that it can lead to double-parallelisation:

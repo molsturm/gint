@@ -26,9 +26,19 @@
 #
 # In case the libint library is not found and AUTOCHECKOUT_MISSING_LIBS is set to
 # on, libint is automatically checked out and built.
+#
+# Variables which change the behaviour of this module:
+#
+#    LIBINT_VERSION         The libint version to be seeked
+#    LIBINT_SEARCH_SYSTEM   Allow to search the system for an installed libint.
+#    LIBINT_MAX_AM          Maximal angular momentum to support inside libint.
 
 #
-# Options and properties required
+# ----------------------------------------------------------------------
+#
+
+#
+# Options and cache variables
 #
 option(AUTOCHECKOUT_MISSING_REPOS "Automatically checkout missing repositories" OFF)
 
@@ -36,17 +46,38 @@ option(AUTOCHECKOUT_MISSING_REPOS "Automatically checkout missing repositories" 
 # -------
 #
 
-function(SETUP_LIBINT2_FOR_EXTERNAL_BUILD TARGET)
+function(SETUP_LIBINT2_FOR_EXTERNAL_BUILD TARGET LIBINT_MAX_AM)
 	# Determine compiler flags which are in use in outer project
 	# and remove all -W and -f flags
 	string(REGEX REPLACE "(-(W|f)[^ ]+|-pedantic)" "" TMP
 		${CMAKE_CXX_FLAGS_RELEASE} ${CMAKE_CXX_FLAGS})
 	string(REGEX REPLACE "  *"  " "  INNER_COMPILE_OPTS ${TMP})
 
+	if (LIBINT_MAX_AM LESS 4)
+		message(FATAL_ERROR "GINT_LIBINT_MAX_AM needs to be at least 4")
+	endif()
+
 	set(CONFIGURE_OPTS
+		# Optimisation flags for all compilation processes inside libint
+		#     => Specify -Wno-undefined-var-template to ignore some errors libint
+		#        produces on compilation
+		"CXXFLAGS=-std=c++${CMAKE_CXX_STANDARD} -Wno-undefined-var-template"
+		#
 		# Optimisation flags for the inner compiler
 		#      => Forward what we have in the global project.
-		"--with-cxxgen-optflags=${INNER_COMPILE_OPTS} -std=c++${CMAKE_CXX_STANDARD}"
+		"--with-cxxgen-optflags=${INNER_COMPILE_OPTS}"
+		#
+		# Enable integrals up to the maximal angular momentum requested
+		"--with-max-am=${LIBINT_MAX_AM}"
+		#
+		# Optimise maximally up to angular momentum 4
+		"--with-opt-am=4"
+		#
+		# Disable unrolling shell sets into integrals
+		"--disable-unrolling"
+		#
+		# Enable hand-written generic code for other integrals
+		"--enable-generic-code"
 	)
 
 	if (BUILD_SHARED_LIBS)
@@ -57,9 +88,8 @@ function(SETUP_LIBINT2_FOR_EXTERNAL_BUILD TARGET)
 
 	include(DefaultExternalProjects)
 	setup_autotools_project(libint
-		CONFIGURE_OPTS ${CONFIGURE_OPTS}
 		GIT_REPOSITORY "https://github.com/evaleev/libint.git"
-		GIT_TAG "v2.3.0-beta.3"
+		GIT_TAG "v2.3.0-beta.4"
 		#
 		# TODO Find out how to test libint ... e.g. TEST_COMMAND make check
 
@@ -129,7 +159,7 @@ if (LIBINT_SEARCH_SYSTEM STREQUAL "" OR LIBINT_SEARCH_SYSTEM)
 endif()
 if(AUTOCHECKOUT_MISSING_REPOS)
 	set(LIBINT_TARGET "External::libint")
-	SETUP_LIBINT2_FOR_EXTERNAL_BUILD(${LIBINT_TARGET})
+	SETUP_LIBINT2_FOR_EXTERNAL_BUILD(${LIBINT_TARGET} ${LIBINT_MAX_AM})
 	target_link_libraries(${LIBINT_TARGET} INTERFACE Eigen3::Eigen)
 
 	message(STATUS "Setting up libint2 as an external project")
