@@ -58,10 +58,18 @@ function(SETUP_LIBINT2_FOR_EXTERNAL_BUILD TARGET LIBINT_MAX_AM)
 	endif()
 
 	set(CONFIGURE_OPTS
+		# Export compiler selection
+		#
+		"--with-ranlib=${CMAKE_RANLIB}"
+		"--with-ar=${CMAKE_AR}"
+		"--with-ld=${CMAKE_LD}"
+		"CC=${CMAKE_C_COMPILER}"
+		"CXX=${CMAKE_CXX_COMPILER}"
+		#
 		# Optimisation flags for all compilation processes inside libint
 		#     => Specify -Wno-undefined-var-template to ignore some errors libint
 		#        produces on compilation
-		"CXXFLAGS=-std=c++${CMAKE_CXX_STANDARD} -Wno-undefined-var-template"
+		"CXXFLAGS=-std=c++${CMAKE_CXX_STANDARD}"
 		#
 		# Optimisation flags for the inner compiler
 		#      => Forward what we have in the global project.
@@ -122,6 +130,8 @@ function(SETUP_SYSTEM_LIBINT TARGET VERSION)
 	# Run find_package again, but this time do not be quiet:
 	find_package(Libint2 ${VERSION} REQUIRED MODULE)
 
+	# TODO Determine max angular momentum and check
+
 	# Setup link target
 	add_library(${TARGET} INTERFACE IMPORTED GLOBAL)
 	set_target_properties(${TARGET} PROPERTIES
@@ -144,14 +154,31 @@ if (TARGET "${LIBINT_TARGET}")
 endif()
 
 # Since libint2 needs the Eigen matrix library, we try to find that first:
-# Note: Eigen is available under Eigen3::Eigen
-find_package(Eigen3 REQUIRED)
+# Note: Eigen is exposed as Eigen3::Eigen by find_package
+set(EIGEN_TARGET "Eigen3::Eigen")
+find_package(Eigen3 QUIET)
+if (${Eigen3_DIR} MATCHES "-NOTFOUND")
+	set(EIGEN_TARGET "Eigen")
+	add_library(${EIGEN_TARGET} INTERFACE IMPORTED)
+	find_path(Eigen3_DIR signature_of_eigen3_matrix_library
+		PATH_SUFFIXES eigen3
+		DOC "The eigen3 include directory."
+	)
+	if (${Eigen3_DIR} MATCHES "-NOTFOUND")
+		message(FATAL_ERROR "Could not find the eigen3 library anywhere.
+Try setting Eigen3_DIR to the location.")
+	endif()
+	set_target_properties(${EIGEN_TARGET} PROPERTIES
+		INTERFACE_INCLUDE_DIRECTORIES ${Eigen3_DIR}
+	)
+	message(STATUS "Found eigen3 include directory at ${Eigen3_DIR}")
+endif()
 
 if (LIBINT_SEARCH_SYSTEM STREQUAL "" OR LIBINT_SEARCH_SYSTEM)
 	set(LIBINT_TARGET "System::libint")
 	SETUP_SYSTEM_LIBINT(${LIBINT_TARGET} ${LIBINT_VERSION})
 	if (LIBINT_FOUND)
-		target_link_libraries(${LIBINT_TARGET} INTERFACE Eigen3::Eigen)
+		target_link_libraries(${LIBINT_TARGET} INTERFACE ${EIGEN_TARGET})
 
 		message(STATUS "Found libint version ${LIBINT_VERSION} at ${LIBINT_LIBRARY}")
 		return()
@@ -160,12 +187,13 @@ endif()
 if(AUTOCHECKOUT_MISSING_REPOS)
 	set(LIBINT_TARGET "External::libint")
 	SETUP_LIBINT2_FOR_EXTERNAL_BUILD(${LIBINT_TARGET} ${LIBINT_MAX_AM})
-	target_link_libraries(${LIBINT_TARGET} INTERFACE Eigen3::Eigen)
+	target_link_libraries(${LIBINT_TARGET} INTERFACE ${EIGEN_TARGET})
 
 	message(STATUS "Setting up libint2 as an external project")
 	return()
 endif()
 
 message(FATAL_ERROR "Could not find libint library.
-Either provide hints to the installation using the cmake variables LIBINT_INCLUDE_DIR
+Either enable the use of a system-provided libint (using LIBINT_SEARCH_SYSTEM,
+provide hints to the installation using the cmake variables LIBINT_INCLUDE_DIR
 and LIBINT_LIBRARY or enable autocheckout via '-DAUTOCHECKOUT_MISSING_REPOS=ON'.")
