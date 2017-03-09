@@ -160,7 +160,7 @@ exit 0
 	# TODO The problem with this behaviour is that it can lead to double-parallelisation:
 	#      Both the building of the external project and of the outer cmake build try to access
 	#      all cpus.
-	option(${NAME}_BUILD_PARALLEL "Build external integral libraries in parallel." ON)
+	option(DEP_BUILD_PARALLEL_${NAME} "Build external project ${NAME} in parallel." ON)
 
 	# Determine the processor count for parallel build
 	include(ProcessorCount)
