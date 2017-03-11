@@ -3,7 +3,10 @@
 
 #include "atomic/cs_dummy.hh"
 #include "atomic/cs_naive.hh"
+#include "atomic/cs_reference.hh"
+#include "atomic/cs_reference_pc.hh"
 #include "atomic/cs_static14.hh"
+
 
 namespace gint {
 
@@ -23,6 +26,10 @@ void register_gint_basis_types() {
                             atomic::cs_dummy::IntegralCollection::create);
   ca_t::register_basis_type(atomic::cs_naive::IntegralCollection::id,
                             atomic::cs_naive::IntegralCollection::create);
+  ca_t::register_basis_type(atomic::cs_reference::IntegralCollection::id,
+                            atomic::cs_reference::IntegralCollection::create);
+  ca_t::register_basis_type(atomic::cs_reference_pc::IntegralCollection::id,
+                            atomic::cs_reference_pc::IntegralCollection::create);  
 }
 
 /** Once flag, which makes sure that the registration function above is only

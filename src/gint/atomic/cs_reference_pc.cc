@@ -1,31 +1,26 @@
-#include "cs_dummy.hh"
+#include "cs_reference_pc.hh"
 
 namespace gint {
 namespace atomic {
-namespace cs_dummy {
+namespace cs_reference_pc {
 
-const std::string IntegralCollection::id = "atomic/cs_dummy";
+const std::string IntegralCollection::id = "atomic/cs_reference_pc";
 
 IntegralCollection::IntegralCollection(const krims::GenMap& parameters)
       : k_exponent{parameters.at<double>("k_exponent")},
         Z_charge{parameters.at<double>("Z_charge")}
 {  
-  if(parameters.exists("nlmbasis") && parameters.exists("repulsiondata_filename")){
-    basis                  = parameters.at<const vector<nlm_t> >("nlmbasis");
-    repulsiondata_filename = parameters.at<string>("repulsiondata_filename");
+  if(parameters.exists("nlmbasis")){
+    basis = parameters.at<const vector<nlm_t> >("nlmbasis");
   } else {
     int nmax = parameters.at<int>("n_max");
     int lmax = parameters.at<int>("l_max");
     int mmax = parameters.at<int>("m_max");
 
     basis = nlmCollection(nmax, lmax, mmax);
-    
-    repulsiondata_filename = sturmint::DATA_ROOT+std::string("/repulsiondata-nlm-")
-      +to_string(nmax)+"-"
-      +to_string(lmax)+"-"
-      +to_string(mmax)+".bin";
   }
-  integral_calculator = sturmint::atomic::cs_dummy::Atomic(basis,repulsiondata_filename);
+
+  integral_calculator = sturmint::atomic::cs_reference_pc::Atomic(basis);
 }
 
 Integral<real_stored_mtx_type> IntegralCollection::lookup_integral(
@@ -56,7 +51,7 @@ void ERICore::apply(const const_multivector_type& x, multivector_type& y,
                     const linalgwrap::Transposed mode, const scalar_type alpha,
                     const scalar_type beta) const {
   using namespace sturmint::orbital_index;
-  using namespace sturmint::atomic::cs_dummy;
+  using namespace sturmint::atomic::cs_reference_pc;
 
   assert_finite(alpha);
   assert_finite(beta);
@@ -85,7 +80,7 @@ void ERICore::apply(const const_multivector_type& x, multivector_type& y,
 }
 
 scalar_type ERICore::operator()(size_t a, size_t b) const {
-  using namespace sturmint::atomic::cs_dummy;
+  using namespace sturmint::atomic::cs_reference_pc;
   using namespace sturmint::orbital_index;
 
   assert_dbg(coefficients_occupied_ptr != nullptr, krims::ExcInvalidPointer());
@@ -128,6 +123,6 @@ void ERICore::update(const krims::GenMap& map) {
   assert_size(coefficients_occupied_ptr->n_elem(), m_integral_calculator.n_bas());
 }
 
-}  // namespace cs_dummy
+}  // namespace cs_reference_pc
 }  // namespace atomic
 }  // namespace gint

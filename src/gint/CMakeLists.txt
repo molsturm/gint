@@ -5,8 +5,11 @@ set(GINT_SOURCES
   version.cc
   IntegralLookup.cc
   IntegralType.cc
+  io.cc				#TODO: Something more structured should be done with this
   atomic/cs_static14.cc
   atomic/cs_dummy.cc
+  atomic/cs_reference.cc
+  atomic/cs_reference_pc.cc
   atomic/cs_naive.cc
 )
 

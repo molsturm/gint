@@ -42,7 +42,7 @@ struct IntegralDummyTests {
 
     SECTION(prefix + "Test overlap") {
       CHECK(S_bb.is_symmetric());
-      REQUIRE(S_bb == numcomp(data::Sref).tolerance(equality_tol));
+      REQUIRE((S_bb == numcomp(data::Sref).tolerance(equality_tol)));
       check_apply_to_identity(S_bb, data::Sref, apply_tol);
       CHECK(rc::check(prefix + "Test apply overlap to pointer vectors",
                       make_apply_ptr_vector_test(S_bb, data::Sref, apply_tol)));
@@ -75,7 +75,7 @@ struct IntegralDummyTests {
 
     SECTION(prefix + "Test nuclear attraction") {
       CHECK(V0_bb.is_symmetric());
-      REQUIRE(V0_bb == numcomp(data::V0ref).tolerance(equality_tol));
+      REQUIRE((V0_bb == numcomp(data::V0ref).tolerance(equality_tol)));
       CHECK(rc::check(prefix + "Test apply nuclear attraction to pointer vectors",
                       make_apply_ptr_vector_test(V0_bb, data::V0ref, apply_tol)));
       CHECK(rc::check(prefix + "Test apply and extract_block of nuclear attraction",
@@ -84,7 +84,7 @@ struct IntegralDummyTests {
 
     SECTION(prefix + "Test kinetic") {
       CHECK(T_bb.is_symmetric());
-      REQUIRE(T_bb == numcomp(data::Tref).tolerance(equality_tol));
+      REQUIRE((T_bb == numcomp(data::Tref).tolerance(equality_tol)));
       check_apply_to_identity(T_bb, data::Tref, apply_tol);
       CHECK(rc::check(prefix + "Test apply kinetic to pointer vectors",
                       make_apply_ptr_vector_test(T_bb, data::Tref, apply_tol)));
@@ -96,7 +96,7 @@ struct IntegralDummyTests {
       J_bb.update({{update_key, static_cast<coefficients_type>(data::coeffref_bo_1)}});
 
       CHECK(J_bb.is_symmetric());
-      REQUIRE(J_bb == numcomp(data::Jref_for_coeff_1).tolerance(equality_tol));
+      REQUIRE((J_bb == numcomp(data::Jref_for_coeff_1).tolerance(equality_tol)));
       check_apply_to_identity(J_bb, data::Jref_for_coeff_1, apply_tol);
       CHECK(rc::check(
             prefix + "Test apply coulomb 1 to pointer vectors",
@@ -109,7 +109,7 @@ struct IntegralDummyTests {
       J_bb.update({{update_key, static_cast<coefficients_type>(data::coeffref_bo_2)}});
 
       CHECK(J_bb.is_symmetric());
-      REQUIRE(J_bb == numcomp(data::Jref_for_coeff_2).tolerance(equality_tol));
+      REQUIRE((J_bb == numcomp(data::Jref_for_coeff_2).tolerance(equality_tol)));
       check_apply_to_identity(J_bb, data::Jref_for_coeff_2, apply_tol);
       CHECK(rc::check(
             prefix + "Test apply coulomb 2 to pointer vectors",
@@ -122,7 +122,7 @@ struct IntegralDummyTests {
       K_bb.update({{update_key, static_cast<coefficients_type>(data::coeffref_bo_1)}});
 
       CHECK(K_bb.is_symmetric());
-      REQUIRE(K_bb == numcomp(data::Kref_for_coeff_1).tolerance(equality_tol));
+      REQUIRE((K_bb == numcomp(data::Kref_for_coeff_1).tolerance(equality_tol)));
       check_apply_to_identity(K_bb, data::Kref_for_coeff_1, apply_tol);
       CHECK(rc::check(
             prefix + "Test apply exchange 1 to pointer vectors",
@@ -135,7 +135,7 @@ struct IntegralDummyTests {
       K_bb.update({{update_key, static_cast<coefficients_type>(data::coeffref_bo_2)}});
 
       CHECK(K_bb.is_symmetric());
-      REQUIRE(K_bb == numcomp(data::Kref_for_coeff_2).tolerance(equality_tol));
+      REQUIRE((K_bb == numcomp(data::Kref_for_coeff_2).tolerance(equality_tol)));
       check_apply_to_identity(K_bb, data::Kref_for_coeff_2, apply_tol);
       CHECK(rc::check(
             prefix + "Test apply exchange 2 to pointer vectors",
@@ -215,7 +215,7 @@ struct IntegralDummyTests {
     auto AxI = integral * Id;
     auto RefxI = ref * Id;
 
-    REQUIRE(AxI == numcomp(RefxI).tolerance(tolerance));
+    REQUIRE((AxI == numcomp(RefxI).tolerance(tolerance)));
   }
 };
 
