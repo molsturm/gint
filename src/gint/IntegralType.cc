@@ -58,6 +58,7 @@ std::string to_key_string(IntegralType id) {
     case IntegralType::exchange:
       return IntegralTypeKeys::coulomb;
   }
+  return "<invalid id>";
 }
 
 std::string to_friendly_name(IntegralType id) {
@@ -73,6 +74,7 @@ std::string to_friendly_name(IntegralType id) {
     case IntegralType::exchange:
       return "exchange";
   }
+  return "<invalid id>";
 }
 
 std::string to_friendly_name(const std::string& key) {
