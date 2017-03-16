@@ -12,11 +12,10 @@ std::vector<libint2::Atom> make_libint_atomlist(const Molecule& molecule) {
 
   for (const gint::Atom& atom : molecule) {
     libint2::Atom a_converted;
-    a_converted.x = atom.x;
-    a_converted.y = atom.y;
-    a_converted.z = atom.z;
+    a_converted.x = atom.coords[0];
+    a_converted.y = atom.coords[1];
+    a_converted.z = atom.coords[2];
     a_converted.atomic_number = static_cast<int>(atom.nuclear_charge);
-
     atom_list.push_back(std::move(a_converted));
   }
 
@@ -27,10 +26,7 @@ std::vector<std::pair<double, std::array<double, 3>>> inline make_libint_point_c
       const Molecule& molecule) {
   std::vector<std::pair<double, std::array<double, 3>>> ret;
   ret.reserve(molecule.n_atoms());
-  for (const auto& atom : molecule) {
-    ret.emplace_back(static_cast<double>(atom.nuclear_charge),
-                     std::array<double, 3>{{atom.x, atom.y, atom.z}});
-  }
+  for (const auto& atom : molecule) ret.emplace_back(atom.nuclear_charge, atom.coords);
   return ret;
 }
 }  // namespace detail

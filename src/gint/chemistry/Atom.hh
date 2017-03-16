@@ -39,16 +39,21 @@ DefException1(ExcUnknownElementSymbol, std::string, << "An element with symbol \
 /** Very simple structure to describe an atom in 3D
  * A (possibly non-integer) nuclear charge and 3 coordinates. */
 struct Atom {
-  float nuclear_charge;
-  real_type x, y, z;
+  //! Nuclear charge of the atom
+  double nuclear_charge;
 
-  Atom(float charge_, real_type x_, real_type y_, real_type z_)
-        : nuclear_charge(charge_), x(x_), y(y_), z(z_) {}
-  Atom(const std::string& symbol, real_type x_, real_type y_, real_type z_);
+  //! Coordinates of the atom position {x,y,z}
+  std::array<real_type, 3> coords;
+
+  Atom(double charge_, std::array<real_type, 3> coords_)
+        : nuclear_charge(charge_), coords(std::move(coords_)) {}
+
+  Atom(const std::string& symbol, std::array<real_type, 3> coords_);
 };
 
 inline std::ostream& operator<<(std::ostream& o, const Atom& atom) {
-  o << atom.nuclear_charge << "  " << atom.x << "  " << atom.y << "  " << atom.z;
+  o << atom.nuclear_charge << "  " << atom.coords[0] << "  " << atom.coords[1] << "  "
+    << atom.coords[2];
   return o;
 }
 
