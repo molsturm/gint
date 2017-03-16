@@ -17,14 +17,14 @@
 // along with gint. If not, see <http://www.gnu.org/licenses/>.
 //
 
-#include "Molecule.hh"
+#include "Structure.hh"
 
 namespace gint {
 
-std::ostream& operator<<(std::ostream& o, const Molecule& molec) {
-  auto it = std::begin(molec);
-  if (it != std::end(molec)) o << *(it++);
-  for (; it != std::end(molec); ++it) o << '\n' << *it;
+std::ostream& operator<<(std::ostream& o, const Structure& st) {
+  auto it = std::begin(st);
+  if (it != std::end(st)) o << *(it++);
+  for (; it != std::end(st); ++it) o << '\n' << *it;
   return o;
 }
 

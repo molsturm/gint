@@ -18,7 +18,7 @@
 //
 
 #pragma once
-#include <gint/chemistry/Molecule.hh>
+#include <gint/chemistry/Structure.hh>
 #include <linalgwrap/MultiVector.hh>
 
 namespace gint {
@@ -32,7 +32,7 @@ struct GaussianTestData {
   typedef typename stored_matrix_type::vector_type vector_type;
   typedef linalgwrap::MultiVector<vector_type> mulvector_type;
 
-  static const gint::Molecule molecule;
+  static const gint::Structure molecule;
   static const std::string basis;
 
   static const stored_matrix_type Sref;
@@ -53,10 +53,11 @@ struct GaussianTestData {
 //
 
 template <typename StoredMatrix>
-const gint::Molecule GaussianTestData<StoredMatrix>::molecule{
-      {8.0, 0, 0, 0},                       //
-      {1.0, 0, 0, 1.79523981918493678355},  //
-      {1.0, 1.69319460841021406111, 0, -.59904318177013153724}};
+const gint::Structure GaussianTestData<StoredMatrix>::molecule{
+      {"O", {{0, 0, 0}}},
+      {"H", {{0, 0, 1.79523981918493678355}}},
+      {"H", {{1.69319460841021406111, 0, -.59904318177013153724}}},
+};
 
 template <typename StoredMatrix>
 const std::string GaussianTestData<StoredMatrix>::basis = "sto-3g";

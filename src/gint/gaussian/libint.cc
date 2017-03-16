@@ -6,11 +6,11 @@ namespace gaussian {
 namespace libint {
 
 namespace detail {
-std::vector<libint2::Atom> make_libint_atomlist(const Molecule& molecule) {
+std::vector<libint2::Atom> make_libint_atomlist(const Structure& structure) {
   std::vector<libint2::Atom> atom_list;
-  atom_list.reserve(molecule.n_atoms());
+  atom_list.reserve(structure.n_atoms());
 
-  for (const gint::Atom& atom : molecule) {
+  for (const gint::Atom& atom : structure) {
     libint2::Atom a_converted;
     a_converted.x = atom.coords[0];
     a_converted.y = atom.coords[1];
@@ -23,10 +23,10 @@ std::vector<libint2::Atom> make_libint_atomlist(const Molecule& molecule) {
 }
 
 std::vector<std::pair<double, std::array<double, 3>>> inline make_libint_point_charges(
-      const Molecule& molecule) {
+      const Structure& structure) {
   std::vector<std::pair<double, std::array<double, 3>>> ret;
-  ret.reserve(molecule.n_atoms());
-  for (const auto& atom : molecule) ret.emplace_back(atom.nuclear_charge, atom.coords);
+  ret.reserve(structure.n_atoms());
+  for (const auto& atom : structure) ret.emplace_back(atom.nuclear_charge, atom.coords);
   return ret;
 }
 }  // namespace detail
@@ -36,7 +36,7 @@ std::vector<std::pair<double, std::array<double, 3>>> inline make_libint_point_c
 //
 
 LibintSystem::LibintSystem(const std::string& basisset_name,
-                           krims::SubscriptionPointer<const Molecule> structure_ptr)
+                           krims::SubscriptionPointer<const Structure> structure_ptr)
       : m_basis(basisset_name, detail::make_libint_atomlist(*structure_ptr)),
         m_structure_ptr(std::move(structure_ptr)),
         m_point_charges(detail::make_libint_point_charges(*m_structure_ptr)) {}
@@ -51,7 +51,7 @@ IntegralCollection::IntegralCollection(const krims::GenMap& parameters)
       : m_system{}, m_global{} {
   // Try to setup the basis of the system to model.
   const std::string& basis_set = parameters.at<const std::string>("basis_set");
-  auto structure_ptr = parameters.at_ptr<const Molecule>("structure");
+  auto structure_ptr = parameters.at_ptr<const Structure>("structure");
 
   const std::string error_msg =
         "Could not construct gaussian basis for the given structure and the "

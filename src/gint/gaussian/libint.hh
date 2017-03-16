@@ -8,7 +8,7 @@
 #include "gint/Integral.hh"
 #include "gint/IntegralCollectionBase.hh"
 #include "gint/IntegralCoreBase.hh"
-#include "gint/chemistry/Molecule.hh"
+#include "gint/chemistry/Structure.hh"
 #include "gint/config.hh"
 
 namespace gint {
@@ -43,13 +43,13 @@ class LibintSystem : public krims::Subscribable {
  public:
   LibintSystem() : m_structure_ptr("LibintSystem") {}
   LibintSystem(const std::string& basisset_name,
-               krims::SubscriptionPointer<const Molecule> structure_ptr);
+               krims::SubscriptionPointer<const Structure> structure_ptr);
 
   /** Access to the libint basis structure */
   const libint2::BasisSet& basis() const { return m_basis; }
 
   /** Access the molecular structure, which was used to build this basis */
-  const Molecule& structure() const { return *m_structure_ptr; }
+  const Structure& structure() const { return *m_structure_ptr; }
 
   /** Access the list of point charges used by libint */
   const std::vector<std::pair<double, std::array<double, 3>>>& point_charges() const {
@@ -64,7 +64,7 @@ class LibintSystem : public krims::Subscribable {
 
  private:
   libint2::BasisSet m_basis;
-  krims::SubscriptionPointer<const Molecule> m_structure_ptr;
+  krims::SubscriptionPointer<const Structure> m_structure_ptr;
   std::vector<std::pair<double, std::array<double, 3>>> m_point_charges;
 };
 
@@ -93,7 +93,7 @@ class IntegralCollection final
    * The following parameters are read:
    *   - basis_set  (std::string)  The string describing the
    *                                    Gaussian basis set to use.
-   *   - structure (gint::Molecule)  The structure of the molecule.
+   *   - structure (gint::Structure)  The structure of the molecule.
    */
   explicit IntegralCollection(const krims::GenMap& parameters);
 

@@ -10,7 +10,7 @@ set(GINT_SOURCES
   atomic/cs_dummy.cc
   atomic/cs_naive.cc
   chemistry/Atom.cc
-  chemistry/Molecule.cc
+  chemistry/Structure.cc
   gaussian/libint.cc
 )
 

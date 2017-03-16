@@ -23,17 +23,25 @@
 
 namespace gint {
 
-/** Data structure describing a molecule as a std::vector of atoms */
-class Molecule : public std::vector<Atom>, public krims::Subscribable {
+/** Data structure describing the geometry of a molecular structure as
+ *  a std::vector of atoms */
+class Structure : public std::vector<Atom>, public krims::Subscribable {
  public:
   using std::vector<Atom>::vector;
 
   typedef std::vector<Atom> base_type;
 
-  /** Return the number of atoms in this molecule */
+  /** Return the number of atoms in this molecular structure */
   size_t n_atoms() const { return base_type::size(); }
+
+  /** Return the total charge of all atoms in this molecular structure */
+  double total_charge() const {
+    double ret{0};
+    for (const auto& a : (*this)) ret += a.nuclear_charge;
+    return ret;
+  }
 };
 
-std::ostream& operator<<(std::ostream& o, const Molecule& molec);
+std::ostream& operator<<(std::ostream& o, const Structure& st);
 
 }  // namespace gint
