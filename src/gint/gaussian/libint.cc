@@ -376,9 +376,7 @@ void ERICore::compute(const krims::Range<size_t>& rows, const krims::Range<size_
   //
   // Compute density matrix:
   auto dens = outer_prod_sum(*coefficients_occupied_ptr, *coefficients_occupied_ptr);
-  assert_dbg(
-        dens.is_symmetric(10. * linalgwrap::Constants<scalar_type>::default_tolerance),
-        krims::ExcInternalError());
+  assert_dbg(dens.is_symmetric(), krims::ExcInternalError());
 
   // Loop over shell sets {sa,sb,sc,sd}
   for (size_t sa : row_shells) {
