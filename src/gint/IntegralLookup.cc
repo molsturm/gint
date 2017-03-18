@@ -11,8 +11,12 @@ namespace gint {
 /** Function which registers the default basis types, which are present
  *  in this implementation of gint by default. */
 void register_gint_basis_types() {
-  // typedef IntegralLookup<OrbitalType::COMPLEX_MOLECULAR> cm_t;
-  // typedef IntegralLookup<OrbitalType::REAL_ATOMIC> ra_t;
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-local-typedef"
+  //
+  // Real atomic
+  //
+  typedef IntegralLookup<OrbitalType::REAL_ATOMIC> ra_t;
 
   //
   // Complex atomic
@@ -35,6 +39,12 @@ void register_gint_basis_types() {
   rm_t::register_basis_type(gaussian::libint::IntegralCollection::id,
                             gaussian::libint::IntegralCollection::create);
 #endif  // GINT_HAVE_LIBINT
+
+  //
+  // Complex molecular
+  //
+  typedef IntegralLookup<OrbitalType::COMPLEX_MOLECULAR> cm_t;
+#pragma GCC diagnostic pop
 }
 
 /** Once flag, which makes sure that the registration function above is only
