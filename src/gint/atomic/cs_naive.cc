@@ -16,7 +16,7 @@ IntegralCollection::IntegralCollection(const krims::GenMap& parameters)
   int l_max = parameters.at<int>("l_max");
   int m_max = parameters.at<int>("m_max");
 
-  assert_throw(0 < n_max && n_max <= 14,
+  assert_throw(0 < n_max && n_max <= 6,
                ExcInvalidIntegralParameters(
                      "Maximum principle quantum number (" + std::to_string(n_max) +
                      ") needs to be in the range [1,14] for cs_naive, since higher "

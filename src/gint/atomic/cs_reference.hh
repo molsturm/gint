@@ -6,15 +6,15 @@
 #include "gint/config.hh"
 
 #include <sturmint/atomic/cs/cs_atomic.hh>
-#include <sturmint/atomic/cs_dummy/cs_atomic.hh>
+#include <sturmint/atomic/cs_reference/cs_atomic.hh>
 #include <sturmint/harmonic/OrbitalIndex.hh>
 
 namespace gint {
 namespace atomic {
-namespace cs_dummy {
+namespace cs_reference {
 
 using namespace sturmint::atomic;
-using namespace sturmint::atomic::cs_dummy;
+using namespace sturmint::atomic::cs_reference;
 
 // In this namespace all things are real:
 typedef real_type scalar_type;
@@ -51,7 +51,7 @@ class IntegralCollection final
   string repulsiondata_filename;
   vector<nlm_t> basis;
   
-  sturmint::atomic::cs_dummy::Atomic integral_calculator;
+  sturmint::atomic::cs_reference::Atomic integral_calculator;
 
   /** Construct collection object from a set of parameters
    *
@@ -67,7 +67,7 @@ class IntegralCollection final
 
   const std::string& basis_id() const override { return id; }
   std::string basis_name() const override {
-    return "Dummy implementation of atomic Coulomb Sturmians";
+    return "Reference implementation of atomic Coulomb Sturmians";
   }
 
   /** Create an integral collection for a particular basis set defined by parameters */
@@ -100,7 +100,7 @@ class NuclearAttractionIntegralCore : public IntegralCoreBase<real_stored_mtx_ty
   scalar_type operator()(size_t row, size_t col) const override;
 
   NuclearAttractionIntegralCore(
-        const sturmint::atomic::cs_dummy::Atomic& integral_calculator, real_type k,
+        const sturmint::atomic::cs_reference::Atomic& integral_calculator, real_type k,
         real_type Z)
         : k(k),
           Z(Z),
@@ -124,7 +124,7 @@ class NuclearAttractionIntegralCore : public IntegralCoreBase<real_stored_mtx_ty
   }
 
  private:
-  const sturmint::atomic::cs_dummy::Atomic& m_integral_calculator;
+  const sturmint::atomic::cs_reference::Atomic& m_integral_calculator;
 };
 
 class OverlapIntegralCore : public IntegralCoreBase<real_stored_mtx_type> {
@@ -356,7 +356,7 @@ inline void OverlapIntegralCore::apply(const const_multivector_type& x,
 // // switching over mode.
 
 // #ifndef GINT_HAVE_STATIC_INTEGRALS
-//   static_assert(false, "Need GINT_ENABLE_STATIC_INTEGRALS=ON for cs_dummy for now.");
+//   static_assert(false, "Need GINT_ENABLE_STATIC_INTEGRALS=ON for cs_reference for now.");
 // #endif
 //   // TODO: Huge hack, but we don't really want to bother with overlap_inverse apply for
 //   // nlm-order right now.
@@ -411,6 +411,6 @@ inline scalar_type KineticIntegralCore::operator()(size_t row, size_t col) const
   return static_cast<scalar_type>(k * k * sturmint::atomic::cs::kinetic(mui, muj));
 }
 
-}  // namespace cs_dummy
+}  // namespace cs_reference
 }  // namespace atomic
 }  // namespace gint
