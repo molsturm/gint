@@ -5,7 +5,6 @@ set(GINT_SOURCES
   version.cc
   IntegralLookup.cc
   IntegralType.cc
-  #io.cc      File not present ??     #TODO: Something more structured should be done with this
   atomic/cs_static14.cc
   atomic/cs_dummy.cc
   atomic/cs_reference.cc

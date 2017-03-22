@@ -50,7 +50,7 @@ void register_gint_basis_types() {
   // Complex molecular
   //
   typedef IntegralLookup<OrbitalType::COMPLEX_MOLECULAR> cm_t;
-#pragma GCC diagnostic pop
+#pragma GCC diagnostic pop  // -Wunused-local-typedef
 }
 
 /** Once flag, which makes sure that the registration function above is only

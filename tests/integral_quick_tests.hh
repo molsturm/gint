@@ -107,7 +107,6 @@ struct IntegralDummyTests {
       // TODO Replace by better function once in krims:
       double hackish_tolerance = numcomp(1.0).tolerance(symmetric_tol).tolerance();
       CHECK(J_bb.is_symmetric(hackish_tolerance));
-      REQUIRE(J_bb == numcomp(data::Jref_for_coeff_1).tolerance(equality_tol));
       REQUIRE((J_bb == numcomp(data::Jref_for_coeff_1).tolerance(equality_tol)));
       check_apply_to_identity(J_bb, data::Jref_for_coeff_1, apply_tol);
       CHECK(rc::check(
@@ -123,7 +122,6 @@ struct IntegralDummyTests {
       // TODO Replace by better function once in krims:
       double hackish_tolerance = numcomp(1.0).tolerance(symmetric_tol).tolerance();
       CHECK(J_bb.is_symmetric(hackish_tolerance));
-      REQUIRE(J_bb == numcomp(data::Jref_for_coeff_2).tolerance(equality_tol));
       REQUIRE((J_bb == numcomp(data::Jref_for_coeff_2).tolerance(equality_tol)));
       check_apply_to_identity(J_bb, data::Jref_for_coeff_2, apply_tol);
       CHECK(rc::check(
@@ -139,7 +137,6 @@ struct IntegralDummyTests {
       // TODO Replace by better function once in krims:
       double hackish_tolerance = numcomp(1.0).tolerance(symmetric_tol).tolerance();
       CHECK(K_bb.is_symmetric(hackish_tolerance));
-      REQUIRE(K_bb == numcomp(data::Kref_for_coeff_1).tolerance(equality_tol));
       REQUIRE((K_bb == numcomp(data::Kref_for_coeff_1).tolerance(equality_tol)));
       check_apply_to_identity(K_bb, data::Kref_for_coeff_1, apply_tol);
       CHECK(rc::check(
@@ -155,7 +152,6 @@ struct IntegralDummyTests {
       // TODO Replace by better function once in krims:
       double hackish_tolerance = numcomp(1.0).tolerance(symmetric_tol).tolerance();
       CHECK(K_bb.is_symmetric(hackish_tolerance));
-      REQUIRE(K_bb == numcomp(data::Kref_for_coeff_2).tolerance(equality_tol));
       REQUIRE((K_bb == numcomp(data::Kref_for_coeff_2).tolerance(equality_tol)));
       check_apply_to_identity(K_bb, data::Kref_for_coeff_2, apply_tol);
       CHECK(rc::check(
