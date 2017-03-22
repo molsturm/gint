@@ -8,10 +8,9 @@ const std::string IntegralCollection::id = "atomic/cs_dummy";
 
 IntegralCollection::IntegralCollection(const krims::GenMap& parameters)
       : k_exponent{parameters.at<double>("k_exponent")},
-        Z_charge{parameters.at<double>("Z_charge")}
-{  
-  if(parameters.exists("nlmbasis") && parameters.exists("repulsiondata_filename")){
-    basis                  = parameters.at<const vector<nlm_t> >("nlmbasis");
+        Z_charge{parameters.at<double>("Z_charge")} {
+  if (parameters.exists("nlmbasis") && parameters.exists("repulsiondata_filename")) {
+    basis = parameters.at<const vector<nlm_t>>("nlmbasis");
     repulsiondata_filename = parameters.at<string>("repulsiondata_filename");
   } else {
     int nmax = parameters.at<int>("n_max");
@@ -19,13 +18,12 @@ IntegralCollection::IntegralCollection(const krims::GenMap& parameters)
     int mmax = parameters.at<int>("m_max");
 
     basis = nlmCollection(nmax, lmax, mmax);
-    
-    repulsiondata_filename = sturmint::DATA_ROOT+std::string("/repulsiondata-nlm-")
-      +to_string(nmax)+"-"
-      +to_string(lmax)+"-"
-      +to_string(mmax)+".bin";
+
+    repulsiondata_filename = sturmint::DATA_ROOT + std::string("/repulsiondata-nlm-") +
+                             to_string(nmax) + "-" + to_string(lmax) + "-" +
+                             to_string(mmax) + ".bin";
   }
-  integral_calculator = sturmint::atomic::cs_dummy::Atomic(basis,repulsiondata_filename);
+  integral_calculator = sturmint::atomic::cs_dummy::Atomic(basis, repulsiondata_filename);
 }
 
 Integral<real_stored_mtx_type> IntegralCollection::lookup_integral(
@@ -70,7 +68,7 @@ void ERICore::apply(const const_multivector_type& x, multivector_type& y,
   assert_dbg(coefficients_occupied_ptr != nullptr, krims::ExcInvalidPointer());
 
   size_t norb = m_integral_calculator.n_bas();
-  
+
   for (size_t i = 0; i < y.n_rows(); i++)
     for (size_t j = 0; j < y.n_cols(); j++) y(i, j) = (beta != 0 ? beta * y(i, j) : 0);
 
@@ -107,8 +105,10 @@ scalar_type ERICore::operator()(size_t a, size_t b) const {
 
     //    size_t i_abc = norb * (C + norb * (b + norb * A));
 
-    //    for (size_t d = 0; d < norb; d++) sum += m_integral_calculator.repulsionNxNxNxN[i_abc + d] * density(c, d);
-    for (size_t d = 0; d < norb; d++) sum += m_integral_calculator.repulsion(A,b,C,d) * density(c, d);
+    //    for (size_t d = 0; d < norb; d++) sum +=
+    //    m_integral_calculator.repulsionNxNxNxN[i_abc + d] * density(c, d);
+    for (size_t d = 0; d < norb; d++)
+      sum += m_integral_calculator.repulsion(A, b, C, d) * density(c, d);
   }
   return k * sum;
 }

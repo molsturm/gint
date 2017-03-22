@@ -19,7 +19,7 @@ IntegralCollection::IntegralCollection(const krims::GenMap& parameters)
   assert_throw(0 < n_max && n_max <= 6,
                ExcInvalidIntegralParameters(
                      "Maximum principle quantum number (" + std::to_string(n_max) +
-                     ") needs to be in the range [1,14] for cs_naive, since higher "
+                     ") needs to be in the range [1,6] for cs_naive, since higher "
                      "values are not yet implemented."));
   assert_throw(0 <= l_max && l_max <= 4,
                ExcInvalidIntegralParameters(

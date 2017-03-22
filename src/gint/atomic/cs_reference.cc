@@ -8,10 +8,9 @@ const std::string IntegralCollection::id = "atomic/cs_reference";
 
 IntegralCollection::IntegralCollection(const krims::GenMap& parameters)
       : k_exponent{parameters.at<double>("k_exponent")},
-        Z_charge{parameters.at<double>("Z_charge")}
-{  
-  if(parameters.exists("nlmbasis")){
-    basis = parameters.at<const vector<nlm_t> >("nlmbasis");
+        Z_charge{parameters.at<double>("Z_charge")} {
+  if (parameters.exists("nlmbasis")) {
+    basis = parameters.at<const vector<nlm_t>>("nlmbasis");
   } else {
     int nmax = parameters.at<int>("n_max");
     int lmax = parameters.at<int>("l_max");
@@ -65,7 +64,7 @@ void ERICore::apply(const const_multivector_type& x, multivector_type& y,
   assert_dbg(coefficients_occupied_ptr != nullptr, krims::ExcInvalidPointer());
 
   size_t norb = m_integral_calculator.n_bas();
-  
+
   for (size_t i = 0; i < y.n_rows(); i++)
     for (size_t j = 0; j < y.n_cols(); j++) y(i, j) = (beta != 0 ? beta * y(i, j) : 0);
 
@@ -102,8 +101,10 @@ scalar_type ERICore::operator()(size_t a, size_t b) const {
 
     //    size_t i_abc = norb * (C + norb * (b + norb * A));
 
-    //    for (size_t d = 0; d < norb; d++) sum += m_integral_calculator.repulsionNxNxNxN[i_abc + d] * density(c, d);
-    for (size_t d = 0; d < norb; d++) sum += m_integral_calculator.repulsion(A,b,C,d) * density(c, d);
+    //    for (size_t d = 0; d < norb; d++) sum +=
+    //    m_integral_calculator.repulsionNxNxNxN[i_abc + d] * density(c, d);
+    for (size_t d = 0; d < norb; d++)
+      sum += m_integral_calculator.repulsion(A, b, C, d) * density(c, d);
   }
   return k * sum;
 }

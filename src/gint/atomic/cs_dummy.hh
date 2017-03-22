@@ -27,17 +27,16 @@ class NuclearAttractionIntegralCore;
 class KineticIntegralCore;
 class ERICore;
 
+struct nlmCollection : public vector<nlm_t> {
+  int nmax, lmax, mmax;
 
-  struct nlmCollection : public vector<nlm_t> {
-    int nmax, lmax, mmax;
-
-    nlmCollection(int nmax, int lmax, int mmax) : nmax(nmax), lmax(lmax), mmax(mmax) {
-      for (int n = 1; n <= nmax; n++)
-	for (int l = 0; l <= min(lmax, n - 1); l++)
-	  for (int m = -min(mmax, l); m <= min(mmax, l); m++)
-	    this->push_back(nlm_t{n, l, m});
-    }
-  };
+  nlmCollection(int nmax, int lmax, int mmax) : nmax(nmax), lmax(lmax), mmax(mmax) {
+    for (int n = 1; n <= nmax; n++)
+      for (int l = 0; l <= min(lmax, n - 1); l++)
+        for (int m = -min(mmax, l); m <= min(mmax, l); m++)
+          this->push_back(nlm_t{n, l, m});
+  }
+};
 
 // This integral class uses (n,l,m)-ordering: {{n,1,nmax},{l,0,n-1},{m,-l,l}}
 
@@ -50,7 +49,7 @@ class IntegralCollection final
   real_type k_exponent, Z_charge;
   string repulsiondata_filename;
   vector<nlm_t> basis;
-  
+
   sturmint::atomic::cs_dummy::Atomic integral_calculator;
 
   /** Construct collection object from a set of parameters
@@ -86,7 +85,7 @@ class NuclearAttractionIntegralCore : public IntegralCoreBase<real_stored_mtx_ty
   typedef typename base_type::scalar_type scalar_type;
 
   const real_type k, Z;
-  const vector<nlm_t> &basis;
+  const vector<nlm_t>& basis;
 
   bool has_transpose_operation_mode() const override { return true; }
 
@@ -135,10 +134,12 @@ class OverlapIntegralCore : public IntegralCoreBase<real_stored_mtx_type> {
   /** \brief Multiplication with a stored matrix */
   // TODO: Change basis order from n,l,m to m,l,n to make multiplication
   // contiguous.
-  const vector<nlm_t> &basis;
+  const vector<nlm_t>& basis;
 
   bool has_transpose_operation_mode() const override { return true; }
-  bool has_apply_inverse() const override { return false; } // TODO: Add inverse calculation
+  bool has_apply_inverse() const override {
+    return false;
+  }  // TODO: Add inverse calculation
 
   void apply(const const_multivector_type& x, multivector_type& y,
              const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
@@ -147,7 +148,8 @@ class OverlapIntegralCore : public IntegralCoreBase<real_stored_mtx_type> {
   // TODO: Add actual inverse
   // void apply_inverse(const const_multivector_type& x, multivector_type& y,
   //                    const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
-  //                    const scalar_type c_A = 1, const scalar_type c_y = 0) const override;
+  //                    const scalar_type c_A = 1, const scalar_type c_y = 0) const
+  //                    override;
 
   /** \brief return an element of the matrix    */
   scalar_type operator()(size_t row, size_t col) const override;
@@ -181,7 +183,7 @@ class KineticIntegralCore : public IntegralCoreBase<real_stored_mtx_type> {
   typedef real_stored_mtx_type stored_matrix_type;
 
   real_type k;  // k-exponent
-  const vector<nlm_t> &basis;
+  const vector<nlm_t>& basis;
 
   bool has_transpose_operation_mode() const override { return true; }
 
@@ -232,7 +234,7 @@ class ERICore : public IntegralCoreBase<real_stored_mtx_type> {
   //! The occupied coefficients as a pointer
   coefficients_ptr_type coefficients_occupied_ptr;
 
-  const vector<nlm_t> &basis;
+  const vector<nlm_t>& basis;
 
   bool has_transpose_operation_mode() const override { return true; }
 
@@ -301,8 +303,10 @@ inline void NuclearAttractionIntegralCore::apply(const const_multivector_type& x
 
   const real_type* x_ptr = x.data().memptr();
   real_type* y_ptr = const_cast<real_type*>(y.data().memptr());
-  cs::apply_to_full_vectors::nuclear_attraction<real_type>(basis,
-        x_ptr, y_ptr, Z * k * c_A, c_y, x.n_cols() );
+
+  const int x_cols = static_cast<int>(x.n_cols());
+  cs::apply_to_full_vectors::nuclear_attraction<real_type>(basis, x_ptr, y_ptr,
+                                                           Z * k * c_A, c_y, x_cols);
 }
 
 inline scalar_type NuclearAttractionIntegralCore::operator()(size_t row,
@@ -337,10 +341,11 @@ inline void OverlapIntegralCore::apply(const const_multivector_type& x,
   const real_type* x_ptr = const_cast<const real_type*>(x.data().memptr());
   real_type* y_ptr = const_cast<real_type*>(y.data().memptr());
 
-  sturmint::atomic::cs::apply_to_full_vectors::overlap(basis,
-        x_ptr, y_ptr, c_A, c_y, x.n_cols());
+  const int x_cols = static_cast<int>(x.n_cols());
+  sturmint::atomic::cs::apply_to_full_vectors::overlap(basis, x_ptr, y_ptr, c_A, c_y,
+                                                       x_cols);
 }
-  // TODO: Add actual inverse
+// TODO: Add actual inverse
 // inline void OverlapIntegralCore::apply_inverse(const const_multivector_type& x,
 //                                                multivector_type& y,
 //                                                const linalgwrap::Transposed mode,
@@ -370,8 +375,7 @@ inline scalar_type OverlapIntegralCore::operator()(size_t row, size_t col) const
   assert_greater(row, n_rows());
   assert_greater(col, n_cols());
 
-  const nlm_t mui = basis[row],
-              muj = basis[col];
+  const nlm_t mui = basis[row], muj = basis[col];
 
   return static_cast<scalar_type>(sturmint::atomic::cs::overlap(mui, muj));
 }
@@ -395,9 +399,10 @@ inline void KineticIntegralCore::apply(const const_multivector_type& x,
   const real_type* x_ptr = const_cast<const real_type*>(x.data().memptr());
   real_type* y_ptr = const_cast<real_type*>(y.data().memptr());
 
+  const int x_cols = static_cast<int>(x.n_cols());
   const scalar_type c_kkA = static_cast<scalar_type>(-0.5L * k * k * c_A);
-  sturmint::atomic::cs::apply_to_full_vectors::overlap<scalar_type>(basis,
-        x_ptr, y_ptr, c_kkA, c_y, x.n_cols());
+  sturmint::atomic::cs::apply_to_full_vectors::overlap<scalar_type>(basis, x_ptr, y_ptr,
+                                                                    c_kkA, c_y, x_cols);
   y += c_A * k * k * x;  // kinetic(x) = k^2*x-1/2 overlap(x)
 }
 
@@ -405,8 +410,7 @@ inline scalar_type KineticIntegralCore::operator()(size_t row, size_t col) const
   assert_greater(row, n_rows());
   assert_greater(col, n_cols());
 
-  const nlm_t mui = basis[row],
-              muj = basis[col];
+  const nlm_t mui = basis[row], muj = basis[col];
 
   return static_cast<scalar_type>(k * k * sturmint::atomic::cs::kinetic(mui, muj));
 }
