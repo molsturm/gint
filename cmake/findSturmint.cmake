@@ -64,6 +64,7 @@ if ("${sturmint_DIR}" STREQUAL "sturmint_DIR-NOTFOUND")
 		#
 		add_subdirectory(${PROJECT_SOURCE_DIR}/external/sturmint)
 		include_directories(${PROJECT_SOURCE_DIR}/external/sturmint/src)
+		include_directories(${PROJECT_BINARY_DIR}/external/sturmint/src)
 
 		# Extract version from CMakeLists.txt:
 		file(STRINGS "${PROJECT_SOURCE_DIR}/external/sturmint/CMakeLists.txt"
