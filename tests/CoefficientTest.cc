@@ -1,7 +1,7 @@
 #include <catch.hpp>
 #include <gint/IntegralLookup.hh>
-#include <gint/config.hh>
-#include <gint/io.hh>
+#include <gint/find_data_file.hh>
+#include <krims/FileUtils.hh>
 #include <krims/GenMap.hh>
 #include <linalgwrap/MultiVector.hh>
 #include <linalgwrap/SmallVector.hh>
@@ -16,31 +16,21 @@ using namespace krims;
 using namespace std;
 using namespace sturmint::orbital_index;
 
-MultiVector<SmallVector<real_type>> multivector_from_pointer(const real_type* data,
-                                                             size_t n_rows,
-                                                             size_t n_vectors) {
-  MultiVector<SmallVector<real_type>> mv(n_rows, n_vectors);
+void read_test_coefficients(MultiVector<SmallVector<real_type>>& mv, int n_electrons,
+                            int nmax, int lmax, int mmax) {
+  const std::string datafile = "test-coefficient-" + std::to_string(n_electrons) + "-" +
+                               std::to_string(nmax) + "-" + std::to_string(lmax) + "-" +
+                               std::to_string(mmax) + ".bin";
+  const std::string fullpath = find_data_file(datafile);
 
-  for (size_t i = 0, ij = 0; i < n_vectors; i++)
-    for (size_t j = 0; j < n_rows; j++, ij++) mv[i][j] = data[ij];
+  std::vector<real_type> buf;
+  read_binary(fullpath, buf, mv.n_elem() * mv.n_vectors());
 
-  return mv;
-}
-
-void multivector_from_vector(MultiVector<SmallVector<real_type>>& mv,
-                             const vector<real_type>& data) {
-  assert_size(mv.n_elem() * mv.n_vectors(), data.size());
-
-  for (size_t i = 0, ij = 0; i < mv.n_vectors(); i++)
-    for (size_t j = 0; j < mv.n_elem(); j++, ij++) mv[i][j] = data[ij];
-}
-
-template <typename Vector>
-static rc::Gen<Vector> gen_normed_vector(size_t n_cols) {
-  return gen::map(gen::numeric_tensor<Vector>(n_cols), [](Vector&& v) {
-    auto nrm = norm_l2(v);
-    return (0. == numcomp(nrm).failure_action(NumCompActionType::Return)) ? v : v / nrm;
-  });
+  for (size_t i = 0, ij = 0; i < mv.n_vectors(); i++) {
+    for (size_t j = 0; j < mv.n_elem(); j++, ij++) {
+      mv[i][j] = buf[ij];
+    }
+  }
 }
 
 template <typename Integral>
@@ -52,7 +42,10 @@ static std::function<void(void)> make_apply_ptr_vector_test(
     typedef typename stored_matrix_type::scalar_type scalar_type;
     typedef typename stored_matrix_type::vector_type vector_type;
     typedef linalgwrap::PtrVector<scalar_type> pv_type;
-    auto vec = *gen_normed_vector<vector_type>(integral.n_rows()).as("test vector");
+
+    auto nrow_vecgen = gen::numeric_tensor<vector_type>(integral.n_rows());
+    auto vec =
+          *gen::with_l2_norm_in_range(0, 2, std::move(nrow_vecgen)).as("test vector");
     auto ptrvec = make_as_multivector<pv_type>(vec.memptr(), vec.size());
 
     vector_type res_ref(vec.size());
@@ -93,11 +86,8 @@ TEST_CASE("Quick atomic coefficient test", "[quicktest coefficients]") {
 
   int n_orbitals = nlmbasis.size();
 
-  vector<real_type> Coefs_vector(n_electrons * nlmbasis.size());
-  read_test_coefficients(Coefs_vector, n_electrons, nmax, lmax, mmax);
-
-  MultiVector<SmallVector<real_type>> Coefs(
-        multivector_from_pointer(&Coefs_vector[0], n_orbitals, n_electrons));
+  MultiVector<SmallVector<real_type>> Coefs(n_orbitals, n_electrons, false);
+  read_test_coefficients(Coefs, n_electrons, nmax, lmax, mmax);
 
   int_lookup_type integrals(params);
 
@@ -131,13 +121,13 @@ TEST_CASE("Quick atomic coefficient test", "[quicktest coefficients]") {
 
   SECTION("Test J") {
     auto Jbbconv = static_cast<stored_matrix_type>(J_bb);
-    const NumCompAccuracyLevel apply_tol = NumCompAccuracyLevel::Default;
+    const NumCompAccuracyLevel apply_tol = NumCompAccuracyLevel::Sloppy;
     CHECK(rc::check("Test J", make_apply_ptr_vector_test(J_bb, Jbbconv, apply_tol)));
   }
 
   SECTION("Test K") {
     auto Kbbconv = static_cast<stored_matrix_type>(K_bb);
-    const NumCompAccuracyLevel apply_tol = NumCompAccuracyLevel::Default;
+    const NumCompAccuracyLevel apply_tol = NumCompAccuracyLevel::Sloppy;
     CHECK(rc::check("Test K", make_apply_ptr_vector_test(K_bb, Kbbconv, apply_tol)));
   }
 }

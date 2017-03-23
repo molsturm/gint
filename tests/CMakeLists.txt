@@ -6,7 +6,7 @@ set(GINT_TESTS_SOURCES
   QuickAtomicStatic14Test.cc
   QuickAtomicCsNaiveTest.cc
   QuickLibintTests.cc
-  #CoefficientTest.cc -- TODO missing file
+  CoefficientTest.cc
   main.cc
 )
 
