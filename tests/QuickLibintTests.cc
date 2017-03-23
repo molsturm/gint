@@ -17,7 +17,10 @@
 // along with gint. If not, see <http://www.gnu.org/licenses/>.
 //
 
+#ifdef GINT_HAVE_LIBINT
+
 #include "GaussianTestData.hh"
+#include "gint/config.hh"
 #include "integral_quick_tests.hh"
 #include <catch.hpp>
 #include <gint/IntegralLookup.hh>
@@ -36,7 +39,7 @@ TEST_CASE("Quick atomic libint test", "[quicktest libint]") {
 
   // The reference data for atomic coulomb sturmians
   // with parameters k = 1, Z = 4, n_max =  3, l_max = 2
-  typedef GaussianTestData<real_stored_mtx_type> refdata_type;
+  typedef GaussianTestData<detail::real_stored_mtx_type> refdata_type;
 
   // TODO This is bad, but to get going ....
   auto highertol = krims::NumCompConstants::change_temporary(
@@ -55,3 +58,5 @@ TEST_CASE("Quick atomic libint test", "[quicktest libint]") {
 
 }  // namespace tests
 }  // namespace gint
+
+#endif  // GINT_HAVE_LIBINT

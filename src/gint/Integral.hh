@@ -102,8 +102,8 @@ class Integral : public linalgwrap::LazyMatrix_i<StoredMatrix> {
     assert_size(x_in.n_vectors(), y_out.n_vectors());
 
     // TODO: This will go away when the new multivector interface is implemented.
-    real_multivector_type x(x_in.n_elem(), x_in.n_vectors());
-    real_multivector_type y(x_in.n_elem(), x_in.n_vectors());
+    detail::real_multivector_type x(x_in.n_elem(), x_in.n_vectors());
+    detail::real_multivector_type y(x_in.n_elem(), x_in.n_vectors());
 
     for (size_t i = 0; i < x_in.n_vectors(); i++)
       for (size_t j = 0; j < x_in.n_elem(); j++) {
@@ -166,8 +166,8 @@ class Integral : public linalgwrap::LazyMatrix_i<StoredMatrix> {
     assert_size(x_in.n_vectors(), y_out.n_vectors());
 
     // TODO: This will go away when the new multivector interface is implemented.
-    real_multivector_type x(x_in.n_elem(), x_in.n_vectors());
-    real_multivector_type y(x_in.n_elem(), x_in.n_vectors());
+    detail::real_multivector_type x(x_in.n_elem(), x_in.n_vectors());
+    detail::real_multivector_type y(x_in.n_elem(), x_in.n_vectors());
 
     for (size_t i = 0; i < x_in.n_vectors(); i++)
       for (size_t j = 0; j < x_in.n_elem(); j++) {

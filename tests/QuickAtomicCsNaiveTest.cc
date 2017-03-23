@@ -1,4 +1,5 @@
 #include "SturmianTestData.hh"
+#include "gint/config.hh"
 #include "integral_quick_tests.hh"
 #include <gint/IntegralLookup.hh>
 #include <linalgwrap/SmallVector.hh>
@@ -15,7 +16,7 @@ TEST_CASE("Quick atomic cs_naive test", "[quicktest cs_naive]") {
 
   // The reference data for atomic coulomb sturmians
   // with parameters k = 1, Z = 4, n_max =  3, l_max = 2
-  typedef SturmianTestData<real_stored_mtx_type> refdata_type;
+  typedef SturmianTestData<detail::real_stored_mtx_type> refdata_type;
 
   // Setup parameters for the integral library
   const krims::GenMap params{

@@ -1,7 +1,7 @@
 #pragma once
 #include "Integral.hh"
 #include "IntegralType.hh"
-#include "config.hh"
+#include "gint/config.hh"
 #include <krims/GenMap.hh>
 
 namespace gint {
@@ -37,8 +37,8 @@ class IntegralCollectionBase {
  public:
   constexpr static OrbitalType orbital_type = otype;
   typedef typename std::conditional<otype == OrbitalType::COMPLEX_MOLECULAR,
-                                    complex_stored_mtx_type, real_stored_mtx_type>::type
-        stored_mtx_type;
+                                    detail::complex_stored_mtx_type,
+                                    detail::real_stored_mtx_type>::type stored_mtx_type;
   typedef Integral<stored_mtx_type> integral_matrix_type;
 
   /** Lookup an integral in this collection by its integral type key

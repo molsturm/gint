@@ -11,8 +11,7 @@ IntegralCollection::IntegralCollection(const krims::GenMap& parameters)
       : k_exponent{parameters.at<double>("k_exponent")},
         Z_charge{parameters.at<double>("Z_charge")} {}
 
-Integral<real_stored_mtx_type> IntegralCollection::lookup_integral(
-      IntegralType type) const {
+Integral<stored_mtx_type> IntegralCollection::lookup_integral(IntegralType type) const {
   switch (type) {
     case IntegralType::nuclear_attraction:
       return make_integral<NuclearAttractionIntegralCore>(k_exponent, Z_charge);
@@ -27,10 +26,10 @@ Integral<real_stored_mtx_type> IntegralCollection::lookup_integral(
   }
 
   assert_dbg(false, krims::ExcNotImplemented());
-  return Integral<real_stored_mtx_type>(nullptr);
+  return Integral<stored_mtx_type>(nullptr);
 }
 
-void apply_stored_matrix(const real_stored_mtx_type& A, const_multivector_type& x,
+void apply_stored_matrix(const stored_mtx_type& A, const_multivector_type& x,
                          multivector_type& y, const linalgwrap::Transposed mode,
                          const scalar_type c_A, const scalar_type c_y) {
   // scale y by c_y or set to zero

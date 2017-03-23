@@ -14,7 +14,7 @@ namespace gint {
  *  in this implementation of gint by default. */
 void register_gint_basis_types() {
 #pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-local-typedef"
+#pragma GCC diagnostic ignored "-Wunused-local-typedefs"
   //
   // Real atomic
   //

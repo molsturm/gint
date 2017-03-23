@@ -34,8 +34,7 @@ IntegralCollection::IntegralCollection(const krims::GenMap& parameters)
                                      "since higher values are not yet implemented."));
 }
 
-Integral<real_stored_mtx_type> IntegralCollection::lookup_integral(
-      IntegralType type) const {
+Integral<stored_mtx_type> IntegralCollection::lookup_integral(IntegralType type) const {
   switch (type) {
     case IntegralType::nuclear_attraction:
       return make_integral<NuclearAttractionIntegralCore>(integral_calculator, k_exponent,
@@ -51,7 +50,7 @@ Integral<real_stored_mtx_type> IntegralCollection::lookup_integral(
   }
 
   assert_dbg(false, krims::ExcNotImplemented());
-  return Integral<real_stored_mtx_type>(nullptr);
+  return Integral<stored_mtx_type>(nullptr);
 }
 
 //

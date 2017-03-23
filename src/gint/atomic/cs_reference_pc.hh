@@ -18,9 +18,9 @@ using namespace sturmint::atomic::cs_reference_pc;
 
 // In this namespace all things are real:
 typedef real_type scalar_type;
-typedef real_stored_mtx_type stored_mtx_type;
-typedef real_multivector_type multivector_type;
-typedef const_real_multivector_type const_multivector_type;
+typedef detail::real_stored_mtx_type stored_mtx_type;
+typedef detail::real_multivector_type multivector_type;
+typedef detail::const_real_multivector_type const_multivector_type;
 
 class OverlapIntegralCore;
 class NuclearAttractionIntegralCore;
@@ -61,7 +61,7 @@ class IntegralCollection final
    */
   IntegralCollection(const krims::GenMap& parameters);
 
-  /** Lookup an integral by its type */
+  using base_type::lookup_integral;
   integral_matrix_type lookup_integral(IntegralType type) const override;
 
   const std::string& basis_id() const override { return id; }
@@ -79,9 +79,9 @@ class IntegralCollection final
 // Integral Cores
 //
 
-class NuclearAttractionIntegralCore : public IntegralCoreBase<real_stored_mtx_type> {
+class NuclearAttractionIntegralCore : public IntegralCoreBase<stored_mtx_type> {
  public:
-  typedef IntegralCoreBase<real_stored_mtx_type> base_type;
+  typedef IntegralCoreBase<stored_mtx_type> base_type;
   typedef typename base_type::scalar_type scalar_type;
 
   const real_type k, Z;
@@ -126,10 +126,10 @@ class NuclearAttractionIntegralCore : public IntegralCoreBase<real_stored_mtx_ty
   const sturmint::atomic::cs_reference_pc::Atomic& m_integral_calculator;
 };
 
-class OverlapIntegralCore : public IntegralCoreBase<real_stored_mtx_type> {
+class OverlapIntegralCore : public IntegralCoreBase<stored_mtx_type> {
  public:
-  typedef IntegralCoreBase<real_stored_mtx_type> base_type;
-  typedef real_stored_mtx_type stored_matrix_type;
+  typedef IntegralCoreBase<stored_mtx_type> base_type;
+  typedef stored_mtx_type stored_matrix_type;
 
   /** \brief Multiplication with a stored matrix */
   // TODO: Change basis order from n,l,m to m,l,n to make multiplication
@@ -177,10 +177,10 @@ class OverlapIntegralCore : public IntegralCoreBase<real_stored_mtx_type> {
   const Atomic& m_integral_calculator;
 };
 
-class KineticIntegralCore : public IntegralCoreBase<real_stored_mtx_type> {
+class KineticIntegralCore : public IntegralCoreBase<stored_mtx_type> {
  public:
-  typedef IntegralCoreBase<real_stored_mtx_type> base_type;
-  typedef real_stored_mtx_type stored_matrix_type;
+  typedef IntegralCoreBase<stored_mtx_type> base_type;
+  typedef stored_mtx_type stored_matrix_type;
 
   real_type k;  // k-exponent
   const vector<nlm_t>& basis;
@@ -220,10 +220,10 @@ class KineticIntegralCore : public IntegralCoreBase<real_stored_mtx_type> {
   const Atomic& m_integral_calculator;
 };
 
-class ERICore : public IntegralCoreBase<real_stored_mtx_type> {
+class ERICore : public IntegralCoreBase<stored_mtx_type> {
  public:
-  typedef IntegralCoreBase<real_stored_mtx_type> base_type;
-  typedef real_stored_mtx_type stored_matrix_type;
+  typedef IntegralCoreBase<stored_mtx_type> base_type;
+  typedef stored_mtx_type stored_matrix_type;
   typedef typename stored_mtx_type::vector_type vector_type;
   typedef const linalgwrap::MultiVector<const vector_type> coefficients_type;
   typedef std::shared_ptr<coefficients_type> coefficients_ptr_type;

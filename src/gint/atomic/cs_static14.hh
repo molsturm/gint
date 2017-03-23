@@ -13,16 +13,16 @@ namespace cs_static14 {
 
 // In this namespace all things are real:
 typedef real_type scalar_type;
-typedef real_stored_mtx_type stored_mtx_type;
-typedef real_multivector_type multivector_type;
-typedef const_real_multivector_type const_multivector_type;
+typedef detail::real_stored_mtx_type stored_mtx_type;
+typedef detail::real_multivector_type multivector_type;
+typedef detail::const_real_multivector_type const_multivector_type;
 
 class OverlapIntegralCore;
 class NuclearAttractionIntegralCore;
 class KineticIntegralCore;
 class ERICore;
 
-void apply_stored_matrix(const real_stored_mtx_type& A, const_multivector_type& x,
+void apply_stored_matrix(const stored_mtx_type& A, const_multivector_type& x,
                          multivector_type& y,
                          const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
                          const scalar_type c_A = 1, const scalar_type c_y = 0);
@@ -68,11 +68,10 @@ class IntegralCollection final
 //
 // Integral cores
 //
-class NuclearAttractionIntegralCore final
-      : public IntegralCoreBase<real_stored_mtx_type> {
+class NuclearAttractionIntegralCore final : public IntegralCoreBase<stored_mtx_type> {
  public:
-  typedef real_stored_mtx_type stored_mtx_type;
-  typedef IntegralCoreBase<real_stored_mtx_type> base_type;
+  typedef stored_mtx_type stored_mtx_type;
+  typedef IntegralCoreBase<stored_mtx_type> base_type;
   typedef real_type scalar_type;
 
   const real_type k, Z;
@@ -126,9 +125,9 @@ class NuclearAttractionIntegralCore final
   NuclearAttractionIntegralCore(real_type k, real_type Z) : k(k), Z(Z) {}
 };
 
-class OverlapIntegralCore final : public IntegralCoreBase<real_stored_mtx_type> {
+class OverlapIntegralCore final : public IntegralCoreBase<stored_mtx_type> {
  public:
-  typedef real_stored_mtx_type stored_mtx_type;
+  typedef stored_mtx_type stored_mtx_type;
   typedef IntegralCoreBase<stored_mtx_type> base_type;
   typedef real_type scalar_type;
 
@@ -184,9 +183,9 @@ class OverlapIntegralCore final : public IntegralCoreBase<real_stored_mtx_type> 
   }
 };
 
-class KineticIntegralCore final : public IntegralCoreBase<real_stored_mtx_type> {
+class KineticIntegralCore final : public IntegralCoreBase<stored_mtx_type> {
  public:
-  typedef real_stored_mtx_type stored_mtx_type;
+  typedef stored_mtx_type stored_mtx_type;
   typedef IntegralCoreBase<stored_mtx_type> base_type;
   typedef real_type scalar_type;
 
@@ -238,9 +237,9 @@ class KineticIntegralCore final : public IntegralCoreBase<real_stored_mtx_type> 
   KineticIntegralCore(real_type k) : k(k) {}
 };
 
-class ERICore final : public IntegralCoreBase<real_stored_mtx_type> {
+class ERICore final : public IntegralCoreBase<stored_mtx_type> {
  public:
-  typedef real_stored_mtx_type stored_mtx_type;
+  typedef stored_mtx_type stored_mtx_type;
   typedef IntegralCoreBase<stored_mtx_type> base_type;
   typedef typename stored_mtx_type::vector_type vector_type;
   typedef real_type scalar_type;
