@@ -15,9 +15,8 @@ set(GINT_SOURCES
   gaussian/libint.cc
 )
 
-# Dump the current version as an include file.
-include_krims_cmake_module(WriteVersionHeader)
-write_version_header("${gint_BINARY_DIR}/src/gint/version_defs.hh")
+# Write the config file config.hh (into the binary dir)
+configure_file("config.hh.in" "config.hh")
 
 # Add the libraries for Debug and Release builds:
 drb_add_library(gint
@@ -52,7 +51,7 @@ install(DIRECTORY .
 	COMPONENT devel
 	FILES_MATCHING PATTERN "*.hh"
 )
-install(FILES "${gint_BINARY_DIR}/src/gint/version_defs.hh"
+install(FILES "${gint_BINARY_DIR}/src/gint/config.hh"
 	DESTINATION "include/gint"
 	COMPONENT devel
 )

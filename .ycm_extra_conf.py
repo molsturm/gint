@@ -66,6 +66,7 @@ flags = [
     # To suppress errors shown here, use "-isystem" 
     # instead of "-I"
     '-I', 'src',
+    '-I', 'build/src',
     '-isystem', 'external/krims/src',
     '-isystem', 'external/linalgwrap/src',
     '-isystem', 'external/sturmint/src',

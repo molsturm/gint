@@ -70,6 +70,9 @@ include(cmake/setup_dependencies.cmake)
 # setup optional dependencies and features.
 include(cmake/setup_optional.cmake)
 
+# Setup download and installation of static data
+include(cmake/static_data.cmake)
+
 ##########################################################################
 # Pass on to subdirectories:
 

@@ -4,13 +4,17 @@
 #include <linalgwrap/Base/Interfaces/MutableMemoryVector_i.hh>
 
 namespace gint {
-
+namespace detail {
+//
+// Types
+//
 typedef double real_type;
 typedef std::complex<real_type> complex_type;
 
 typedef linalgwrap::ArmadilloMatrix<real_type> real_stored_mtx_type;
 typedef linalgwrap::ArmadilloMatrix<complex_type> complex_stored_mtx_type;
 
+// TODO Temporary:
 // typedef linalgwrap::MultiVector<const linalgwrap::MutableMemoryVector_i<real_type> >
 // const_real_multivector_type;
 // typedef linalgwrap::MultiVector<linalgwrap::MutableMemoryVector_i<real_type> >
@@ -18,4 +22,24 @@ typedef linalgwrap::ArmadilloMatrix<complex_type> complex_stored_mtx_type;
 typedef const real_stored_mtx_type const_real_multivector_type;
 typedef real_stored_mtx_type real_multivector_type;
 
+//
+// Directories
+//
+constexpr const char* data_install_dir = "@DATA_INSTALL_DIR@";
+constexpr const char* data_download_dir = "@PROJECT_DATA_DOWNLOAD_DIR@";
+
+//
+// Version
+//
+/* clang-format off */
+constexpr int version_major {@PROJECT_VERSION_MAJOR@};
+constexpr int version_minor {@PROJECT_VERSION_MINOR@};
+constexpr int version_patch {@PROJECT_VERSION_PATCH@};
+/* clang-format on */
+
+}  // namespace detail
+
+// Import real and complex type into namespace:
+using detail::real_type;
+using detail::complex_type;
 }  // namespace gint
