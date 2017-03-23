@@ -22,6 +22,8 @@ TEST_CASE("Quick atomic cs_dummy test", "[quicktest cs_dummy]") {
         {"k_exponent", refdata_type::k_exp},
         {"Z_charge", refdata_type::Z},
         {"n_max", 3},
+        {"l_max", 2},
+        {"m_max", 2},
         {"basis_type", "atomic/cs_dummy"},
   };
 
