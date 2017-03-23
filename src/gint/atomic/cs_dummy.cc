@@ -19,9 +19,8 @@ IntegralCollection::IntegralCollection(const krims::GenMap& parameters)
 
     basis = nlmCollection(nmax, lmax, mmax);
 
-    repulsiondata_filename = sturmint::DATA_ROOT + std::string("/repulsiondata-nlm-") +
-                             to_string(nmax) + "-" + to_string(lmax) + "-" +
-                             to_string(mmax) + ".bin";
+    repulsiondata_filename = std::string("repulsiondata-nlm-") + to_string(nmax) + "-" +
+                             to_string(lmax) + "-" + to_string(mmax) + ".bin";
   }
   integral_calculator = sturmint::atomic::cs_dummy::Atomic(basis, repulsiondata_filename);
 }
