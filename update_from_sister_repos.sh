@@ -12,6 +12,7 @@ update_file "krims"       "cmake/findCatch.cmake" || exit 1
 update_file "linalgwrap"  "cmake/findKrims.cmake" || exit 1
 update_file "gscf"        "cmake/findLinalgwrap.cmake" || exit 1
 update_file "linalgwrap"  "cmake/IncludeKrimsCmakeModule.cmake" || exit 1
+update_file "sturmint"    "cmake/static_data.cmake" || exit 1
 
 update_file "krims" "templates/cc.template" "keep_header" || exit 1
 update_file "krims" "templates/cmake.template" "keep_header" || exit 1

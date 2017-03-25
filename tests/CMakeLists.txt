@@ -30,6 +30,8 @@ drb_target_link_libraries(DEBUG   gint_tests
 drb_target_link_libraries(RELEASE gint_tests
 	${gint_RELEASE_TARGET} ${GINT_DEPENDENCIES_RELEASE})
 
+drb_add_dependencies(ALL  gint_tests  ${DATA_DOWN_TARGET})
+
 # Add the test executables
 FOREACH(target ${gint_tests_TARGETS})
 	add_test(NAME ${target} COMMAND ${target})

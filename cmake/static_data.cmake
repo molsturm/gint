@@ -24,21 +24,16 @@
 
 include_krims_cmake_module(DataFiles)
 
-#
-# Download external data required
-#
+# The name of the target to download the data
+set(DATA_DOWN_TARGET "${PROJECT_NAME}-download-data")
 
-# TODO
+# Download the data tarball and unpack it into the data directory
+set(TARHASH 40e1d61e111adec23ba4d05d260a79c3e66fa1635eff6980e092ccaf02b83133)
+data_download_target(${DATA_DOWN_TARGET}
+	"https://get.molsturm.org/data_tar/${PROJECT_NAME}/${TARHASH}.tar.gz"
+	SHA256=${TARHASH}
+)
+unset(TARHASH)
 
-#
-# Install data
-#
-
-# TODO
-
-#install(DIRECTORY .
-#	DESTINATION "${DATA_INSTALL_DIR}"
-#	COMPONENT data
-#	FILES_MATCHING PATTERN "*.bin"
-#)
-
+# Install the data to the ${PROJECT_NAME}_DATA_INSTALL_DIR
+install_data()

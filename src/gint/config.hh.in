@@ -25,8 +25,8 @@ typedef real_stored_mtx_type real_multivector_type;
 //
 // Directories
 //
-constexpr const char* data_install_dir = "@DATA_INSTALL_DIR@";
-constexpr const char* data_download_dir = "@PROJECT_DATA_DOWNLOAD_DIR@";
+constexpr const char* data_install_dir = "@gint_DATA_INSTALL_DIR@";
+constexpr const char* data_download_dir = "@gint_DATA_DOWNLOAD_DIR@";
 
 //
 // Version
