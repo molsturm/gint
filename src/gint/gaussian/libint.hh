@@ -17,9 +17,9 @@ namespace libint {
 
 // In this namespace all things are real:
 typedef real_type scalar_type;
-typedef real_stored_mtx_type stored_mtx_type;
-typedef real_multivector_type multivector_type;
-typedef const_real_multivector_type const_multivector_type;
+typedef detail::real_stored_mtx_type stored_mtx_type;
+typedef detail::real_multivector_type multivector_type;
+typedef detail::const_real_multivector_type const_multivector_type;
 
 class OverlapIntegralCore;
 class NuclearAttractionIntegralCore;
@@ -121,9 +121,9 @@ class IntegralCollection final
 //
 
 /** Base class for libint integral cores */
-class LibintIntegralCoreBase : public IntegralCoreBase<real_stored_mtx_type> {
+class LibintIntegralCoreBase : public IntegralCoreBase<stored_mtx_type> {
  public:
-  typedef IntegralCoreBase<real_stored_mtx_type> base_type;
+  typedef IntegralCoreBase<stored_mtx_type> base_type;
   typedef typename base_type::scalar_type scalar_type;
 
   /** Constructor
@@ -203,7 +203,7 @@ class LibintIntegralCoreBase : public IntegralCoreBase<real_stored_mtx_type> {
 class OneElecIntegralCore final : public LibintIntegralCoreBase {
  public:
   typedef LibintIntegralCoreBase base_type;
-  typedef IntegralCoreBase<real_stored_mtx_type> core_base_type;
+  typedef IntegralCoreBase<stored_mtx_type> core_base_type;
 
   /** Constructor
    *
@@ -246,8 +246,8 @@ class OneElecIntegralCore final : public LibintIntegralCoreBase {
 class ERICore final : public LibintIntegralCoreBase {
  public:
   typedef LibintIntegralCoreBase base_type;
-  typedef IntegralCoreBase<real_stored_mtx_type> core_base_type;
-  typedef real_stored_mtx_type stored_matrix_type;
+  typedef IntegralCoreBase<stored_mtx_type> core_base_type;
+  typedef stored_mtx_type stored_matrix_type;
   typedef typename stored_mtx_type::vector_type vector_type;
   typedef const linalgwrap::MultiVector<const vector_type> coefficients_type;
   typedef std::shared_ptr<coefficients_type> coefficients_ptr_type;

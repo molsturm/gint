@@ -70,8 +70,7 @@ IntegralCollection::IntegralCollection(const krims::GenMap& parameters)
   }
 }
 
-Integral<real_stored_mtx_type> IntegralCollection::lookup_integral(
-      IntegralType type) const {
+Integral<stored_mtx_type> IntegralCollection::lookup_integral(IntegralType type) const {
   using libint2::Operator;
 
   switch (type) {
@@ -88,7 +87,7 @@ Integral<real_stored_mtx_type> IntegralCollection::lookup_integral(
   }
 
   assert_dbg(false, krims::ExcNotImplemented());
-  return Integral<real_stored_mtx_type>(nullptr);
+  return Integral<stored_mtx_type>(nullptr);
 }
 
 //

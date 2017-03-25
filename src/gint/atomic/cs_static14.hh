@@ -13,9 +13,9 @@ namespace cs_static14 {
 
 // In this namespace all things are real:
 typedef real_type scalar_type;
-typedef detail::real_stored_mtx_type stored_mtx_type;
-typedef detail::real_multivector_type multivector_type;
-typedef detail::const_real_multivector_type const_multivector_type;
+typedef gint::detail::real_stored_mtx_type stored_mtx_type;
+typedef gint::detail::real_multivector_type multivector_type;
+typedef gint::detail::const_real_multivector_type const_multivector_type;
 
 class OverlapIntegralCore;
 class NuclearAttractionIntegralCore;
