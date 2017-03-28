@@ -88,11 +88,14 @@ function(SETUP_LIBINT2_FOR_EXTERNAL_BUILD TARGET LIBINT_MAX_AM)
 		"--enable-generic-code"
 	)
 
-	if (BUILD_SHARED_LIBS)
+	# TODO I do not quite understand why, but we seem to need this regardles
+	#      of whether we end up linking statically or dynamically for the
+	#      test executables to link without a relocation error
+	#if (BUILD_SHARED_LIBS)
 		# Enable position-independent code such that we can link libint
 		# into a shared libgint.so object.
 		set (CONFIGURE_OPTS "--with-pic" ${CONFIGURE_OPTS})
-	endif()
+	#endif()
 
 	include(DefaultExternalProjects)
 	setup_autotools_project(libint
@@ -110,9 +113,9 @@ function(SETUP_LIBINT2_FOR_EXTERNAL_BUILD TARGET LIBINT_MAX_AM)
 	set(LINKFILE "${install_dir}/lib/libint2.a")
 
 	# Setup target as an external imported library and set the include dir.
-	add_library(${TARGET} INTERFACE IMPORTED GLOBAL)
+	add_library(${TARGET} STATIC IMPORTED GLOBAL)
 	set_target_properties(${TARGET} PROPERTIES
-		INTERFACE_LINK_LIBRARIES "${LINKFILE}"
+		IMPORTED_LOCATION "${LINKFILE}"
 	)
 	include_directories(SYSTEM "${install_dir}/include")
 

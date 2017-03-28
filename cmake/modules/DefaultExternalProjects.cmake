@@ -43,14 +43,32 @@ function(setup_autotools_project NAME)
 	#
 	# The other options allow to define two checkpoint files. Make install
 	# will only be called if CHECKPOINT_FROM is newer than CHECKPOINT_TO
+	# CHECKPOINT_TO is also added as a byproduct to the ExternalProject_Add
+	# call if no byproducts are specified.
 	#
 	# Note: This order is important!
 	#
 
-	set(options )
+	set(options)
 	set(oneValueArgs CHECKPOINT_TO CHECKPOINT_FROM)
-	set(multiValueArgs CONFIGURE_OPTS)
+	set(multiValueArgs CONFIGURE_OPTS BUILD_BYPRODUCTS)
 	cmake_parse_arguments(SAP "${options}" "${oneValueArgs}" "${multiValueArgs}"  ${ARGN})
+
+	# Set byproducts if not already specified
+	if ("${SAP_BUILD_BYPRODUCTS}" STREQUAL "")
+		set(SAP_BUILD_BYPRODUCTS "${SAP_CHECKPOINT_TO}")
+	endif()
+
+	if (NOT "${SAP_BUILD_BYPRODUCTS}" STREQUAL "")
+		if (CMAKE_VERSION VERSION_GREATER 3.2)
+			# The BUILD_BYPRODUCTS flag is only understood from 3.2 on
+			set(BUILD_BYPRODUCT_OPTIONS
+				"BUILD_BYPRODUCTS" ${SAP_BUILD_BYPRODUCTS})
+		endif()
+	elseif(CMAKE_GENERATOR STREQUAL "Ninja")
+		message(FATAL_ERROR "BUILD_BYPRODUCTS is required if Ninja is used as a generator! \
+Either specify CHECKPOINT_TO or BUILD_BYPRODUCTS in the call")
+	endif()
 
 	# Set to the default special values, which mean that this feature is ignored
 	if ("${SAP_CHECKPOINT_TO}" STREQUAL "")
@@ -66,7 +84,7 @@ function(setup_autotools_project NAME)
 	endif()
 
 	set(configure_wrap "${PROJECT_BINARY_DIR}/scripts/autotools_configure.sh")
-	file(WRITE ${configure_wrap} 
+	file(WRITE ${configure_wrap}
 "#!/bin/sh
 
 # Script which calls configure in the current directory
@@ -160,18 +178,19 @@ exit 0
 	# TODO The problem with this behaviour is that it can lead to double-parallelisation:
 	#      Both the building of the external project and of the outer cmake build try to access
 	#      all cpus.
-	option(DEP_BUILD_PARALLEL_${NAME} "Build external project ${NAME} in parallel." ON)
-
-	# Determine the processor count for parallel build
 	include(ProcessorCount)
 	ProcessorCount(NCPU)
-	if (NOT NCPU EQUAL 0 AND ${NAME}_BUILD_PARALLEL)
-		set(MAKE_ARGS -j ${NCPU})
+	set(DEP_BUILD_${NAME}_NJOBS ${NCPU} CACHE STRING
+		"Build external project ${NAME} in parallel with this number of jobs (1 or 0 disables parallel build)")
+
+	if ("${DEP_BUILD_${NAME}_NJOBS}" GREATER 1)
+		set(MAKE_ARGS -j ${DEP_BUILD_${NAME}_NJOBS})
 	endif()
 
 	ExternalProject_Add(${NAME}
 		PREFIX "${PROJECT_BINARY_DIR}/external/${NAME}"
 		${UPDATE_OPTIONS}
+		${BUILD_BYPRODUCT_OPTIONS}
 		#
 		CONFIGURE_COMMAND /bin/sh ${configure_wrap} <SOURCE_DIR> --prefix=<INSTALL_DIR> ${SAP_CONFIGURE_OPTS}
 		BUILD_COMMAND make ${MAKE_ARGS}
