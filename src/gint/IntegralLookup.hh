@@ -16,9 +16,9 @@ template <OrbitalType otype>
 class IntegralLookup {
  public:
   typedef IntegralCollectionBase<otype> integral_collection_type;
-  typedef typename integral_collection_type::stored_mtx_type stored_mtx_type;
-  typedef typename stored_mtx_type::scalar_type scalar_type;
-  typedef Integral<stored_mtx_type> integral_type;
+  typedef typename integral_collection_type::stored_matrix_type stored_matrix_type;
+  typedef typename stored_matrix_type::scalar_type scalar_type;
+  typedef Integral<stored_matrix_type> integral_type;
 
   static_assert(!krims::IsComplexNumber<scalar_type>::value ||
                       (otype == OrbitalType::COMPLEX_MOLECULAR),

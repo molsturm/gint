@@ -12,17 +12,14 @@ namespace atomic {
 namespace cs_static14 {
 
 // In this namespace all things are real:
-typedef real_type scalar_type;
-typedef gint::detail::real_stored_mtx_type stored_mtx_type;
-typedef gint::detail::real_multivector_type multivector_type;
-typedef gint::detail::const_real_multivector_type const_multivector_type;
+using namespace gint::real_valued;
 
 class OverlapIntegralCore;
 class NuclearAttractionIntegralCore;
 class KineticIntegralCore;
 class ERICore;
 
-void apply_stored_matrix(const stored_mtx_type& A, const_multivector_type& x,
+void apply_stored_matrix(const stored_matrix_type& A, const const_multivector_type& x,
                          multivector_type& y,
                          const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
                          const scalar_type c_A = 1, const scalar_type c_y = 0);
@@ -48,7 +45,7 @@ class IntegralCollection final
    */
   IntegralCollection(const krims::GenMap& parameters);
 
-  /** Lookup an integral by its type */
+  using base_type::lookup_integral;
   integral_matrix_type lookup_integral(IntegralType type) const override;
 
   /** Obtain the id string of the collection / basis type */
@@ -68,36 +65,40 @@ class IntegralCollection final
 //
 // Integral cores
 //
-class NuclearAttractionIntegralCore final : public IntegralCoreBase<stored_mtx_type> {
+class NuclearAttractionIntegralCore final : public IntegralCoreBase<stored_matrix_type> {
  public:
-  typedef stored_mtx_type stored_mtx_type;
-  typedef IntegralCoreBase<stored_mtx_type> base_type;
+  typedef stored_matrix_type stored_matrix_type;
+  typedef IntegralCoreBase<stored_matrix_type> base_type;
   typedef real_type scalar_type;
 
   const real_type k, Z;
 
   /** \brief Number of rows of the matrix */
-  size_t n_rows() const override { return detail::Static14Data<stored_mtx_type>::nbas; }
+  size_t n_rows() const override {
+    return detail::Static14Data<stored_matrix_type>::nbas;
+  }
 
   /** \brief Number of columns of the matrix  */
-  size_t n_cols() const override { return detail::Static14Data<stored_mtx_type>::nbas; }
+  size_t n_cols() const override {
+    return detail::Static14Data<stored_matrix_type>::nbas;
+  }
 
   /** \brief return an element of the matrix \f$ {V_0}_{\mu',\mu} = -Zk/n
    * \delta_{\mu',\mu} \f$ */
   scalar_type operator()(size_t row, size_t col) const override {
-    return -k * Z * detail::Static14Data<stored_mtx_type>::v0_bb_base(row, col);
+    return -k * Z * detail::Static14Data<stored_matrix_type>::v0_bb_base(row, col);
   }
 
   bool has_transpose_operation_mode() const override {
-    return detail::Static14Data<stored_mtx_type>::v0_bb_base
+    return detail::Static14Data<stored_matrix_type>::v0_bb_base
           .has_transpose_operation_mode();
   }
 
   // c_A * A * x + c_y * y
-  void apply(const_multivector_type& x, multivector_type& y,
+  void apply(const const_multivector_type& x, multivector_type& y,
              const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
              const scalar_type c_A = 1, const scalar_type c_y = 0) const override {
-    apply_stored_matrix(detail::Static14Data<stored_mtx_type>::v0_bb_base, x, y, mode,
+    apply_stored_matrix(detail::Static14Data<stored_matrix_type>::v0_bb_base, x, y, mode,
                         -k * Z * c_A, c_y);
   }
 
@@ -125,42 +126,46 @@ class NuclearAttractionIntegralCore final : public IntegralCoreBase<stored_mtx_t
   NuclearAttractionIntegralCore(real_type k, real_type Z) : k(k), Z(Z) {}
 };
 
-class OverlapIntegralCore final : public IntegralCoreBase<stored_mtx_type> {
+class OverlapIntegralCore final : public IntegralCoreBase<stored_matrix_type> {
  public:
-  typedef stored_mtx_type stored_mtx_type;
-  typedef IntegralCoreBase<stored_mtx_type> base_type;
+  typedef stored_matrix_type stored_matrix_type;
+  typedef IntegralCoreBase<stored_matrix_type> base_type;
   typedef real_type scalar_type;
 
   /** \brief Number of rows of the matrix */
-  size_t n_rows() const override { return detail::Static14Data<stored_mtx_type>::nbas; }
+  size_t n_rows() const override {
+    return detail::Static14Data<stored_matrix_type>::nbas;
+  }
 
   /** \brief Number of columns of the matrix  */
-  size_t n_cols() const override { return detail::Static14Data<stored_mtx_type>::nbas; }
+  size_t n_cols() const override {
+    return detail::Static14Data<stored_matrix_type>::nbas;
+  }
 
   /** \brief return an element of the matrix \f$ {S}_{\mu',\mu} */
   scalar_type operator()(size_t row, size_t col) const override {
-    return detail::Static14Data<stored_mtx_type>::s_bb(row, col);
+    return detail::Static14Data<stored_matrix_type>::s_bb(row, col);
   }
 
   bool has_transpose_operation_mode() const override {
-    return detail::Static14Data<stored_mtx_type>::s_bb.has_transpose_operation_mode();
+    return detail::Static14Data<stored_matrix_type>::s_bb.has_transpose_operation_mode();
   }
 
   bool has_apply_inverse() const override { return true; }
 
-  void apply(const_multivector_type& x, multivector_type& y,
+  void apply(const const_multivector_type& x, multivector_type& y,
              const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
              const scalar_type c_A = 1, const scalar_type c_y = 0) const override {
-    apply_stored_matrix(detail::Static14Data<stored_mtx_type>::s_bb, x, y, mode, c_A,
+    apply_stored_matrix(detail::Static14Data<stored_matrix_type>::s_bb, x, y, mode, c_A,
                         c_y);
   }
 
-  void apply_inverse(const_multivector_type& x, multivector_type& y,
+  void apply_inverse(const const_multivector_type& x, multivector_type& y,
                      const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
                      const scalar_type c_A = 1,
                      const scalar_type c_y = 0) const override {
-    apply_stored_matrix(detail::Static14Data<stored_mtx_type>::sinv_bb, x, y, mode, c_A,
-                        c_y);
+    apply_stored_matrix(detail::Static14Data<stored_matrix_type>::sinv_bb, x, y, mode,
+                        c_A, c_y);
   }
 
   /** Extract a block of a matrix and (optionally) add it to
@@ -183,34 +188,38 @@ class OverlapIntegralCore final : public IntegralCoreBase<stored_mtx_type> {
   }
 };
 
-class KineticIntegralCore final : public IntegralCoreBase<stored_mtx_type> {
+class KineticIntegralCore final : public IntegralCoreBase<stored_matrix_type> {
  public:
-  typedef stored_mtx_type stored_mtx_type;
-  typedef IntegralCoreBase<stored_mtx_type> base_type;
+  typedef stored_matrix_type stored_matrix_type;
+  typedef IntegralCoreBase<stored_matrix_type> base_type;
   typedef real_type scalar_type;
 
   const real_type k;
 
   /** \brief Number of rows of the matrix */
-  size_t n_rows() const override { return detail::Static14Data<stored_mtx_type>::nbas; }
+  size_t n_rows() const override {
+    return detail::Static14Data<stored_matrix_type>::nbas;
+  }
 
   /** \brief Number of columns of the matrix  */
-  size_t n_cols() const override { return detail::Static14Data<stored_mtx_type>::nbas; }
+  size_t n_cols() const override {
+    return detail::Static14Data<stored_matrix_type>::nbas;
+  }
 
   /** \brief return an element of the matrix \f$ {T}_{\mu',\mu} */
   scalar_type operator()(size_t row, size_t col) const override {
-    return k * k * detail::Static14Data<stored_mtx_type>::t_bb_base(row, col);
+    return k * k * detail::Static14Data<stored_matrix_type>::t_bb_base(row, col);
   }
 
   bool has_transpose_operation_mode() const override {
-    return detail::Static14Data<stored_mtx_type>::t_bb_base
+    return detail::Static14Data<stored_matrix_type>::t_bb_base
           .has_transpose_operation_mode();
   }
 
-  void apply(const_multivector_type& x, multivector_type& y,
+  void apply(const const_multivector_type& x, multivector_type& y,
              const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
              const scalar_type c_A = 1, const scalar_type c_y = 0) const override {
-    apply_stored_matrix(detail::Static14Data<stored_mtx_type>::t_bb_base, x, y, mode,
+    apply_stored_matrix(detail::Static14Data<stored_matrix_type>::t_bb_base, x, y, mode,
                         k * k * c_A, c_y);
   }
 
@@ -237,11 +246,11 @@ class KineticIntegralCore final : public IntegralCoreBase<stored_mtx_type> {
   KineticIntegralCore(real_type k) : k(k) {}
 };
 
-class ERICore final : public IntegralCoreBase<stored_mtx_type> {
+class ERICore final : public IntegralCoreBase<stored_matrix_type> {
  public:
-  typedef stored_mtx_type stored_mtx_type;
-  typedef IntegralCoreBase<stored_mtx_type> base_type;
-  typedef typename stored_mtx_type::vector_type vector_type;
+  typedef stored_matrix_type stored_matrix_type;
+  typedef IntegralCoreBase<stored_matrix_type> base_type;
+  typedef typename stored_matrix_type::vector_type vector_type;
   typedef real_type scalar_type;
   typedef const linalgwrap::MultiVector<const vector_type> coefficients_type;
   typedef std::shared_ptr<coefficients_type> coefficients_ptr_type;
@@ -256,10 +265,14 @@ class ERICore final : public IntegralCoreBase<stored_mtx_type> {
   coefficients_ptr_type coefficients_occupied_ptr;
 
   /** \brief Number of rows of the matrix */
-  size_t n_rows() const override { return detail::Static14Data<stored_mtx_type>::nbas; }
+  size_t n_rows() const override {
+    return detail::Static14Data<stored_matrix_type>::nbas;
+  }
 
   /** \brief Number of columns of the matrix  */
-  size_t n_cols() const override { return detail::Static14Data<stored_mtx_type>::nbas; }
+  size_t n_cols() const override {
+    return detail::Static14Data<stored_matrix_type>::nbas;
+  }
 
   /** \brief return an element of the matrix \f$ {J}_{\mu',\mu} \f$ or \f$
    * {k}_{\mu',\mu} \f$. */
@@ -267,7 +280,7 @@ class ERICore final : public IntegralCoreBase<stored_mtx_type> {
 
   bool has_transpose_operation_mode() const override { return true; }
 
-  void apply(const_multivector_type& x, multivector_type& y,
+  void apply(const const_multivector_type& x, multivector_type& y,
              const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
              const scalar_type c_A = 1, const scalar_type c_y = 0) const override;
 

@@ -19,8 +19,8 @@ class IntegralCoreBase {
 
   // TODO for now (this will change when the new multivectors
   //      are implemented
-  using multivector_type = detail::real_multivector_type;
-  using const_multivector_type = detail::const_real_multivector_type;
+  using multivector_type = real_valued::multivector_type;
+  using const_multivector_type = real_valued::const_multivector_type;
 
   IntegralCoreBase() = default;
   IntegralCoreBase(const IntegralCoreBase&) = default;
@@ -64,7 +64,7 @@ class IntegralCoreBase {
    */
   virtual void apply(
         // NB: This will change when the new multivector interface is implemented.
-        const_multivector_type& x, multivector_type& y,
+        const const_multivector_type& x, multivector_type& y,
         const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
         const scalar_type c_this = 1, const scalar_type c_y = 0) const = 0;
 
@@ -76,7 +76,7 @@ class IntegralCoreBase {
    * See LazyMatrixExpression for more details
    */
   virtual void apply_inverse(
-        const_multivector_type& /*x*/, multivector_type& /*y*/,
+        const const_multivector_type& /*x*/, multivector_type& /*y*/,
         const linalgwrap::Transposed /*mode*/ = linalgwrap::Transposed::None,
         const scalar_type /*c_this*/ = 1, const scalar_type /*c_y*/ = 0) const {
     assert_throw(false, krims::ExcDisabled("The apply_inverse function is in general "

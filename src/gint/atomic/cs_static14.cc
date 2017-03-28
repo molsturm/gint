@@ -11,7 +11,8 @@ IntegralCollection::IntegralCollection(const krims::GenMap& parameters)
       : k_exponent{parameters.at<double>("k_exponent")},
         Z_charge{parameters.at<double>("Z_charge")} {}
 
-Integral<stored_mtx_type> IntegralCollection::lookup_integral(IntegralType type) const {
+Integral<stored_matrix_type> IntegralCollection::lookup_integral(
+      IntegralType type) const {
   switch (type) {
     case IntegralType::nuclear_attraction:
       return make_integral<NuclearAttractionIntegralCore>(k_exponent, Z_charge);
@@ -26,10 +27,10 @@ Integral<stored_mtx_type> IntegralCollection::lookup_integral(IntegralType type)
   }
 
   assert_dbg(false, krims::ExcNotImplemented());
-  return Integral<stored_mtx_type>(nullptr);
+  return Integral<stored_matrix_type>(nullptr);
 }
 
-void apply_stored_matrix(const stored_mtx_type& A, const_multivector_type& x,
+void apply_stored_matrix(const stored_matrix_type& A, const const_multivector_type& x,
                          multivector_type& y, const linalgwrap::Transposed mode,
                          const scalar_type c_A, const scalar_type c_y) {
   // scale y by c_y or set to zero
@@ -65,8 +66,8 @@ typename ERICore::scalar_type ERICore::operator()(size_t a, size_t b) const {
   // where a and c are the same centre, so are b and d
 
   // Repulsion integrals indexed in shell-pairs
-  const auto& i_bbbb = detail::Static14Data<stored_mtx_type>::i_bbbb_base;
-  const size_t nbas = detail::Static14Data<stored_mtx_type>::nbas;
+  const auto& i_bbbb = detail::Static14Data<stored_matrix_type>::i_bbbb_base;
+  const size_t nbas = detail::Static14Data<stored_matrix_type>::nbas;
 
   assert_dbg(coefficients_occupied_ptr != nullptr, krims::ExcInvalidPointer());
 
@@ -104,10 +105,10 @@ typename ERICore::scalar_type ERICore::operator()(size_t a, size_t b) const {
   return mat_ab;
 }
 
-void ERICore::apply(const_multivector_type& x, multivector_type& y,
+void ERICore::apply(const const_multivector_type& x, multivector_type& y,
                     const linalgwrap::Transposed mode, const scalar_type c_A,
                     const scalar_type c_y) const {
-  const size_t nbas = detail::Static14Data<stored_mtx_type>::nbas;
+  const size_t nbas = detail::Static14Data<stored_matrix_type>::nbas;
   assert_finite(c_A);
   assert_finite(c_y);
   assert_size(x.n_cols(), y.n_cols());
@@ -182,7 +183,7 @@ void ERICore::extract_block(stored_matrix_type& M, const size_t start_row,
 }
 
 void ERICore::update(const krims::GenMap& map) {
-  const std::string occ_coeff_key = Integral<stored_mtx_type>::update_key_coefficients;
+  const std::string occ_coeff_key = Integral<stored_matrix_type>::update_key_coefficients;
 
   if (!map.exists(occ_coeff_key)) return;
 
@@ -194,7 +195,7 @@ void ERICore::update(const krims::GenMap& map) {
   // basis functions.
   if (coefficients_occupied_ptr->n_vectors() == 0) return;
   assert_size(coefficients_occupied_ptr->n_elem(),
-              detail::Static14Data<stored_mtx_type>::nbas);
+              detail::Static14Data<stored_matrix_type>::nbas);
 }
 
 }  // namespace cs_static14

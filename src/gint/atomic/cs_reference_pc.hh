@@ -17,10 +17,7 @@ using namespace sturmint::atomic;
 using namespace sturmint::atomic::cs_reference_pc;
 
 // In this namespace all things are real:
-typedef real_type scalar_type;
-typedef detail::real_stored_mtx_type stored_mtx_type;
-typedef detail::real_multivector_type multivector_type;
-typedef detail::const_real_multivector_type const_multivector_type;
+using namespace gint::real_valued;
 
 class OverlapIntegralCore;
 class NuclearAttractionIntegralCore;
@@ -79,9 +76,9 @@ class IntegralCollection final
 // Integral Cores
 //
 
-class NuclearAttractionIntegralCore : public IntegralCoreBase<stored_mtx_type> {
+class NuclearAttractionIntegralCore : public IntegralCoreBase<stored_matrix_type> {
  public:
-  typedef IntegralCoreBase<stored_mtx_type> base_type;
+  typedef IntegralCoreBase<stored_matrix_type> base_type;
   typedef typename base_type::scalar_type scalar_type;
 
   const real_type k, Z;
@@ -126,10 +123,10 @@ class NuclearAttractionIntegralCore : public IntegralCoreBase<stored_mtx_type> {
   const sturmint::atomic::cs_reference_pc::Atomic& m_integral_calculator;
 };
 
-class OverlapIntegralCore : public IntegralCoreBase<stored_mtx_type> {
+class OverlapIntegralCore : public IntegralCoreBase<stored_matrix_type> {
  public:
-  typedef IntegralCoreBase<stored_mtx_type> base_type;
-  typedef stored_mtx_type stored_matrix_type;
+  typedef IntegralCoreBase<stored_matrix_type> base_type;
+  typedef stored_matrix_type stored_matrix_type;
 
   /** \brief Multiplication with a stored matrix */
   // TODO: Change basis order from n,l,m to m,l,n to make multiplication
@@ -177,10 +174,10 @@ class OverlapIntegralCore : public IntegralCoreBase<stored_mtx_type> {
   const Atomic& m_integral_calculator;
 };
 
-class KineticIntegralCore : public IntegralCoreBase<stored_mtx_type> {
+class KineticIntegralCore : public IntegralCoreBase<stored_matrix_type> {
  public:
-  typedef IntegralCoreBase<stored_mtx_type> base_type;
-  typedef stored_mtx_type stored_matrix_type;
+  typedef IntegralCoreBase<stored_matrix_type> base_type;
+  typedef stored_matrix_type stored_matrix_type;
 
   real_type k;  // k-exponent
   const vector<nlm_t>& basis;
@@ -220,11 +217,11 @@ class KineticIntegralCore : public IntegralCoreBase<stored_mtx_type> {
   const Atomic& m_integral_calculator;
 };
 
-class ERICore : public IntegralCoreBase<stored_mtx_type> {
+class ERICore : public IntegralCoreBase<stored_matrix_type> {
  public:
-  typedef IntegralCoreBase<stored_mtx_type> base_type;
-  typedef stored_mtx_type stored_matrix_type;
-  typedef typename stored_mtx_type::vector_type vector_type;
+  typedef IntegralCoreBase<stored_matrix_type> base_type;
+  typedef stored_matrix_type stored_matrix_type;
+  typedef typename stored_matrix_type::vector_type vector_type;
   typedef const linalgwrap::MultiVector<const vector_type> coefficients_type;
   typedef std::shared_ptr<coefficients_type> coefficients_ptr_type;
 
@@ -368,7 +365,7 @@ inline void OverlapIntegralCore::apply(const const_multivector_type& x,
 //   // nlm-order right now.
 //   //       How to do that: Compute inverse for each (l,m)-block: jump around in vector.
 //   // TODO: Needs general inverse
-//   const auto& Sinv(detail::Static14Data<stored_mtx_type>::sinv_bb);
+//   const auto& Sinv(detail::Static14Data<stored_matrix_type>::sinv_bb);
 //   cs_static14::apply_stored_matrix(Sinv, x, y, mode, c_A, c_y);
 // }
 

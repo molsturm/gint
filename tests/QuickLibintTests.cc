@@ -39,7 +39,7 @@ TEST_CASE("Quick atomic libint test", "[quicktest libint]") {
 
   // The reference data for atomic coulomb sturmians
   // with parameters k = 1, Z = 4, n_max =  3, l_max = 2
-  typedef GaussianTestData<detail::real_stored_mtx_type> refdata_type;
+  typedef GaussianTestData<real_valued::stored_matrix_type> refdata_type;
 
   // TODO This is bad, but to get going ....
   auto highertol = krims::NumCompConstants::change_temporary(

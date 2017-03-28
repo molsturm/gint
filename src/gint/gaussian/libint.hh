@@ -16,10 +16,7 @@ namespace gaussian {
 namespace libint {
 
 // In this namespace all things are real:
-typedef real_type scalar_type;
-typedef detail::real_stored_mtx_type stored_mtx_type;
-typedef detail::real_multivector_type multivector_type;
-typedef detail::const_real_multivector_type const_multivector_type;
+using namespace real_valued;
 
 class OverlapIntegralCore;
 class NuclearAttractionIntegralCore;
@@ -97,7 +94,7 @@ class IntegralCollection final
    */
   explicit IntegralCollection(const krims::GenMap& parameters);
 
-  /** Lookup an integral by its type */
+  using base_type::lookup_integral;
   integral_matrix_type lookup_integral(IntegralType type) const override;
 
   /** Obtain the id string of the collection / basis type */
@@ -121,9 +118,9 @@ class IntegralCollection final
 //
 
 /** Base class for libint integral cores */
-class LibintIntegralCoreBase : public IntegralCoreBase<stored_mtx_type> {
+class LibintIntegralCoreBase : public IntegralCoreBase<stored_matrix_type> {
  public:
-  typedef IntegralCoreBase<stored_mtx_type> base_type;
+  typedef IntegralCoreBase<stored_matrix_type> base_type;
   typedef typename base_type::scalar_type scalar_type;
 
   /** Constructor
@@ -203,7 +200,7 @@ class LibintIntegralCoreBase : public IntegralCoreBase<stored_mtx_type> {
 class OneElecIntegralCore final : public LibintIntegralCoreBase {
  public:
   typedef LibintIntegralCoreBase base_type;
-  typedef IntegralCoreBase<stored_mtx_type> core_base_type;
+  typedef IntegralCoreBase<stored_matrix_type> core_base_type;
 
   /** Constructor
    *
@@ -246,9 +243,9 @@ class OneElecIntegralCore final : public LibintIntegralCoreBase {
 class ERICore final : public LibintIntegralCoreBase {
  public:
   typedef LibintIntegralCoreBase base_type;
-  typedef IntegralCoreBase<stored_mtx_type> core_base_type;
-  typedef stored_mtx_type stored_matrix_type;
-  typedef typename stored_mtx_type::vector_type vector_type;
+  typedef IntegralCoreBase<stored_matrix_type> core_base_type;
+  typedef stored_matrix_type stored_matrix_type;
+  typedef typename stored_matrix_type::vector_type vector_type;
   typedef const linalgwrap::MultiVector<const vector_type> coefficients_type;
   typedef std::shared_ptr<coefficients_type> coefficients_ptr_type;
 

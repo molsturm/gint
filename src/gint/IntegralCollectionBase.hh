@@ -36,10 +36,10 @@ template <OrbitalType otype>
 class IntegralCollectionBase {
  public:
   constexpr static OrbitalType orbital_type = otype;
-  typedef typename std::conditional<otype == OrbitalType::COMPLEX_MOLECULAR,
-                                    detail::complex_stored_mtx_type,
-                                    detail::real_stored_mtx_type>::type stored_mtx_type;
-  typedef Integral<stored_mtx_type> integral_matrix_type;
+  typedef typename std::conditional<
+        otype == OrbitalType::COMPLEX_MOLECULAR, complex_valued::stored_matrix_type,
+        real_valued::stored_matrix_type>::type stored_matrix_type;
+  typedef Integral<stored_matrix_type> integral_matrix_type;
 
   /** Lookup an integral in this collection by its integral type key
    *

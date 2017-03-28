@@ -21,6 +21,14 @@ set(GINT_DEFINITIONS "")
 set(GINT_DEFINITIONS_DEBUG "")
 set(GINT_DEFINITIONS_RELEASE "")
 
+###############
+#--  Types  --#
+###############
+# Determine scalar types we want to use here:
+include_krims_cmake_module(ScalarTypes)
+setup_scalar_types()
+set(GINT_DEPENDENCIES ${GINT_DEPENDENCIES} ${SCALAR_TYPES_LIBRARIES})
+
 ############################
 #-- rapidcheck and catch --#
 ############################

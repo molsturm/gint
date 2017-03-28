@@ -16,7 +16,7 @@ TEST_CASE("Quick atomic cs_naive test", "[quicktest cs_naive]") {
 
   // The reference data for atomic coulomb sturmians
   // with parameters k = 1, Z = 4, n_max =  3, l_max = 2
-  typedef SturmianTestData<detail::real_stored_mtx_type> refdata_type;
+  typedef SturmianTestData<real_valued::stored_matrix_type> refdata_type;
 
   // Setup parameters for the integral library
   const krims::GenMap params{

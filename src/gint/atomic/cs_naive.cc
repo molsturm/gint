@@ -34,7 +34,8 @@ IntegralCollection::IntegralCollection(const krims::GenMap& parameters)
                                      "since higher values are not yet implemented."));
 }
 
-Integral<stored_mtx_type> IntegralCollection::lookup_integral(IntegralType type) const {
+Integral<stored_matrix_type> IntegralCollection::lookup_integral(
+      IntegralType type) const {
   switch (type) {
     case IntegralType::nuclear_attraction:
       return make_integral<NuclearAttractionIntegralCore>(integral_calculator, k_exponent,
@@ -50,7 +51,7 @@ Integral<stored_mtx_type> IntegralCollection::lookup_integral(IntegralType type)
   }
 
   assert_dbg(false, krims::ExcNotImplemented());
-  return Integral<stored_mtx_type>(nullptr);
+  return Integral<stored_matrix_type>(nullptr);
 }
 
 //
@@ -97,7 +98,7 @@ scalar_type ERICore::operator()(size_t a, size_t b) const {
   assert_dbg(coefficients_occupied_ptr != nullptr, krims::ExcInvalidPointer());
 
   const coefficients_type& Cocc(*coefficients_occupied_ptr);
-  stored_mtx_type density(basis.size(), basis.size());
+  stored_matrix_type density(basis.size(), basis.size());
   for (size_t p = 0; p < coefficients_occupied_ptr->n_vectors(); p++) {
     const auto& C = Cocc[p];
     for (size_t c = 0; c < basis.size(); c++)
@@ -122,7 +123,7 @@ scalar_type ERICore::operator()(size_t a, size_t b) const {
 }
 
 void ERICore::update(const krims::GenMap& map) {
-  const std::string occ_coeff_key = Integral<stored_mtx_type>::update_key_coefficients;
+  const std::string occ_coeff_key = Integral<stored_matrix_type>::update_key_coefficients;
 
   if (!map.exists(occ_coeff_key)) return;
 

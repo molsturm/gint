@@ -70,7 +70,8 @@ IntegralCollection::IntegralCollection(const krims::GenMap& parameters)
   }
 }
 
-Integral<stored_mtx_type> IntegralCollection::lookup_integral(IntegralType type) const {
+Integral<stored_matrix_type> IntegralCollection::lookup_integral(
+      IntegralType type) const {
   using libint2::Operator;
 
   switch (type) {
@@ -87,7 +88,7 @@ Integral<stored_mtx_type> IntegralCollection::lookup_integral(IntegralType type)
   }
 
   assert_dbg(false, krims::ExcNotImplemented());
-  return Integral<stored_mtx_type>(nullptr);
+  return Integral<stored_matrix_type>(nullptr);
 }
 
 //
@@ -451,7 +452,7 @@ void ERICore::compute(const krims::Range<size_t>& rows, const krims::Range<size_
 }
 
 void ERICore::update(const krims::GenMap& map) {
-  const std::string occ_coeff_key = Integral<stored_mtx_type>::update_key_coefficients;
+  const std::string occ_coeff_key = Integral<stored_matrix_type>::update_key_coefficients;
   if (!map.exists(occ_coeff_key)) return;
 
   // Get coefficients as a shared pointer (having ownership)
