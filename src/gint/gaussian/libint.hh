@@ -8,7 +8,7 @@
 #include "gint/Integral.hh"
 #include "gint/IntegralCollectionBase.hh"
 #include "gint/IntegralCoreBase.hh"
-#include "gint/chemistry/Structure.hh"
+#include "gint/Structure.hh"
 #include "gint/config.hh"
 
 namespace gint {

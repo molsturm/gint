@@ -23,16 +23,6 @@
 
 namespace gint {
 
-/** Structure for all elements of the periodic table */
-struct Element {
-  unsigned short atomic_number;
-  std::string symbol;
-  std::string name;
-};
-
-/** Get the list of all elements known to gint */
-const std::vector<Element>& elements();
-
 DefException1(ExcUnknownElementSymbol, std::string, << "An element with symbol \"" << arg1
                                                     << "\" is not known to gint.");
 
@@ -51,10 +41,5 @@ struct Atom {
   Atom(const std::string& symbol, std::array<real_type, 3> coords_);
 };
 
-inline std::ostream& operator<<(std::ostream& o, const Atom& atom) {
-  o << atom.nuclear_charge << "  " << atom.coords[0] << "  " << atom.coords[1] << "  "
-    << atom.coords[2];
-  return o;
-}
-
+std::ostream& operator<<(std::ostream& o, const Atom& atom);
 }  // namespace gint

@@ -5,13 +5,16 @@ set(GINT_SOURCES
   version.cc
   IntegralLookup.cc
   IntegralType.cc
-  atomic/cs_static14.cc
+
+  Atom.cc
+  Element.cc
+  Structure.cc
+
   atomic/cs_dummy.cc
+  atomic/cs_naive.cc
   atomic/cs_reference.cc
   atomic/cs_reference_pc.cc
-  atomic/cs_naive.cc
-  chemistry/Atom.cc
-  chemistry/Structure.cc
+  atomic/cs_static14.cc
   gaussian/libint.cc
 )
 

@@ -17,7 +17,7 @@
 // along with gint. If not, see <http://www.gnu.org/licenses/>.
 //
 
-#include "Atom.hh"
+#include "Element.hh"
 
 namespace gint {
 
@@ -46,12 +46,12 @@ const std::vector<Element>& elements() {
         {41, "Nb", "niobium"},      {42, "Mo", "molybdenum"},
         {43, "Tc", "technetium"},   {44, "Ru", "ruthenium"},
         {45, "Rh", "rhodium"},      {46, "Pd", "palladium"},
-        {47, "Ag", "silver"},       {48, "Cd", "cadminium"},
+        {47, "Ag", "silver"},       {48, "Cd", "cadmium"},
         {49, "In", "indium"},       {50, "Sn", "tin"},
         {51, "Sb", "antimony"},     {52, "Te", "tellurium"},
         {53, "I", "iodine"},        {54, "Xe", "xenon"},
         {55, "Cs", "caesium"},      {56, "Ba", "barium"},
-        {57, "La", "lanthanium"},   {58, "Ce", "cerium"},
+        {57, "La", "lanthanum"},    {58, "Ce", "cerium"},
         {59, "Pr", "praseodymium"}, {60, "Nd", "neodymium"},
         {61, "Pm", "promethium"},   {62, "Sm", "samarium"},
         {63, "Eu", "europium"},     {64, "Gd", "gadolinium"},
@@ -72,7 +72,7 @@ const std::vector<Element>& elements() {
         {93, "Np", "neptunium"},    {94, "Pu", "plutonium"},
         {95, "Am", "americium"},    {96, "Cm", "curium"},
         {97, "Bk", "berkelium"},    {98, "Cf", "californium"},
-        {99, "Es", "einsteinum"},   {100, "Fm", "fermium"},
+        {99, "Es", "einsteinium"},  {100, "Fm", "fermium"},
         {101, "Md", "mendelevium"}, {102, "No", "nobelium"},
         {103, "Lr", "lawrencium"},  {104, "Rf", "rutherfordium"},
         {105, "Ha", "hahnium"},     {106, "Sg", "seaborgium"},
@@ -84,24 +84,6 @@ const std::vector<Element>& elements() {
         {117, "Ts", "tennessine"},  {118, "Og", "oganesson"}};
 
   return elements;
-}
-
-bool ignore_case_equal(const std::string& a, const std::string& b) {
-  return a.size() == b.size() &&
-         std::equal(std::begin(a), std::end(a), std::begin(b), [](char ca, char cb) {
-           return std::tolower(ca) == std::tolower(cb);
-         });
-}
-
-Atom::Atom(const std::string& symbol, std::array<real_type, 3> coords_)
-      : Atom(0.0, std::move(coords_)) {
-  auto has_symbol = [&symbol](const Element& e) {
-    return ignore_case_equal(symbol, e.symbol);
-  };
-  auto res = std::find_if(std::begin(elements()), std::end(elements()), has_symbol);
-
-  assert_throw(res != std::end(elements()), ExcUnknownElementSymbol(symbol));
-  nuclear_charge = res->atomic_number;
 }
 
 }  // namespace gint
