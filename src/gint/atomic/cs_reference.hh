@@ -37,10 +37,9 @@ struct nlmCollection : public vector<nlm_t> {
 
 // This integral class uses (n,l,m)-ordering: {{n,1,nmax},{l,0,n-1},{m,-l,l}}
 
-class IntegralCollection final
-      : public IntegralCollectionBase<OrbitalType::COMPLEX_ATOMIC> {
+class IntegralCollection final : public IntegralCollectionBase<stored_matrix_type> {
  public:
-  typedef IntegralCollectionBase<OrbitalType::COMPLEX_ATOMIC> base_type;
+  typedef IntegralCollectionBase<stored_matrix_type> base_type;
 
   const static std::string id;
   real_type k_exponent, Z_charge;

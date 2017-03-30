@@ -6,19 +6,10 @@
 
 namespace gint {
 
-enum class OrbitalType {
-  /** Real atomic orbitals */
-  REAL_ATOMIC,
-
-  /** Complex atomic orbitals */
-  COMPLEX_ATOMIC,
-
-  /** Real molecular orbitals */
-  REAL_MOLECULAR,
-
-  /** Complex molecular orbitals */
-  COMPLEX_MOLECULAR
-};
+DefException1(ExcInvalidIntegralParameters, std::string,
+              << "An invalid set of parameters for the integral evaluation was "
+                 "encountered:"
+              << arg1);
 
 /** Base class for managing collections of integrals
  *
@@ -31,16 +22,11 @@ enum class OrbitalType {
  *      integral collection. A user of the IntegralLookup library will need these
  *      ids as keys to request the integrals in the said collection
  *      (This should be returned by basis_id)
- * */
-template <OrbitalType otype>
+ **/
+template <typename StoredMatrix>
 class IntegralCollectionBase {
  public:
-  constexpr static OrbitalType orbital_type = otype;
-  typedef typename std::conditional<
-        otype == OrbitalType::COMPLEX_MOLECULAR, complex_valued::stored_matrix_type,
-        real_valued::stored_matrix_type>::type stored_matrix_type;
-  typedef Integral<stored_matrix_type> integral_matrix_type;
-
+  typedef Integral<StoredMatrix> integral_matrix_type;
   /** Lookup an integral in this collection by its integral type key
    *
    * \throws ExcInvalidIntegralTypeKey if the integral type is not valid.
@@ -68,9 +54,9 @@ class IntegralCollectionBase {
 };
 
 //! Type of the generator function, which generates a particular IntegralCollection */
-template <OrbitalType otype>
+template <typename StoredMatrix>
 using collection_generator_type =
-      std::function<std::unique_ptr<IntegralCollectionBase<otype>>(
+      std::function<std::unique_ptr<IntegralCollectionBase<StoredMatrix>>(
             const krims::GenMap& parameters)>;
 
 }  // namespace gint

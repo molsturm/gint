@@ -3,24 +3,25 @@
 #include "gint/config.hh"
 #include <krims/GenMap.hh>
 #include <krims/Subscribable.hh>
+#include <krims/TypeUtils.hh>
 #include <linalgwrap/Base/Interfaces.hh>
-#include <linalgwrap/MultiVector.hh>
 
 namespace gint {
 
 // TODO Why does this exist? Could one not use a LazyMatrixExpression all along?
-// This stuff could be explicitly instantiated with real and complex stored matrix types.
 
 template <typename StoredMatrix>
 class IntegralCoreBase {
  public:
-  typedef StoredMatrix stored_matrix_type;
-  typedef typename stored_matrix_type::scalar_type scalar_type;
+  using stored_matrix_type = StoredMatrix;
+  using scalar_type = typename stored_matrix_type::scalar_type;
 
-  // TODO for now (this will change when the new multivectors
-  //      are implemented
-  using multivector_type = real_valued::multivector_type;
-  using const_multivector_type = real_valued::const_multivector_type;
+  static constexpr bool isReal = std::is_same<scalar_type, real_type>::value;
+  using multivector_type = krims::conditional_t<isReal, real_valued::multivector_type,
+                                                complex_valued::multivector_type>;
+  using const_multivector_type =
+        krims::conditional_t<isReal, real_valued::const_multivector_type,
+                             complex_valued::const_multivector_type>;
 
   IntegralCoreBase() = default;
   IntegralCoreBase(const IntegralCoreBase&) = default;
@@ -125,34 +126,7 @@ class IntegralCoreBase {
   virtual void extract_block(
         stored_matrix_type& M, const size_t start_row, const size_t start_col,
         const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
-        const scalar_type c_A = 1, const scalar_type c_M = 0) const {
-    using namespace linalgwrap;
-
-    const auto& A(*this);
-
-    assert_dbg(mode == Transposed::None || has_transpose_operation_mode(),
-               ExcUnsupportedOperationMode(mode));
-    assert_finite(c_A);
-    assert_finite(c_M);
-    // check that we do not overshoot the indices
-    if (mode == Transposed::Trans || mode == Transposed::ConjTrans) {
-      assert_greater_equal(start_row + M.n_rows(), A.n_cols());
-      assert_greater_equal(start_col + M.n_cols(), A.n_rows());
-    } else {
-      assert_greater_equal(start_row + M.n_rows(), A.n_rows());
-      assert_greater_equal(start_col + M.n_cols(), A.n_cols());
-    }
-    assert_sufficiently_tested(mode != Transposed::ConjTrans);
-
-    if (c_M == 0)
-      M.set_zero();
-    else
-      M *= c_M;
-
-    for (size_t i = start_row, i0 = 0; i < start_row + M.n_rows(); i++, i0++)
-      for (size_t j = start_col, j0 = 0; j < start_col + M.n_cols(); j++, j0++)
-        M(i0, j0) += c_A * A(i, j);
-  }
+        const scalar_type c_A = 1, const scalar_type c_M = 0) const;
 
   /** \brief Clone the expression */
   virtual std::unique_ptr<IntegralCoreBase> clone() const = 0;

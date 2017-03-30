@@ -1,29 +1,15 @@
 #pragma once
 #include "Integral.hh"
-// TODO It would be nice to get rid of this header since this promotes it to the public
-// interface.
 #include "IntegralCollectionBase.hh"
-#include <linalgwrap/LazyMatrixExpression.hh>
-#include <mutex>
 
 namespace gint {
 
-// TODO This orbitaltype interface is awkward and makes coding against this in a
-// basis-independent fashion rather annoying.
-
 /** Get Integral objects for a type of basis function */
-template <OrbitalType otype>
+template <typename StoredMatrix>
 class IntegralLookup {
  public:
-  typedef IntegralCollectionBase<otype> integral_collection_type;
-  typedef typename integral_collection_type::stored_matrix_type stored_matrix_type;
-  typedef typename stored_matrix_type::scalar_type scalar_type;
+  typedef StoredMatrix stored_matrix_type;
   typedef Integral<stored_matrix_type> integral_type;
-
-  static_assert(!krims::IsComplexNumber<scalar_type>::value ||
-                      (otype == OrbitalType::COMPLEX_MOLECULAR),
-                "The StoredMatrix should only have a complex scalar type if "
-                "the OrbitalType is COMPLEX_MOLECULAR");
 
   /** \name Construct an IntegralLookup object for a particular basis, which
    *  is referred to by the \t basistype_name string
@@ -31,8 +17,9 @@ class IntegralLookup {
    * ## Some useful control parameters
    *   - "basis_type":    Name of the basis functions to be used.
    *                      (Default: "", which will yield an error)
-   *
-   *  */
+   *   - "orbital_type":  The type of orbitals to be used.
+   *                      (Default: REAL_MOLECULAR )
+   **/
   IntegralLookup(const krims::GenMap& parameters);
 
   /** Return a particular integral, given an integral type key
@@ -73,19 +60,20 @@ class IntegralLookup {
    *
    * \note  This function is *not* thread safe
    * */
-  static void register_basis_type(std::string basis_type,
-                                  collection_generator_type<otype> collection_generator) {
+  static void register_basis_type(
+        std::string basis_type,
+        collection_generator_type<StoredMatrix> collection_generator) {
     map_basis_collection_generator[basis_type] = collection_generator;
   }
 
  private:
-  /** The map from the basis id to the generator function for the collection of integrals
-   */
-  static std::map<std::string, collection_generator_type<otype>>
+  /** The map from the basis id to the generator function for the collection
+   *  of integrals */
+  static std::map<std::string, collection_generator_type<StoredMatrix>>
         map_basis_collection_generator;
 
   //! Integral collection to use for this lookup class.
-  std::unique_ptr<IntegralCollectionBase<otype>> m_integral_collection_ptr;
+  std::unique_ptr<IntegralCollectionBase<StoredMatrix>> m_integral_collection_ptr;
 };
 
 }  // namespace gint

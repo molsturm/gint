@@ -29,10 +29,9 @@ void apply_stored_matrix(const stored_matrix_type& A, const const_multivector_ty
  *
  * The exponent k and the nuclear charge Z can still be chosen freely.
  */
-class IntegralCollection final
-      : public IntegralCollectionBase<OrbitalType::COMPLEX_ATOMIC> {
+class IntegralCollection final : public IntegralCollectionBase<stored_matrix_type> {
  public:
-  typedef IntegralCollectionBase<OrbitalType::COMPLEX_ATOMIC> base_type;
+  typedef IntegralCollectionBase<stored_matrix_type> base_type;
 
   const static std::string id;
   const real_type k_exponent, Z_charge;

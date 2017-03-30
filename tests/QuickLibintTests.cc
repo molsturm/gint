@@ -24,6 +24,7 @@
 #include "integral_quick_tests.hh"
 #include <catch.hpp>
 #include <gint/IntegralLookup.hh>
+#include <gint/OrbitalType.hh>
 #include <linalgwrap/SmallVector.hh>
 #include <rapidcheck.h>
 
@@ -34,8 +35,7 @@ using namespace linalgwrap;
 using namespace krims;
 
 TEST_CASE("Quick atomic libint test", "[quicktest libint]") {
-  const OrbitalType otype = OrbitalType::REAL_MOLECULAR;
-  typedef IntegralLookup<otype> int_lookup_type;
+  typedef IntegralLookup<real_valued::stored_matrix_type> int_lookup_type;
 
   // The reference data for atomic coulomb sturmians
   // with parameters k = 1, Z = 4, n_max =  3, l_max = 2
@@ -47,6 +47,7 @@ TEST_CASE("Quick atomic libint test", "[quicktest libint]") {
 
   // Setup parameters for the integral library
   const krims::GenMap params{
+        {"orbital_type", OrbitalType::REAL_MOLECULAR},
         {"basis_type", "gaussian/libint"},
         {"basis_set", refdata_type::basis},
         {"structure", refdata_type::molecule},

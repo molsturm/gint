@@ -78,10 +78,9 @@ struct LibintShell {
 };
 
 /** IntegralCollection for the libint integral objects */
-class IntegralCollection final
-      : public IntegralCollectionBase<OrbitalType::REAL_MOLECULAR> {
+class IntegralCollection final : public IntegralCollectionBase<stored_matrix_type> {
  public:
-  typedef IntegralCollectionBase<OrbitalType::REAL_MOLECULAR> base_type;
+  typedef IntegralCollectionBase<stored_matrix_type> base_type;
 
   const static std::string id;
 

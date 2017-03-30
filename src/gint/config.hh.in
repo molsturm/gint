@@ -9,10 +9,10 @@ namespace gint {
 // Real and complex types
 //
 /** The real type used throughout gint */
-typedef @SCALAR_TYPES_REAL@ real_type;
+using real_type = @SCALAR_TYPES_REAL@;
 
 /** The complex type used throughout gint */
-typedef @SCALAR_TYPES_COMPLEX@ complex_type;
+using complex_type = @SCALAR_TYPES_COMPLEX@;
 
 //
 // Real-valued operator

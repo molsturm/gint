@@ -1,5 +1,6 @@
 #include <catch.hpp>
 #include <gint/IntegralLookup.hh>
+#include <gint/OrbitalType.hh>
 #include <gint/find_data_file.hh>
 #include <krims/FileUtils.hh>
 #include <krims/GenMap.hh>
@@ -64,10 +65,9 @@ static std::function<void(void)> make_apply_ptr_vector_test(
 }
 
 TEST_CASE("Quick atomic coefficient test", "[quicktest coefficients]") {
-  const OrbitalType otype = OrbitalType::COMPLEX_ATOMIC;
-  typedef IntegralLookup<otype> int_lookup_type;
-  typedef typename int_lookup_type::integral_type integral_type;
-  typedef typename integral_type::stored_matrix_type stored_matrix_type;
+  using namespace real_valued;
+  typedef IntegralLookup<stored_matrix_type> int_lookup_type;
+  typedef Integral<stored_matrix_type> integral_type;
   typedef typename stored_matrix_type::vector_type vector_type;
   typedef const linalgwrap::MultiVector<const vector_type> coefficients_type;
 
@@ -77,10 +77,13 @@ TEST_CASE("Quick atomic coefficient test", "[quicktest coefficients]") {
   int mmax = 0;
 
   // Setup parameters for the integral library
-  const krims::GenMap params{
-        {"k_exponent", 1.703}, {"Z_charge", real_type(n_electrons)},  // Neutral atom
-        {"n_max", nmax},       {"l_max", lmax},
-        {"m_max", mmax},       {"basis_type", "atomic/cs_reference"}};
+  const krims::GenMap params{{"k_exponent", 1.703},
+                             {"Z_charge", real_type(n_electrons)},  // Neutral atom
+                             {"n_max", nmax},
+                             {"l_max", lmax},
+                             {"m_max", mmax},
+                             {"orbital_type", OrbitalType::COMPLEX_ATOMIC},
+                             {"basis_type", "atomic/cs_reference"}};
 
   vector<nlm_t> nlmbasis(nlmbasis::basis_from_nlm_order(nmax, lmax, mmax));
 

@@ -2,6 +2,7 @@
 #include "gint/config.hh"
 #include "integral_quick_tests.hh"
 #include <gint/IntegralLookup.hh>
+#include <gint/OrbitalType.hh>
 #include <linalgwrap/SmallVector.hh>
 #include <rapidcheck.h>
 
@@ -11,8 +12,7 @@ using namespace linalgwrap;
 using namespace krims;
 
 TEST_CASE("Quick atomic cs_naive test", "[quicktest cs_naive]") {
-  const OrbitalType otype = OrbitalType::COMPLEX_ATOMIC;
-  typedef IntegralLookup<otype> int_lookup_type;
+  typedef IntegralLookup<real_valued::stored_matrix_type> int_lookup_type;
 
   // The reference data for atomic coulomb sturmians
   // with parameters k = 1, Z = 4, n_max =  3, l_max = 2
@@ -25,6 +25,7 @@ TEST_CASE("Quick atomic cs_naive test", "[quicktest cs_naive]") {
         {"n_max", 3},
         {"l_max", 2},
         {"m_max", 2},
+        {"orbital_type", OrbitalType::COMPLEX_ATOMIC},
         {"basis_type", "atomic/cs_naive"},
   };
 

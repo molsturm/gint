@@ -3,6 +3,9 @@
 #
 set(GINT_SOURCES
   version.cc
+
+  Integral.cc
+  IntegralCoreBase.cc
   IntegralLookup.cc
   IntegralType.cc
 
