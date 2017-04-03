@@ -1,49 +1,51 @@
 #include "cs_reference_pc.hh"
 
 namespace gint {
+namespace sturmian {
 namespace atomic {
 namespace cs_reference_pc {
 
 const std::string IntegralCollection::id = "atomic/cs_reference_pc";
 
 IntegralCollection::IntegralCollection(const krims::GenMap& parameters)
-      : k_exponent{parameters.at<double>("k_exponent")},
-        Z_charge{parameters.at<double>("Z_charge")} {
+      : m_system{}, m_integral_calculator{} {
   if (parameters.exists("nlmbasis")) {
-    basis = parameters.at<const vector<nlm_t>>("nlmbasis");
+    m_system.basis = parameters.at<const nlmCollection>("nlmbasis");
   } else {
-    int nmax = parameters.at<int>("n_max");
-    int lmax = parameters.at<int>("l_max");
-    int mmax = parameters.at<int>("m_max");
+    const int n_max = parameters.at<int>("n_max");
+    const int l_max = parameters.at<int>("l_max");
+    const int m_max = parameters.at<int>("m_max");
 
-    basis = nlmCollection(nmax, lmax, mmax);
+    m_system.basis = nlmCollection(n_max, l_max, m_max);
   }
 
-  integral_calculator = sturmint::atomic::cs_reference_pc::Atomic(basis);
+  m_system.Z = parameters.at<scalar_type>("Z_charge");
+  m_system.k = parameters.at<scalar_type>("k_exponent");
+  m_integral_calculator = sturmint::atomic::cs_reference_pc::Atomic(m_system.basis);
 }
 
 Integral<stored_matrix_type> IntegralCollection::lookup_integral(
       IntegralType type) const {
+  const std::string& id = IntegralCollection::id;
+
   switch (type) {
     case IntegralType::nuclear_attraction:
-      return make_integral<NuclearAttractionIntegralCore>(integral_calculator, k_exponent,
-                                                          Z_charge);
+      return make_integral<NuclearAttractionIntegralCore>(m_system, id);
     case IntegralType::overlap:
-      return make_integral<OverlapIntegralCore>(integral_calculator);
+      return make_integral<OverlapIntegralCore>(m_system, id);
     case IntegralType::kinetic:
-      return make_integral<KineticIntegralCore>(integral_calculator, k_exponent);
-    case IntegralType::coulomb:
-      return make_integral<ERICore>(integral_calculator, false, k_exponent);
-    case IntegralType::exchange:
-      return make_integral<ERICore>(integral_calculator, true, k_exponent);
-  }
+      return make_integral<KineticIntegralCore>(m_system, id);
 
-  assert_dbg(false, krims::ExcNotImplemented());
-  return Integral<stored_matrix_type>(nullptr);
+    case IntegralType::coulomb: /* nobreak */
+    case IntegralType::exchange:
+      return make_integral<ERICore>(m_integral_calculator, m_system, type);
+
+    default:
+      assert_dbg(false, krims::ExcNotImplemented());
+      return Integral<stored_matrix_type>(nullptr);
+  }
 }
 
-//
-// ERI Integral core
 //
 
 void ERICore::apply(const const_multivector_type& x, multivector_type& y,
@@ -79,13 +81,11 @@ void ERICore::apply(const const_multivector_type& x, multivector_type& y,
 }
 
 scalar_type ERICore::operator()(size_t a, size_t b) const {
-  using namespace sturmint::atomic::cs_reference_pc;
-  using namespace sturmint::orbital_index;
-
+  assert_greater(a, n_rows());
+  assert_greater(b, n_cols());
   assert_dbg(coefficients_occupied_ptr != nullptr, krims::ExcInvalidPointer());
 
   const coefficients_type& Cocc(*coefficients_occupied_ptr);
-
   size_t norb = m_integral_calculator.n_bas();
   stored_matrix_type density(norb, norb);
   for (size_t p = 0; p < coefficients_occupied_ptr->n_vectors(); p++) {
@@ -96,17 +96,15 @@ scalar_type ERICore::operator()(size_t a, size_t b) const {
 
   real_type sum = 0;
   for (size_t c = 0; c < norb; c++) {
-    size_t A = exchange ? c : a;  // Swap b and c if computing exchange // TODO: Check
+    // Swap b and c if computing exchange
+    const bool exchange = type() == IntegralType::exchange;
+    size_t A = exchange ? c : a;
     size_t C = exchange ? a : c;
 
-    //    size_t i_abc = norb * (C + norb * (b + norb * A));
-
-    //    for (size_t d = 0; d < norb; d++) sum +=
-    //    m_integral_calculator.repulsionNxNxNxN[i_abc + d] * density(c, d);
     for (size_t d = 0; d < norb; d++)
       sum += m_integral_calculator.repulsion(A, b, C, d) * density(c, d);
   }
-  return k * sum;
+  return system().k * sum;
 }
 
 void ERICore::update(const krims::GenMap& map) {
@@ -126,4 +124,5 @@ void ERICore::update(const krims::GenMap& map) {
 
 }  // namespace cs_reference_pc
 }  // namespace atomic
+}  // namespace sturmian
 }  // namespace gint

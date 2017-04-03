@@ -33,8 +33,8 @@ void register_gint_basis_types() {
 #endif  // GINT_HAVE_STATIC_INTEGRALS
   REGISTER_BASIS_TYPE(real_t, sturmian::atomic::cs_dummy);
   REGISTER_BASIS_TYPE(real_t, sturmian::atomic::cs_naive);
-  REGISTER_BASIS_TYPE(real_t, atomic::cs_reference);
-  REGISTER_BASIS_TYPE(real_t, atomic::cs_reference_pc);
+  REGISTER_BASIS_TYPE(real_t, sturmian::atomic::cs_reference);
+  REGISTER_BASIS_TYPE(real_t, sturmian::atomic::cs_reference_pc);
 
 // Gaussians
 #ifdef GINT_HAVE_LIBINT
