@@ -243,28 +243,24 @@ class ERICore final : public LibintIntegralCoreBase {
  public:
   typedef LibintIntegralCoreBase base_type;
   typedef IntegralCoreBase<stored_matrix_type> core_base_type;
-  typedef stored_matrix_type stored_matrix_type;
   typedef typename stored_matrix_type::vector_type vector_type;
   typedef const linalgwrap::MultiVector<const vector_type> coefficients_type;
   typedef std::shared_ptr<coefficients_type> coefficients_ptr_type;
 
-  //! Is this exchange or Coulomb operator?
-  bool exchange;
-
   //! The occupied coefficients as a pointer
   coefficients_ptr_type coefficients_occupied_ptr;
 
-  ERICore(bool exchange_, const LibintSystem& system, const LibintGlobalInit& global)
-        : base_type(system, global), exchange(exchange_) {}
+  ERICore(IntegralType type, const LibintSystem& system, const LibintGlobalInit& global)
+        : base_type(system, global), m_type(type) {
+    assert_dbg(type == IntegralType::exchange || type == IntegralType::coulomb,
+               krims::ExcInternalError());
+  }
 
   std::unique_ptr<core_base_type> clone() const override {
     return std::unique_ptr<core_base_type>(new ERICore(*this));
   }
 
-  IntegralIdentifier id() const override {
-    return {IntegralCollection::id,
-            (exchange ? IntegralType::exchange : IntegralType::coulomb)};
-  }
+  IntegralIdentifier id() const override { return {IntegralCollection::id, m_type}; }
 
   /** \brief Update the internal data of all objects in this expression
    *         given the GenMap
@@ -274,6 +270,8 @@ class ERICore final : public LibintIntegralCoreBase {
  protected:
   void compute(const krims::Range<size_t>& rows, const krims::Range<size_t>& cols,
                kernel_type&& kernel) const override;
+
+  IntegralType m_type;
 };
 
 }  // namespace libint

@@ -81,10 +81,10 @@ Integral<stored_matrix_type> IntegralCollection::lookup_integral(
       return make_integral<OneElecIntegralCore>(Operator::overlap, m_system, m_global);
     case IntegralType::kinetic:
       return make_integral<OneElecIntegralCore>(Operator::kinetic, m_system, m_global);
-    case IntegralType::coulomb:
-      return make_integral<ERICore>(/* exchange= */ false, m_system, m_global);
+
+    case IntegralType::coulomb: /* nobreak */
     case IntegralType::exchange:
-      return make_integral<ERICore>(/* exchange= */ true, m_system, m_global);
+      return make_integral<ERICore>(type, m_system, m_global);
   }
 
   assert_dbg(false, krims::ExcNotImplemented());
@@ -391,6 +391,7 @@ void ERICore::compute(const krims::Range<size_t>& rows, const krims::Range<size_
       for (size_t sc = 0; sc < data.n_shells(); ++sc) {
         for (size_t sd = 0; sd < data.n_shells(); ++sd) {
           // Swap shell indices sa and sc if computing exchange
+          const bool exchange = m_type == IntegralType::exchange;
           size_t sA = exchange ? sc : sa;
           size_t sC = exchange ? sa : sc;
 
