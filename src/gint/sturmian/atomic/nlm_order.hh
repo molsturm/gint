@@ -18,9 +18,18 @@
 //
 
 #pragma once
-#include "atomic/cs_dummy.hh"
-#include "atomic/cs_naive.hh"
-#include "atomic/cs_reference.hh"
-#include "atomic/cs_reference_pc.hh"
-#include "atomic/cs_static14.hh"
-#include "atomic/nlm_order/NlmBasis.hh"
+#include "nlm_order/NlmBasis.hh"
+#include "nlm_order/OneElectronIntegralCores.hh"
+#include "nlm_order/SturmintSystem.hh"
+
+namespace gint {
+namespace sturmian {
+namespace atomic {
+namespace nlm_order {
+// Everything in this namespace is real-valued:
+using namespace gint::real_valued;
+
+}  // namespace nlm_order
+}  // namespace atomic
+}  // namespace sturmian
+}  // namespace gint

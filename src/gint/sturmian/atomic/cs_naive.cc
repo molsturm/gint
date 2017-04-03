@@ -32,7 +32,7 @@ IntegralCollection::IntegralCollection(const krims::GenMap& parameters)
 
   m_system.Z = parameters.at<scalar_type>("Z_charge");
   m_system.k = parameters.at<scalar_type>("k_exponent");
-  m_system.basis = nlmCollection(n_max, l_max, m_max);
+  m_system.basis = NlmBasis(n_max, l_max, m_max);
 }
 
 Integral<stored_matrix_type> IntegralCollection::lookup_integral(

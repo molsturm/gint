@@ -1,12 +1,13 @@
 #pragma once
-#include "cs_common.hh"
 #include "gint/IntegralCollectionBase.hh"
+#include "nlm_order.hh"
 #include <sturmint/atomic/cs_reference_pc/cs_atomic.hh>
 
 namespace gint {
 namespace sturmian {
 namespace atomic {
 namespace cs_reference_pc {
+using namespace nlm_order;
 using sturmint::atomic::cs_reference_pc::Atomic;
 
 // This integral class uses (n,l,m)-ordering: {{n,1,nmax},{l,0,n-1},{m,-l,l}}
@@ -75,7 +76,10 @@ class ERICore : public IntegralCoreBase {
   ERICore(const Atomic& integral_calculator, const SturmintSystem& system,
           IntegralType type)
         : IntegralCoreBase(system, {IntegralCollection::id, type}),
-          m_integral_calculator(integral_calculator) {}
+          m_integral_calculator(integral_calculator) {
+    assert_dbg(type == IntegralType::exchange || type == IntegralType::coulomb,
+               krims::ExcInternalError());
+  }
 
   /** \brief Update the internal data of all objects in this expression
    *         given the GenMap                                     */

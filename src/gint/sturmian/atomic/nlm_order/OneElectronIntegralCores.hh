@@ -18,70 +18,14 @@
 //
 
 #pragma once
-#include "gint/IntegralCoreBase.hh"
-#include "gint/config.hh"
-#include <sturmint/atomic/cs/cs_atomic.hh>
+#include "IntegralCoreBase.hh"
 
 namespace gint {
 namespace sturmian {
 namespace atomic {
+namespace nlm_order {
 // TODO: Change basis order from n,l,m to m,l,n to make multiplication
 // contiguous.
-
-// Import useful stuff:
-using namespace gint::real_valued;  // Everything real in this namespace
-using sturmint::atomic::cs::nlm_t;
-
-/** Structure representing a collection of n,l,m triples */
-struct nlmCollection : public std::vector<nlm_t> {
-  int nmax, lmax, mmax;
-
-  /** Construct an nlm Collection from a maximal value for the quantum
-   * numbers n (nmax), l (lmax) and m (max) */
-  nlmCollection(int nmax, int lmax, int mmax);
-
-  /** Construct an empty collection */
-  nlmCollection() : nmax(0), lmax(0), mmax(0) {}
-};
-
-//
-
-/** Structure, which collects the system information relevant to
- *  compute sturmint integrals */
-struct SturmintSystem : public krims::Subscribable {
-  scalar_type k;
-  scalar_type Z;
-  nlmCollection basis;
-
-  /** Return the number of basis functions */
-  size_t n_bas() const { return basis.size(); }
-};
-
-//
-
-/** IntegralCoreBase for sturmint integrals */
-class IntegralCoreBase : public gint::IntegralCoreBase<stored_matrix_type> {
- public:
-  using base_core_type = gint::IntegralCoreBase<stored_matrix_type>;
-
-  bool has_transpose_operation_mode() const final override { return true; }
-  size_t n_rows() const final override { return m_system_ptr->n_bas(); }
-  size_t n_cols() const final override { return m_system_ptr->n_bas(); }
-  IntegralIdentifier id() const final override { return m_id; }
-
-  IntegralCoreBase(const SturmintSystem& system, IntegralIdentifier id)
-        : m_system_ptr("sturmian::IntegralCoreBase", system), m_id(id) {}
-
- private:
-  krims::SubscriptionPointer<const SturmintSystem> m_system_ptr;
-
- protected:
-  IntegralIdentifier m_id;
-  const SturmintSystem& system() const { return *m_system_ptr; }
-  const IntegralType& type() const { return m_id.integral_type(); }
-};
-
-//
 
 /** Integral core representing the nuclear attraction integral */
 class NuclearAttractionIntegralCore final : public IntegralCoreBase {
@@ -262,9 +206,7 @@ inline scalar_type OverlapIntegralCore::operator()(size_t row, size_t col) const
 
 #undef APPLY_PRECONDITIONS
 
+}  // namespace nlm_order
 }  // namespace atomic
 }  // namespace sturmian
-
-// TODO temporary
-using namespace sturmian::atomic;
 }  // namespace gint

@@ -10,13 +10,13 @@ const std::string IntegralCollection::id = "atomic/cs_reference_pc";
 IntegralCollection::IntegralCollection(const krims::GenMap& parameters)
       : m_system{}, m_integral_calculator{} {
   if (parameters.exists("nlmbasis")) {
-    m_system.basis = parameters.at<const nlmCollection>("nlmbasis");
+    m_system.basis = parameters.at<const NlmBasis>("nlmbasis");
   } else {
     const int n_max = parameters.at<int>("n_max");
     const int l_max = parameters.at<int>("l_max");
     const int m_max = parameters.at<int>("m_max");
 
-    m_system.basis = nlmCollection(n_max, l_max, m_max);
+    m_system.basis = NlmBasis(n_max, l_max, m_max);
   }
 
   m_system.Z = parameters.at<scalar_type>("Z_charge");

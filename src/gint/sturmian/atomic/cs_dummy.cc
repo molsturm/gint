@@ -13,13 +13,13 @@ IntegralCollection::IntegralCollection(const krims::GenMap& parameters)
         parameters.exists("nlmbasis") && parameters.exists("repulsiondata_filename");
 
   if (explicit_basis) {
-    m_system.basis = parameters.at<const nlmCollection>("nlmbasis");
+    m_system.basis = parameters.at<const NlmBasis>("nlmbasis");
     m_repulsiondata_filename = parameters.at<string>("repulsiondata_filename");
   } else {
     const int nmax = parameters.at<int>("n_max");
     const int lmax = parameters.at<int>("l_max");
     const int mmax = parameters.at<int>("m_max");
-    m_system.basis = nlmCollection(nmax, lmax, mmax);
+    m_system.basis = NlmBasis(nmax, lmax, mmax);
 
     m_repulsiondata_filename = std::string("repulsiondata-nlm-") + to_string(nmax) + "-" +
                                to_string(lmax) + "-" + to_string(mmax) + ".bin";
