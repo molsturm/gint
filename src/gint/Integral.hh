@@ -206,16 +206,10 @@ class Integral final : public linalgwrap::LazyMatrix_i<StoredMatrix> {
     return m_core_ptr->id();
   }
 
-  static const std::string update_key_coefficients;
-
  private:
   //! The inner integral core object:
   std::unique_ptr<core_type> m_core_ptr;
 };
-
-template <typename StoredMatrix>
-const std::string Integral<StoredMatrix>::update_key_coefficients =
-      "coefficients_occupied";
 
 template <typename IntegralCore, typename... Args>
 Integral<typename IntegralCore::stored_matrix_type> make_integral(Args&&... args) {

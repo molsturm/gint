@@ -1,5 +1,6 @@
 #pragma once
 #include <catch.hpp>
+#include <gint/IntegralUpdateKeys.hh>
 #include <krims/GenMap.hh>
 #include <linalgwrap/TestingUtils.hh>
 #include <linalgwrap/io.hh>
@@ -31,7 +32,7 @@ struct IntegralDummyTests {
     integral_type K_bb = integrals.lookup_integral("exchange");
 
     // The update key we need to update the lazy coulomb and exchange matrices
-    const std::string update_key = integral_type::update_key_coefficients;
+    const std::string update_key = IntegralUpdateKeys::coefficients_occupied;
 
     // TODO Tolerance levels (with normed vectors all default
     //    => what happens if we loosen the restriction

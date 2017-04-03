@@ -1,5 +1,6 @@
 #include <catch.hpp>
 #include <gint/IntegralLookup.hh>
+#include <gint/IntegralUpdateKeys.hh>
 #include <gint/OrbitalType.hh>
 #include <gint/find_data_file.hh>
 #include <krims/FileUtils.hh>
@@ -102,7 +103,7 @@ TEST_CASE("Quick atomic coefficient test", "[quicktest coefficients]") {
   integral_type K_bb = integrals.lookup_integral("exchange");
 
   // The update key we need to update the lazy coulomb and exchange matrices
-  const std::string update_key = integral_type::update_key_coefficients;
+  const std::string update_key = IntegralUpdateKeys::coefficients_occupied;
 
   J_bb.update({{update_key, static_cast<coefficients_type>(Coefs)}});
   K_bb.update({{update_key, static_cast<coefficients_type>(Coefs)}});

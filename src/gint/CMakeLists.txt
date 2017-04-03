@@ -4,6 +4,7 @@
 set(GINT_SOURCES
   version.cc
 
+  IntegralUpdateKeys.cc
   Integral.cc
   IntegralCoreBase.cc
   IntegralLookup.cc
