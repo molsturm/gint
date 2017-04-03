@@ -3,8 +3,10 @@
 #
 set(GINT_TESTS_SOURCES
   QuickAtomicCsDummyTest.cc
-  QuickAtomicStatic14Test.cc
   QuickAtomicCsNaiveTest.cc
+  QuickAtomicCsReferencePcTest.cc
+  QuickAtomicCsReferenceTest.cc
+  QuickAtomicStatic14Test.cc
   QuickLibintTests.cc
   CoefficientTest.cc
   main.cc
