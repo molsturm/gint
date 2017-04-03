@@ -66,6 +66,13 @@ void ERICore::apply(const const_multivector_type& x, multivector_type& y,
                     const scalar_type c_y) const {
   using sturmint::data_real_t;
 
+  // TODO Conceptionally this is code duplication with the apply function
+  // in gint/IntegralCoreBase.cc, but just performed at elevated long double
+  // precision. Be careful about this.
+  //
+  // If the elevated precision is not need, one might be able to remove this,
+  // else one could merge it into the above place.
+
   assert_finite(c_A);
   assert_finite(c_y);
   assert_size(x.n_cols(), y.n_cols());
@@ -100,24 +107,28 @@ void ERICore::apply(const const_multivector_type& x, multivector_type& y,
 scalar_type ERICore::operator()(size_t a, size_t b) const {
   using sturmint::data_real_t;
 
+  // TODO Conceptionally this is very similar to the compute_jk_element
+  // function in nlm_order/ERICoreBase.hh.
+  //
+  // Maybe this can be merged some day.
+
   assert_greater(a, n_rows());
   assert_greater(b, n_cols());
   assert_dbg(coefficients_occupied_ptr != nullptr, krims::ExcInvalidPointer());
 
   const coefficients_type& Cocc(*coefficients_occupied_ptr);
   const auto& basis = system().basis;
-  size_t norb = system().n_bas();
 
   // Internally work with the data precision (i.e. long double for now)
   data_real_t sum = 0;
 
-  for (size_t c = 0; c < norb; c++) {
+  for (size_t c = 0; c < n_bas(); c++) {
     // Swap b and c if computing exchange
     const bool exchange = type() == IntegralType::exchange;
     size_t A = exchange ? c : a;
     size_t C = exchange ? a : c;
 
-    for (size_t d = 0; d < norb; d++) {
+    for (size_t d = 0; d < n_bas(); d++) {
       sturmint::data_real_t density_cd = 0;
       for (size_t p = 0; p < Cocc.n_vectors(); p++) density_cd += Cocc[p][c] * Cocc[p][d];
 

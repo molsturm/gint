@@ -46,30 +46,6 @@ Integral<stored_matrix_type> IntegralCollection::lookup_integral(
   }
 }
 
-//
-
-scalar_type ERICore::operator()(size_t a, size_t b) const {
-  assert_greater(a, n_rows());
-  assert_greater(b, n_cols());
-  assert_dbg(coefficients_occupied_ptr != nullptr, krims::ExcInvalidPointer());
-
-  // Compute density matrix:
-  const auto density = linalgwrap::outer_prod_sum(coeff_bo(), coeff_bo());
-
-  real_type sum = 0;
-  size_t norb = m_integral_calculator.n_bas();
-  for (size_t c = 0; c < norb; c++) {
-    // Swap b and c if computing exchange
-    const bool exchange = type() == IntegralType::exchange;
-    size_t A = exchange ? c : a;
-    size_t C = exchange ? a : c;
-
-    for (size_t d = 0; d < norb; d++)
-      sum += m_integral_calculator.repulsion(A, b, C, d) * density(c, d);
-  }
-  return system().k * sum;
-}
-
 }  // namespace cs_reference_pc
 }  // namespace atomic
 }  // namespace sturmian

@@ -53,17 +53,16 @@ class IntegralCollection final : public IntegralCollectionBase<stored_matrix_typ
 
 //
 
-class ERICore : public ERICoreBase {
+class ERICore final : public ERICoreBase {
  public:
-  /** \brief return an element of the matrix    */
-  // J_{ab} = J_{abcd} Cocc_{cp} Cocc_{dp} = J_{abcd} P_{cd}
-  // K_{ab} = J_{cbad} Cocc_{cp} Cocc_{dp} = J_{acbd} P_{cd}
-  scalar_type operator()(size_t a, size_t b) const override;
+  scalar_type operator()(size_t a, size_t b) const override {
+    return ERICoreBase::compute_jk_element(m_calculator, a, b);
+  }
 
   ERICore(const Atomic& integral_calculator, const SturmintSystem& system,
           IntegralType type)
         : ERICoreBase(system, {IntegralCollection::id, type}),
-          m_integral_calculator(integral_calculator) {
+          m_calculator(integral_calculator) {
     assert_dbg(type == IntegralType::exchange || type == IntegralType::coulomb,
                krims::ExcInternalError());
   }
@@ -74,7 +73,7 @@ class ERICore : public ERICoreBase {
   }
 
  private:
-  const Atomic& m_integral_calculator;
+  const Atomic& m_calculator;
 };
 
 }  // namespace cs_reference

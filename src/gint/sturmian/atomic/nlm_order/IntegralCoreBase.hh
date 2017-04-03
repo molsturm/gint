@@ -34,6 +34,7 @@ class IntegralCoreBase : public gint::IntegralCoreBase<stored_matrix_type> {
   bool has_transpose_operation_mode() const final override { return true; }
   size_t n_rows() const final override { return m_system_ptr->n_bas(); }
   size_t n_cols() const final override { return m_system_ptr->n_bas(); }
+  size_t n_bas() const { return m_system_ptr->n_bas(); }
   IntegralIdentifier id() const final override { return m_id; }
 
   IntegralCoreBase(const SturmintSystem& system, IntegralIdentifier id)

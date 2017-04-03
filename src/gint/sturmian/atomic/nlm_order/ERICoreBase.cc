@@ -20,6 +20,11 @@
 #include "ERICoreBase.hh"
 #include "gint/IntegralUpdateKeys.hh"
 
+// For explicit instatiation below ...
+#include <sturmint/atomic/cs_dummy/cs_atomic.hh>
+#include <sturmint/atomic/cs_reference/cs_atomic.hh>
+#include <sturmint/atomic/cs_reference_pc/cs_atomic.hh>
+
 namespace gint {
 namespace sturmian {
 namespace atomic {
@@ -36,8 +41,41 @@ void ERICoreBase::update(const krims::GenMap& map) {
   // We will contract the coefficient row index over the number of
   // basis functions.
   if (coefficients_occupied_ptr->n_vectors() == 0) return;
-  assert_size(coefficients_occupied_ptr->n_elem(), system().n_bas());
+  assert_size(coefficients_occupied_ptr->n_elem(), n_bas());
 }
+
+template <typename Calculator>
+scalar_type ERICoreBase::compute_jk_element(const Calculator& calculator, size_t a,
+                                            size_t b) const {
+  assert_greater(a, n_rows());
+  assert_greater(b, n_cols());
+  assert_dbg(coefficients_occupied_ptr != nullptr, krims::ExcInvalidPointer());
+
+  // Compute density matrix:
+  const auto density = linalgwrap::outer_prod_sum(coeff_bo(), coeff_bo());
+
+  scalar_type sum = 0;
+  for (size_t c = 0; c < n_bas(); c++) {
+    // Swap a and c if computing exchange
+    const bool exchange = type() == IntegralType::exchange;
+    const size_t A = exchange ? c : a;
+    const size_t C = exchange ? a : c;
+
+    for (size_t d = 0; d < n_bas(); d++)
+      sum += calculator.repulsion(A, b, C, d) * density(c, d);
+  }
+  return system().k * sum;
+}
+
+#define INSTANTIATE_COMPUTE_JK_ELEMENT(CLASS)                                          \
+  template scalar_type ERICoreBase::compute_jk_element(const sturmint::atomic::CLASS&, \
+                                                       size_t, size_t) const
+
+INSTANTIATE_COMPUTE_JK_ELEMENT(cs_dummy::Atomic);
+INSTANTIATE_COMPUTE_JK_ELEMENT(cs_reference::Atomic);
+INSTANTIATE_COMPUTE_JK_ELEMENT(cs_reference_pc::Atomic);
+
+#undef INSTANTIATE_COMPUTE_JK_ELEMENT
 
 }  // namespace nlm_order
 }  // namespace atomic

@@ -42,6 +42,14 @@ class ERICoreBase : public IntegralCoreBase {
 
   ERICoreBase(const SturmintSystem& system, IntegralIdentifier id)
         : IntegralCoreBase(system, id) {}
+
+ protected:
+  /** \brief Compute and return an element of the matrix
+     J_{ab} = J_{abcd} Cocc_{cp} Cocc_{dp} = J_{abcd} P_{cd}
+     K_{ab} = J_{cbad} Cocc_{cp} Cocc_{dp} = J_{acbd} P_{cd}
+  */
+  template <typename Calculator>
+  scalar_type compute_jk_element(const Calculator& calculator, size_t a, size_t b) const;
 };
 
 }  // namespace nlm_order
