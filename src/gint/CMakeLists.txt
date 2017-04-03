@@ -18,6 +18,7 @@ set(GINT_SOURCES
   atomic/cs_reference.cc
   atomic/cs_reference_pc.cc
   atomic/cs_static14.cc
+  atomic/Static14Data.cc
   gaussian/libint.cc
 )
 

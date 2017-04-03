@@ -2,6 +2,7 @@
 #include "cs_static14.hh"
 
 namespace gint {
+namespace sturmian {
 namespace atomic {
 namespace cs_static14 {
 
@@ -14,20 +15,43 @@ IntegralCollection::IntegralCollection(const krims::GenMap& parameters)
 Integral<stored_matrix_type> IntegralCollection::lookup_integral(
       IntegralType type) const {
   switch (type) {
-    case IntegralType::nuclear_attraction:
-      return make_integral<NuclearAttractionIntegralCore>(k_exponent, Z_charge);
+    case IntegralType::nuclear_attraction: /* nobreak */
+    case IntegralType::kinetic:            /* nobreak */
     case IntegralType::overlap:
-      return make_integral<OverlapIntegralCore>();
-    case IntegralType::kinetic:
-      return make_integral<KineticIntegralCore>(k_exponent);
-    case IntegralType::coulomb:
-      return make_integral<ERICore>(false, k_exponent);
-    case IntegralType::exchange:
-      return make_integral<ERICore>(true, k_exponent);
-  }
+      return make_integral<OneElecIntegralCore>(type, Z_charge, k_exponent);
 
-  assert_dbg(false, krims::ExcNotImplemented());
-  return Integral<stored_matrix_type>(nullptr);
+    case IntegralType::coulomb: /* nobreak */
+    case IntegralType::exchange:
+      return make_integral<ERICore>(type, k_exponent);
+
+    default:
+      assert_throw(false, krims::ExcNotImplemented());
+      return Integral<stored_matrix_type>(nullptr);
+  }
+}
+
+OneElecIntegralCore::OneElecIntegralCore(IntegralType type, const scalar_type Z,
+                                         const scalar_type k)
+      : m_fac(1),
+        m_mat_ptr("OneElecIntegralCore"),
+        m_inv_mat_ptr("OneElecIntegralCore"),
+        m_type(type) {
+  switch (m_type) {
+    case IntegralType::nuclear_attraction:
+      m_fac = -k * Z;
+      m_mat_ptr.reset(Static14Data::v0_bb_base);
+      break;
+    case IntegralType::overlap:
+      m_mat_ptr.reset(Static14Data::s_bb);
+      m_inv_mat_ptr.reset(Static14Data::sinv_bb);
+      break;
+    case IntegralType::kinetic:
+      m_fac = k * k;
+      m_mat_ptr.reset(Static14Data::t_bb_base);
+      break;
+    default:
+      assert_dbg(false, krims::ExcInternalError());
+  }
 }
 
 void apply_stored_matrix(const stored_matrix_type& A, const const_multivector_type& x,
@@ -38,6 +62,7 @@ void apply_stored_matrix(const stored_matrix_type& A, const const_multivector_ty
     for (size_t j = 0; j < x.n_cols(); j++) y(i, j) = (c_y == 0 ? 0 : c_y * y(i, j));
 
   // Everything in this module is real and symmetric, so we can ignore mode.
+  (void)mode;
   for (size_t k = 0; k < x.n_cols(); k++)  // Iterate over vectors
     for (size_t i = 0; i < A.n_rows(); i++) {
       real_type row_sum = 0;
@@ -66,8 +91,8 @@ typename ERICore::scalar_type ERICore::operator()(size_t a, size_t b) const {
   // where a and c are the same centre, so are b and d
 
   // Repulsion integrals indexed in shell-pairs
-  const auto& i_bbbb = detail::Static14Data<stored_matrix_type>::i_bbbb_base;
-  const size_t nbas = detail::Static14Data<stored_matrix_type>::nbas;
+  const auto& i_bbbb = Static14Data::i_bbbb_base;
+  const size_t nbas = Static14Data::nbas;
 
   assert_dbg(coefficients_occupied_ptr != nullptr, krims::ExcInvalidPointer());
 
@@ -96,8 +121,9 @@ typename ERICore::scalar_type ERICore::operator()(size_t a, size_t b) const {
       const size_t db_pair = d * nbas + b;
 
       // Perform contraction:
-      const scalar_type i_elem =
-            exchange ? i_bbbb(ac_pair, db_pair) : i_bbbb(ab_pair, cd_pair);
+      const scalar_type i_elem = type == IntegralType::exchange
+                                       ? i_bbbb(ac_pair, db_pair)
+                                       : i_bbbb(ab_pair, cd_pair);
       mat_ab += k * i_elem * density_bb(c, d);
     }  // d
   }    // c
@@ -108,7 +134,7 @@ typename ERICore::scalar_type ERICore::operator()(size_t a, size_t b) const {
 void ERICore::apply(const const_multivector_type& x, multivector_type& y,
                     const linalgwrap::Transposed mode, const scalar_type c_A,
                     const scalar_type c_y) const {
-  const size_t nbas = detail::Static14Data<stored_matrix_type>::nbas;
+  const size_t nbas = Static14Data::nbas;
   assert_finite(c_A);
   assert_finite(c_y);
   assert_size(x.n_cols(), y.n_cols());
@@ -142,7 +168,7 @@ void ERICore::extract_block(stored_matrix_type& M, const size_t start_row,
                             const scalar_type c_this, const scalar_type c_M) const {
   using namespace linalgwrap;
 #ifdef DEBUG
-  const size_t nbas = detail::Static14Data<stored_matrix_type>::nbas;
+  const size_t nbas = Static14Data::nbas;
 #endif
 
   assert_finite(c_this);
@@ -194,12 +220,12 @@ void ERICore::update(const krims::GenMap& map) {
   // We will contract the coefficient row index over the number of
   // basis functions.
   if (coefficients_occupied_ptr->n_vectors() == 0) return;
-  assert_size(coefficients_occupied_ptr->n_elem(),
-              detail::Static14Data<stored_matrix_type>::nbas);
+  assert_size(coefficients_occupied_ptr->n_elem(), Static14Data::nbas);
 }
 
 }  // namespace cs_static14
 }  // namespace atomic
+}  // namespace sturmian
 }  // namespace gint
 
 #endif  // ifdef GINT_HAVE_STATIC_INTEGRALS

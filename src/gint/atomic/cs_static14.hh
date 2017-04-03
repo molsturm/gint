@@ -8,16 +8,12 @@
 #include "gint/config.hh"
 
 namespace gint {
+namespace sturmian {
 namespace atomic {
 namespace cs_static14 {
 
 // In this namespace all things are real:
 using namespace gint::real_valued;
-
-class OverlapIntegralCore;
-class NuclearAttractionIntegralCore;
-class KineticIntegralCore;
-class ERICore;
 
 void apply_stored_matrix(const stored_matrix_type& A, const const_multivector_type& x,
                          multivector_type& y,
@@ -52,7 +48,7 @@ class IntegralCollection final : public IntegralCollectionBase<stored_matrix_typ
 
   /** Obtain the friendly name of the collection / basis type */
   std::string basis_name() const override {
-    return "Fully precomputed integral data for 14 sturmians";
+    return "Fully precomputed integral data for 14 atomic coulomb sturmians";
   }
 
   /** Create an integral collection for a particular basis set defined by parameters */
@@ -64,41 +60,42 @@ class IntegralCollection final : public IntegralCollectionBase<stored_matrix_typ
 //
 // Integral cores
 //
-class NuclearAttractionIntegralCore final : public IntegralCoreBase<stored_matrix_type> {
+class OneElecIntegralCore final : public gint::IntegralCoreBase<stored_matrix_type> {
  public:
-  typedef stored_matrix_type stored_matrix_type;
-  typedef IntegralCoreBase<stored_matrix_type> base_type;
-  typedef real_type scalar_type;
-
-  const real_type k, Z;
-
+  typedef gint::IntegralCoreBase<stored_matrix_type> base_type;
   /** \brief Number of rows of the matrix */
-  size_t n_rows() const override {
-    return detail::Static14Data<stored_matrix_type>::nbas;
-  }
+  size_t n_rows() const override { return Static14Data::nbas; }
 
   /** \brief Number of columns of the matrix  */
-  size_t n_cols() const override {
-    return detail::Static14Data<stored_matrix_type>::nbas;
-  }
+  size_t n_cols() const override { return Static14Data::nbas; }
 
-  /** \brief return an element of the matrix \f$ {V_0}_{\mu',\mu} = -Zk/n
-   * \delta_{\mu',\mu} \f$ */
+  /** \brief return an element of the operator matrix */
   scalar_type operator()(size_t row, size_t col) const override {
-    return -k * Z * detail::Static14Data<stored_matrix_type>::v0_bb_base(row, col);
+    return m_fac * (*m_mat_ptr)(row, col);
   }
 
   bool has_transpose_operation_mode() const override {
-    return detail::Static14Data<stored_matrix_type>::v0_bb_base
-          .has_transpose_operation_mode();
+    return m_mat_ptr->has_transpose_operation_mode();
   }
 
-  // c_A * A * x + c_y * y
+  bool has_apply_inverse() const override { return m_inv_mat_ptr != nullptr; }
+
   void apply(const const_multivector_type& x, multivector_type& y,
              const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
              const scalar_type c_A = 1, const scalar_type c_y = 0) const override {
-    apply_stored_matrix(detail::Static14Data<stored_matrix_type>::v0_bb_base, x, y, mode,
-                        -k * Z * c_A, c_y);
+    apply_stored_matrix(*m_mat_ptr, x, y, mode, m_fac * c_A, c_y);
+  }
+
+  void apply_inverse(const const_multivector_type& x, multivector_type& y,
+                     const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
+                     const scalar_type c_A = 1,
+                     const scalar_type c_y = 0) const override {
+    assert_throw(m_inv_mat_ptr,
+                 krims::ExcDisabled("The apply_inverse function is in general "
+                                    "very expensive and is only implemented in "
+                                    "some cases. Use the function "
+                                    "has_apply_inverse() to check when."));
+    apply_stored_matrix(*m_inv_mat_ptr, x, y, mode, c_A / m_fac, c_y);
   }
 
   /** Extract a block of a matrix and (optionally) add it to
@@ -109,153 +106,40 @@ class NuclearAttractionIntegralCore final : public IntegralCoreBase<stored_matri
         const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
         const scalar_type c_this = linalgwrap::Constants<scalar_type>::one,
         const scalar_type c_M = linalgwrap::Constants<scalar_type>::zero) const override {
-    detail::Static14Data<stored_matrix_type>::v0_bb_base.extract_block(
-          M, start_row, start_col, mode, -k * Z * c_this, c_M);
+    m_mat_ptr->extract_block(M, start_row, start_col, mode, m_fac * c_this, c_M);
   }
 
   std::unique_ptr<base_type> clone() const override {
-    return std::unique_ptr<base_type>(new NuclearAttractionIntegralCore(*this));
+    return std::unique_ptr<base_type>(new OneElecIntegralCore(*this));
   }
 
   /** \brief Get the identifier of the integral */
-  IntegralIdentifier id() const override {
-    return {IntegralCollection::id, IntegralType::nuclear_attraction};
-  }
+  IntegralIdentifier id() const override { return {IntegralCollection::id, m_type}; }
 
-  NuclearAttractionIntegralCore(real_type k, real_type Z) : k(k), Z(Z) {}
+  OneElecIntegralCore(IntegralType type, const scalar_type Z, const scalar_type k);
+
+ private:
+  //! Factor to implicitly multiply the static data with
+  scalar_type m_fac;
+
+  //! Inner matrix
+  krims::SubscriptionPointer<const stored_matrix_type> m_mat_ptr;
+
+  //! Inverse matrix
+  krims::SubscriptionPointer<const stored_matrix_type> m_inv_mat_ptr;
+
+  //! Integral type
+  IntegralType m_type;
 };
 
-class OverlapIntegralCore final : public IntegralCoreBase<stored_matrix_type> {
+class ERICore final : public gint::IntegralCoreBase<stored_matrix_type> {
  public:
   typedef stored_matrix_type stored_matrix_type;
-  typedef IntegralCoreBase<stored_matrix_type> base_type;
-  typedef real_type scalar_type;
-
-  /** \brief Number of rows of the matrix */
-  size_t n_rows() const override {
-    return detail::Static14Data<stored_matrix_type>::nbas;
-  }
-
-  /** \brief Number of columns of the matrix  */
-  size_t n_cols() const override {
-    return detail::Static14Data<stored_matrix_type>::nbas;
-  }
-
-  /** \brief return an element of the matrix \f$ {S}_{\mu',\mu} */
-  scalar_type operator()(size_t row, size_t col) const override {
-    return detail::Static14Data<stored_matrix_type>::s_bb(row, col);
-  }
-
-  bool has_transpose_operation_mode() const override {
-    return detail::Static14Data<stored_matrix_type>::s_bb.has_transpose_operation_mode();
-  }
-
-  bool has_apply_inverse() const override { return true; }
-
-  void apply(const const_multivector_type& x, multivector_type& y,
-             const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
-             const scalar_type c_A = 1, const scalar_type c_y = 0) const override {
-    apply_stored_matrix(detail::Static14Data<stored_matrix_type>::s_bb, x, y, mode, c_A,
-                        c_y);
-  }
-
-  void apply_inverse(const const_multivector_type& x, multivector_type& y,
-                     const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
-                     const scalar_type c_A = 1,
-                     const scalar_type c_y = 0) const override {
-    apply_stored_matrix(detail::Static14Data<stored_matrix_type>::sinv_bb, x, y, mode,
-                        c_A, c_y);
-  }
-
-  /** Extract a block of a matrix and (optionally) add it to
-   * a different matrix.  */
-  void extract_block(
-        stored_matrix_type& M, const size_t start_row, const size_t start_col,
-        const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
-        const scalar_type c_this = linalgwrap::Constants<scalar_type>::one,
-        const scalar_type c_M = linalgwrap::Constants<scalar_type>::zero) const override {
-    detail::Static14Data<stored_matrix_type>::s_bb.extract_block(M, start_row, start_col,
-                                                                 mode, c_this, c_M);
-  }
-
-  std::unique_ptr<base_type> clone() const override {
-    return std::unique_ptr<base_type>(new OverlapIntegralCore(*this));
-  }
-
-  IntegralIdentifier id() const override {
-    return {IntegralCollection::id, IntegralType::overlap};
-  }
-};
-
-class KineticIntegralCore final : public IntegralCoreBase<stored_matrix_type> {
- public:
-  typedef stored_matrix_type stored_matrix_type;
-  typedef IntegralCoreBase<stored_matrix_type> base_type;
-  typedef real_type scalar_type;
-
-  const real_type k;
-
-  /** \brief Number of rows of the matrix */
-  size_t n_rows() const override {
-    return detail::Static14Data<stored_matrix_type>::nbas;
-  }
-
-  /** \brief Number of columns of the matrix  */
-  size_t n_cols() const override {
-    return detail::Static14Data<stored_matrix_type>::nbas;
-  }
-
-  /** \brief return an element of the matrix \f$ {T}_{\mu',\mu} */
-  scalar_type operator()(size_t row, size_t col) const override {
-    return k * k * detail::Static14Data<stored_matrix_type>::t_bb_base(row, col);
-  }
-
-  bool has_transpose_operation_mode() const override {
-    return detail::Static14Data<stored_matrix_type>::t_bb_base
-          .has_transpose_operation_mode();
-  }
-
-  void apply(const const_multivector_type& x, multivector_type& y,
-             const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
-             const scalar_type c_A = 1, const scalar_type c_y = 0) const override {
-    apply_stored_matrix(detail::Static14Data<stored_matrix_type>::t_bb_base, x, y, mode,
-                        k * k * c_A, c_y);
-  }
-
-  /** Extract a block of a matrix and (optionally) add it to
-   * a different matrix.  */
-  void extract_block(
-        stored_matrix_type& M, const size_t start_row, const size_t start_col,
-        const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
-        const scalar_type c_this = linalgwrap::Constants<scalar_type>::one,
-        const scalar_type c_M = linalgwrap::Constants<scalar_type>::zero) const override {
-    detail::Static14Data<stored_matrix_type>::t_bb_base.extract_block(
-          M, start_row, start_col, mode, k * k * c_this, c_M);
-  }
-
-  std::unique_ptr<base_type> clone() const override {
-    return std::unique_ptr<base_type>(new KineticIntegralCore(*this));
-  }
-
-  /** \brief Get the identifier of the integral */
-  IntegralIdentifier id() const override {
-    return IntegralIdentifier{IntegralCollection::id, IntegralType::kinetic};
-  }
-
-  KineticIntegralCore(real_type k) : k(k) {}
-};
-
-class ERICore final : public IntegralCoreBase<stored_matrix_type> {
- public:
-  typedef stored_matrix_type stored_matrix_type;
-  typedef IntegralCoreBase<stored_matrix_type> base_type;
+  typedef gint::IntegralCoreBase<stored_matrix_type> base_type;
   typedef typename stored_matrix_type::vector_type vector_type;
   typedef real_type scalar_type;
   typedef const linalgwrap::MultiVector<const vector_type> coefficients_type;
   typedef std::shared_ptr<coefficients_type> coefficients_ptr_type;
-
-  //! Is this an exchange or Coulomb operator?
-  const bool exchange;
 
   //! The exponent
   const real_type k;
@@ -264,14 +148,10 @@ class ERICore final : public IntegralCoreBase<stored_matrix_type> {
   coefficients_ptr_type coefficients_occupied_ptr;
 
   /** \brief Number of rows of the matrix */
-  size_t n_rows() const override {
-    return detail::Static14Data<stored_matrix_type>::nbas;
-  }
+  size_t n_rows() const override { return Static14Data::nbas; }
 
   /** \brief Number of columns of the matrix  */
-  size_t n_cols() const override {
-    return detail::Static14Data<stored_matrix_type>::nbas;
-  }
+  size_t n_cols() const override { return Static14Data::nbas; }
 
   /** \brief return an element of the matrix \f$ {J}_{\mu',\mu} \f$ or \f$
    * {k}_{\mu',\mu} \f$. */
@@ -298,16 +178,17 @@ class ERICore final : public IntegralCoreBase<stored_matrix_type> {
   void update(const krims::GenMap& map) override;
 
   /** \brief Get the identifier of the integral */
-  IntegralIdentifier id() const override {
-    return {IntegralCollection::id,
-            (exchange ? IntegralType::exchange : IntegralType::coulomb)};
-  }
+  IntegralIdentifier id() const override { return {IntegralCollection::id, type}; }
 
-  ERICore(bool exchange, real_type k) : exchange(exchange), k(k) {}
+  ERICore(IntegralType type, real_type k) : k(k), type(type) {}
+
+ private:
+  IntegralType type;
 };
 
 }  // namespace cs_static14
 }  // namespace atomic
+}  // namespace sturmian
 }  // namespace gint
 
 #endif  // GINT_HAVE_STATIC_INTEGRALS

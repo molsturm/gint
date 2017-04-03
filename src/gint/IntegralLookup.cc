@@ -29,7 +29,7 @@ void register_gint_basis_types() {
 
 // Coulomb-Sturmians
 #ifdef GINT_HAVE_STATIC_INTEGRALS
-  REGISTER_BASIS_TYPE(real_t, atomic::cs_static14);
+  REGISTER_BASIS_TYPE(real_t, sturmian::atomic::cs_static14);
 #endif  // GINT_HAVE_STATIC_INTEGRALS
   REGISTER_BASIS_TYPE(real_t, atomic::cs_dummy);
   REGISTER_BASIS_TYPE(real_t, atomic::cs_naive);
