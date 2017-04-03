@@ -1,48 +1,55 @@
 #include "cs_dummy.hh"
 
 namespace gint {
+namespace sturmian {
 namespace atomic {
 namespace cs_dummy {
 
 const std::string IntegralCollection::id = "atomic/cs_dummy";
 
 IntegralCollection::IntegralCollection(const krims::GenMap& parameters)
-      : k_exponent{parameters.at<double>("k_exponent")},
-        Z_charge{parameters.at<double>("Z_charge")} {
-  if (parameters.exists("nlmbasis") && parameters.exists("repulsiondata_filename")) {
-    basis = parameters.at<const vector<nlm_t>>("nlmbasis");
-    repulsiondata_filename = parameters.at<string>("repulsiondata_filename");
+      : m_system{}, m_repulsiondata_filename{""}, m_integral_calculator{} {
+  const bool explicit_basis =
+        parameters.exists("nlmbasis") && parameters.exists("repulsiondata_filename");
+
+  if (explicit_basis) {
+    m_system.basis = parameters.at<const nlmCollection>("nlmbasis");
+    m_repulsiondata_filename = parameters.at<string>("repulsiondata_filename");
   } else {
-    int nmax = parameters.at<int>("n_max");
-    int lmax = parameters.at<int>("l_max");
-    int mmax = parameters.at<int>("m_max");
+    const int nmax = parameters.at<int>("n_max");
+    const int lmax = parameters.at<int>("l_max");
+    const int mmax = parameters.at<int>("m_max");
+    m_system.basis = nlmCollection(nmax, lmax, mmax);
 
-    basis = nlmCollection(nmax, lmax, mmax);
-
-    repulsiondata_filename = std::string("repulsiondata-nlm-") + to_string(nmax) + "-" +
-                             to_string(lmax) + "-" + to_string(mmax) + ".bin";
+    m_repulsiondata_filename = std::string("repulsiondata-nlm-") + to_string(nmax) + "-" +
+                               to_string(lmax) + "-" + to_string(mmax) + ".bin";
   }
-  integral_calculator = sturmint::atomic::cs_dummy::Atomic(basis, repulsiondata_filename);
+
+  m_system.Z = parameters.at<scalar_type>("Z_charge");
+  m_system.k = parameters.at<scalar_type>("k_exponent");
+  m_integral_calculator = Atomic(m_system.basis, m_repulsiondata_filename);
 }
 
 Integral<stored_matrix_type> IntegralCollection::lookup_integral(
       IntegralType type) const {
+  const std::string& id = IntegralCollection::id;
+
   switch (type) {
     case IntegralType::nuclear_attraction:
-      return make_integral<NuclearAttractionIntegralCore>(integral_calculator, k_exponent,
-                                                          Z_charge);
+      return make_integral<NuclearAttractionIntegralCore>(m_system, id);
     case IntegralType::overlap:
-      return make_integral<OverlapIntegralCore>(integral_calculator);
+      return make_integral<OverlapIntegralCore>(m_system, id);
     case IntegralType::kinetic:
-      return make_integral<KineticIntegralCore>(integral_calculator, k_exponent);
-    case IntegralType::coulomb:
-      return make_integral<ERICore>(integral_calculator, false, k_exponent);
-    case IntegralType::exchange:
-      return make_integral<ERICore>(integral_calculator, true, k_exponent);
-  }
+      return make_integral<KineticIntegralCore>(m_system, id);
 
-  assert_dbg(false, krims::ExcNotImplemented());
-  return Integral<stored_matrix_type>(nullptr);
+    case IntegralType::coulomb: /* nobreak */
+    case IntegralType::exchange:
+      return make_integral<ERICore>(m_integral_calculator, m_system, type);
+
+    default:
+      assert_dbg(false, krims::ExcNotImplemented());
+      return Integral<stored_matrix_type>(nullptr);
+  }
 }
 
 //
@@ -82,9 +89,8 @@ void ERICore::apply(const const_multivector_type& x, multivector_type& y,
 }
 
 scalar_type ERICore::operator()(size_t a, size_t b) const {
-  using namespace sturmint::atomic::cs_dummy;
-  using namespace sturmint::orbital_index;
-
+  assert_greater(a, n_rows());
+  assert_greater(b, n_cols());
   assert_dbg(coefficients_occupied_ptr != nullptr, krims::ExcInvalidPointer());
 
   const coefficients_type& Cocc(*coefficients_occupied_ptr);
@@ -99,17 +105,15 @@ scalar_type ERICore::operator()(size_t a, size_t b) const {
 
   real_type sum = 0;
   for (size_t c = 0; c < norb; c++) {
-    size_t A = exchange ? c : a;  // Swap b and c if computing exchange // TODO: Check
-    size_t C = exchange ? a : c;
+    // Swap b and c if computing exchange
+    const bool exchange = type() == IntegralType::exchange;
+    const size_t A = exchange ? c : a;
+    const size_t C = exchange ? a : c;
 
-    //    size_t i_abc = norb * (C + norb * (b + norb * A));
-
-    //    for (size_t d = 0; d < norb; d++) sum +=
-    //    m_integral_calculator.repulsionNxNxNxN[i_abc + d] * density(c, d);
     for (size_t d = 0; d < norb; d++)
       sum += m_integral_calculator.repulsion(A, b, C, d) * density(c, d);
   }
-  return k * sum;
+  return system().k * sum;
 }
 
 void ERICore::update(const krims::GenMap& map) {
@@ -129,4 +133,5 @@ void ERICore::update(const krims::GenMap& map) {
 
 }  // namespace cs_dummy
 }  // namespace atomic
+}  // namespace sturmian
 }  // namespace gint

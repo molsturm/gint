@@ -13,6 +13,7 @@ set(GINT_SOURCES
   Element.cc
   Structure.cc
 
+  atomic/cs_common.cc
   atomic/cs_dummy.cc
   atomic/cs_naive.cc
   atomic/cs_reference.cc
