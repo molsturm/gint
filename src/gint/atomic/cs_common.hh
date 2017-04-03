@@ -124,20 +124,15 @@ class KineticIntegralCore final : public IntegralCoreBase {
 
 class OverlapIntegralCore final : public IntegralCoreBase {
  public:
-  bool has_apply_inverse() const final override {
-    // TODO: Add inverse calculation
-    return false;
-  }
+  bool has_apply_inverse() const final override { return true; }
 
   void apply(const const_multivector_type& x, multivector_type& y,
              const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
              const scalar_type c_A = 1, const scalar_type c_y = 0) const override;
 
-  // TODO: Add actual inverse
-  // void apply_inverse(const const_multivector_type& x, multivector_type& y,
-  //                    const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
-  //                    const scalar_type c_A = 1, const scalar_type c_y = 0) const
-  //                    override;
+  void apply_inverse(const const_multivector_type& x, multivector_type& y,
+                     const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
+                     const scalar_type c_A = 1, const scalar_type c_y = 0) const override;
 
   /** \brief return an element of the matrix    */
   scalar_type operator()(size_t row, size_t col) const override;
@@ -242,16 +237,19 @@ inline void OverlapIntegralCore::apply(const const_multivector_type& x,
   overlap(system().basis, x_ptr, y_ptr, c_A, c_y, x_cols);
 }
 
-// TODO: Add actual inverse
-// inline void OverlapIntegralCore::apply_inverse(const const_multivector_type& x,
-//                                                multivector_type& y,
-//                                                const linalgwrap::Transposed mode,
-//                                                const scalar_type c_A,
-//                                                const scalar_type c_y) const {
-//   APPLY_PRECONDITIONS();
-//
-//   TODO
-// }
+inline void OverlapIntegralCore::apply_inverse(const const_multivector_type& x,
+                                               multivector_type& y,
+                                               const linalgwrap::Transposed mode,
+                                               const scalar_type c_A,
+                                               const scalar_type c_y) const {
+  APPLY_PRECONDITIONS();
+
+  const real_type* x_ptr = const_cast<const real_type*>(x.data().memptr());
+  real_type* y_ptr = const_cast<real_type*>(y.data().memptr());
+
+  using sturmint::atomic::cs::apply_to_full_vectors::overlap_inverse;
+  overlap_inverse(system().basis, x_ptr, y_ptr, c_A, c_y, static_cast<int>(x.n_cols()));
+}
 
 inline scalar_type OverlapIntegralCore::operator()(size_t row, size_t col) const {
   assert_greater(row, n_rows());

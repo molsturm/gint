@@ -1,20 +1,17 @@
 #include "cs_naive.hh"
 
 namespace gint {
+namespace sturmian {
 namespace atomic {
 namespace cs_naive {
 
 const std::string IntegralCollection::id = "atomic/cs_naive";
 
 IntegralCollection::IntegralCollection(const krims::GenMap& parameters)
-      : k_exponent{parameters.at<double>("k_exponent")},
-        Z_charge{parameters.at<double>("Z_charge")},
-        basis{parameters.at<int>("n_max"), parameters.at<int>("l_max"),
-              parameters.at<int>("m_max")},
-        integral_calculator{basis} {
-  int n_max = parameters.at<int>("n_max");
-  int l_max = parameters.at<int>("l_max");
-  int m_max = parameters.at<int>("m_max");
+      : m_system{}, m_integral_calculator{} {
+  const int n_max = parameters.at<int>("n_max");
+  const int l_max = parameters.at<int>("l_max");
+  const int m_max = parameters.at<int>("m_max");
 
   assert_throw(0 < n_max && n_max <= 6,
                ExcInvalidIntegralParameters(
@@ -32,26 +29,32 @@ IntegralCollection::IntegralCollection(const krims::GenMap& parameters)
                                      std::to_string(m_max) +
                                      ") needs to be in the range [0,4] for cs_naive, "
                                      "since higher values are not yet implemented."));
+
+  m_system.Z = parameters.at<scalar_type>("Z_charge");
+  m_system.k = parameters.at<scalar_type>("k_exponent");
+  m_system.basis = nlmCollection(n_max, l_max, m_max);
 }
 
 Integral<stored_matrix_type> IntegralCollection::lookup_integral(
       IntegralType type) const {
+  const std::string& id = IntegralCollection::id;
+
   switch (type) {
     case IntegralType::nuclear_attraction:
-      return make_integral<NuclearAttractionIntegralCore>(integral_calculator, k_exponent,
-                                                          Z_charge);
+      return make_integral<NuclearAttractionIntegralCore>(m_system, id);
     case IntegralType::overlap:
-      return make_integral<OverlapIntegralCore>(integral_calculator);
+      return make_integral<OverlapIntegralCore>(m_system, id);
     case IntegralType::kinetic:
-      return make_integral<KineticIntegralCore>(integral_calculator, k_exponent);
-    case IntegralType::coulomb:
-      return make_integral<ERICore>(integral_calculator, false, k_exponent);
-    case IntegralType::exchange:
-      return make_integral<ERICore>(integral_calculator, true, k_exponent);
-  }
+      return make_integral<KineticIntegralCore>(m_system, id);
 
-  assert_dbg(false, krims::ExcNotImplemented());
-  return Integral<stored_matrix_type>(nullptr);
+    case IntegralType::coulomb: /* nobreak */
+    case IntegralType::exchange:
+      return make_integral<ERICore>(m_integral_calculator, m_system, type);
+
+    default:
+      assert_dbg(false, krims::ExcNotImplemented());
+      return Integral<stored_matrix_type>(nullptr);
+  }
 }
 
 //
@@ -61,6 +64,8 @@ Integral<stored_matrix_type> IntegralCollection::lookup_integral(
 void ERICore::apply(const const_multivector_type& x, multivector_type& y,
                     const linalgwrap::Transposed mode, const scalar_type c_A,
                     const scalar_type c_y) const {
+  using sturmint::data_real_t;
+
   assert_finite(c_A);
   assert_finite(c_y);
   assert_size(x.n_cols(), y.n_cols());
@@ -80,7 +85,7 @@ void ERICore::apply(const const_multivector_type& x, multivector_type& y,
   // Work internally in highest available precision
   vector<data_real_t> ysum(n_vectors);
   for (size_t a = 0; a < norb; a++) {
-    memset(&ysum[0], 0, n_vectors * sizeof(sturmint::data_real_t));
+    std::fill(std::begin(ysum), std::end(ysum), 0);
     for (size_t b = 0; b < norb; b++) {
       data_real_t JKab = (*this)(a, b);
 
@@ -93,25 +98,26 @@ void ERICore::apply(const const_multivector_type& x, multivector_type& y,
 }
 
 scalar_type ERICore::operator()(size_t a, size_t b) const {
+  using sturmint::data_real_t;
+
   assert_greater(a, n_rows());
   assert_greater(b, n_cols());
   assert_dbg(coefficients_occupied_ptr != nullptr, krims::ExcInvalidPointer());
 
   const coefficients_type& Cocc(*coefficients_occupied_ptr);
-  stored_matrix_type density(basis.size(), basis.size());
-  for (size_t p = 0; p < coefficients_occupied_ptr->n_vectors(); p++) {
-    const auto& C = Cocc[p];
-    for (size_t c = 0; c < basis.size(); c++)
-      for (size_t d = 0; d < basis.size(); d++) density(c, d) += C[c] * C[d];
-  }
+  const auto& basis = system().basis;
+  size_t norb = system().n_bas();
 
+  // Internally work with the data precision (i.e. long double for now)
   data_real_t sum = 0;
 
-  for (size_t c = 0; c < basis.size(); c++) {
-    size_t A = exchange ? c : a;  // Swap b and c if computing exchange // TODO: Check
+  for (size_t c = 0; c < norb; c++) {
+    // Swap b and c if computing exchange
+    const bool exchange = type() == IntegralType::exchange;
+    size_t A = exchange ? c : a;
     size_t C = exchange ? a : c;
 
-    for (size_t d = 0; d < basis.size(); d++) {
+    for (size_t d = 0; d < norb; d++) {
       sturmint::data_real_t density_cd = 0;
       for (size_t p = 0; p < Cocc.n_vectors(); p++) density_cd += Cocc[p][c] * Cocc[p][d];
 
@@ -119,7 +125,7 @@ scalar_type ERICore::operator()(size_t a, size_t b) const {
              density_cd;
     }
   }
-  return static_cast<scalar_type>(k * sum);
+  return static_cast<scalar_type>(system().k * sum);
 }
 
 void ERICore::update(const krims::GenMap& map) {
@@ -138,4 +144,5 @@ void ERICore::update(const krims::GenMap& map) {
 
 }  // namespace cs_naive
 }  // namespace atomic
+}  // namespace sturmian
 }  // namespace gint
