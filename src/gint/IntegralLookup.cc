@@ -3,12 +3,8 @@
 #include <mutex>
 #include <sstream>
 
-#include "atomic/cs_dummy.hh"
-#include "atomic/cs_naive.hh"
-#include "atomic/cs_reference.hh"
-#include "atomic/cs_reference_pc.hh"
-#include "atomic/cs_static14.hh"
 #include "gaussian/libint.hh"
+#include "sturmian/atomic.hh"
 
 namespace gint {
 

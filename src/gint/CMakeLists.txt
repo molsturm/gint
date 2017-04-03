@@ -13,13 +13,14 @@ set(GINT_SOURCES
   Element.cc
   Structure.cc
 
-  atomic/cs_common.cc
-  atomic/cs_dummy.cc
-  atomic/cs_naive.cc
-  atomic/cs_reference.cc
-  atomic/cs_reference_pc.cc
-  atomic/cs_static14.cc
-  atomic/Static14Data.cc
+  sturmian/atomic/cs_common.cc
+  sturmian/atomic/cs_dummy.cc
+  sturmian/atomic/cs_naive.cc
+  sturmian/atomic/cs_reference.cc
+  sturmian/atomic/cs_reference_pc.cc
+  sturmian/atomic/cs_static14.cc
+  sturmian/atomic/Static14Data.cc
+
   gaussian/libint.cc
 )
 

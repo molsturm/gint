@@ -24,6 +24,7 @@ class IntegralCollection final : public IntegralCollectionBase<stored_matrix_typ
    *   - n_max (int): The maximal principle quantum number
    *   - l_max (int): Maximal azimuthal quantum number
    *   - m_max (int): Maximal magnetic quantum number
+   *   - nlmbasis (NlmCollection): The precise basis triples (nlm) to use
    */
   IntegralCollection(const krims::GenMap& parameters);
 
