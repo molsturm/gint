@@ -28,6 +28,7 @@
 #include "IntegralIdentifier.hh"
 #include "IntegralLookup.hh"
 #include "IntegralType.hh"
+#include "IntegralUpdateKeys.hh"
 #include "OrbitalType.hh"
 
 // Chemistry

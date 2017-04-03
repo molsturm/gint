@@ -1,5 +1,6 @@
 #ifdef GINT_HAVE_LIBINT
 #include "libint.hh"
+#include "gint/IntegralUpdateKeys.hh"
 
 namespace gint {
 namespace gaussian {
@@ -375,7 +376,8 @@ void ERICore::compute(const krims::Range<size_t>& rows, const krims::Range<size_
   //      build the density matrix on update.
   //
   // Compute density matrix:
-  auto dens = outer_prod_sum(*coefficients_occupied_ptr, *coefficients_occupied_ptr);
+  const coefficients_type& Cocc(*coefficients_occupied_ptr);
+  const auto dens = linalgwrap::outer_prod_sum(Cocc, Cocc);
   assert_dbg(dens.is_symmetric(), krims::ExcInternalError());
 
   // Loop over shell sets {sa,sb,sc,sd}
@@ -453,7 +455,7 @@ void ERICore::compute(const krims::Range<size_t>& rows, const krims::Range<size_
 }
 
 void ERICore::update(const krims::GenMap& map) {
-  const std::string occ_coeff_key = Integral<stored_matrix_type>::update_key_coefficients;
+  const std::string occ_coeff_key = IntegralUpdateKeys::coefficients_occupied;
   if (!map.exists(occ_coeff_key)) return;
 
   // Get coefficients as a shared pointer (having ownership)

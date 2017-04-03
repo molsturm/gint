@@ -1,5 +1,6 @@
 #ifdef GINT_HAVE_STATIC_INTEGRALS
 #include "cs_static14.hh"
+#include "gint/IntegralUpdateKeys.hh"
 
 namespace gint {
 namespace sturmian {
@@ -131,86 +132,8 @@ typename ERICore::scalar_type ERICore::operator()(size_t a, size_t b) const {
   return mat_ab;
 }
 
-void ERICore::apply(const const_multivector_type& x, multivector_type& y,
-                    const linalgwrap::Transposed mode, const scalar_type c_A,
-                    const scalar_type c_y) const {
-  const size_t nbas = Static14Data::nbas;
-  assert_finite(c_A);
-  assert_finite(c_y);
-  assert_size(x.n_cols(), y.n_cols());
-  assert_size(x.n_rows(), nbas);
-  assert_size(y.n_rows(), nbas);
-  assert_sufficiently_tested(mode != linalgwrap::Transposed::ConjTrans);
-  // All modes are same case since we are symmetric and real, so no
-  // switching over mode.
-
-  // Scale the current values of y or set them to zero
-  // (if c_y == 0): We are now done with c_y and do not
-  // need to worry about it any more in this function
-  for (size_t i = 0; i < y.n_rows(); i++)
-    for (size_t j = 0; j < y.n_cols(); j++) y(i, j) = (c_y != 0 ? c_y * y(i, j) : 0);
-
-  // if c_this == 0 we are done
-  if (c_A == linalgwrap::Constants<scalar_type>::zero) return;
-
-  for (size_t veci = 0; veci < x.n_cols(); ++veci) {
-    for (size_t row = 0; row < nbas; ++row) {
-      scalar_type sum = 0;
-      for (size_t k = 0; k < nbas; ++k) sum += (*this)(row, k) * x(k, veci);
-
-      y(row, veci) += c_A * sum;
-    }  // row
-  }    // veci
-}
-
-void ERICore::extract_block(stored_matrix_type& M, const size_t start_row,
-                            const size_t start_col, const linalgwrap::Transposed mode,
-                            const scalar_type c_this, const scalar_type c_M) const {
-  using namespace linalgwrap;
-#ifdef DEBUG
-  const size_t nbas = Static14Data::nbas;
-#endif
-
-  assert_finite(c_this);
-  assert_finite(c_M);
-  assert_greater_equal(start_row + M.n_rows(), nbas);
-  assert_greater_equal(start_col + M.n_cols(), nbas);
-  assert_sufficiently_tested(mode != Transposed::ConjTrans);
-
-  // For empty matrices there is nothing to do
-  if (M.n_rows() == 0 || M.n_cols() == 0) return;
-
-  // Scale the current values of M or set them to zero
-  // (if c_M == 0): We are now done with c_M and do not
-  // need to worry about it any more in this function
-  // TODO we are kind of calling an internal function here
-  linalgwrap::detail::scale_or_set(M, c_M);
-
-  if (c_this == Constants<scalar_type>::zero) return;
-
-  for (size_t row = 0; row < M.n_rows(); ++row) {
-    for (size_t col = 0; col < M.n_cols(); ++col) {
-      switch (mode) {
-        case Transposed::None:
-        case Transposed::Trans:
-          // No difference since symmetric
-          M(row, col) += c_this * (*this)(start_row + row, start_col + col);
-          break;
-        case Transposed::ConjTrans:
-          // A variant of std::conj, which does not return a complex
-          // data type if scalar is real only.
-          // TODO we are kind of calling an internal function here
-          linalgwrap::detail::ConjFctr mconj;
-          M(row, col) += c_this * mconj((*this)(start_col + col, start_row + row));
-          break;
-      }  // mode
-    }    // col
-  }      // row
-}
-
 void ERICore::update(const krims::GenMap& map) {
-  const std::string occ_coeff_key = Integral<stored_matrix_type>::update_key_coefficients;
-
+  const std::string occ_coeff_key = IntegralUpdateKeys::coefficients_occupied;
   if (!map.exists(occ_coeff_key)) return;
 
   // Get coefficients as a shared pointer (having ownership)

@@ -67,7 +67,7 @@ class IntegralCoreBase {
         // NB: This will change when the new multivector interface is implemented.
         const const_multivector_type& x, multivector_type& y,
         const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
-        const scalar_type c_this = 1, const scalar_type c_y = 0) const = 0;
+        const scalar_type c_this = 1, const scalar_type c_y = 0) const;
 
   /** \brief Compute the Inverse-Multivector application
    *

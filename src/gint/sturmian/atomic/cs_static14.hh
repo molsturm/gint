@@ -159,18 +159,6 @@ class ERICore final : public gint::IntegralCoreBase<stored_matrix_type> {
 
   bool has_transpose_operation_mode() const override { return true; }
 
-  void apply(const const_multivector_type& x, multivector_type& y,
-             const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
-             const scalar_type c_A = 1, const scalar_type c_y = 0) const override;
-
-  /** Extract a block of a matrix and (optionally) add it to
-   * a different matrix.  */
-  void extract_block(stored_matrix_type& M, const size_t start_row,
-                     const size_t start_col,
-                     const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
-                     const scalar_type c_this = 1,
-                     const scalar_type c_M = 0) const override;
-
   std::unique_ptr<base_type> clone() const override {
     return std::unique_ptr<base_type>(new ERICore(*this));
   }

@@ -18,17 +18,31 @@
 //
 
 #pragma once
-#include "nlm_order/ERICoreBase.hh"
-#include "nlm_order/NlmBasis.hh"
-#include "nlm_order/OneElectronIntegralCores.hh"
-#include "nlm_order/SturmintSystem.hh"
+#include "IntegralCoreBase.hh"
 
 namespace gint {
 namespace sturmian {
 namespace atomic {
 namespace nlm_order {
-// Everything in this namespace is real-valued:
-using namespace gint::real_valued;
+
+class ERICoreBase : public IntegralCoreBase {
+ public:
+  typedef typename stored_matrix_type::vector_type vector_type;
+  typedef const linalgwrap::MultiVector<const vector_type> coefficients_type;
+  typedef std::shared_ptr<coefficients_type> coefficients_ptr_type;
+
+  /** \brief Update the internal data of all objects in this expression
+   *         given the GenMap                                     */
+  virtual void update(const krims::GenMap& map) final override;
+
+  const coefficients_type& coeff_bo() const { return *coefficients_occupied_ptr; }
+
+  //! The occupied coefficients as a pointer
+  coefficients_ptr_type coefficients_occupied_ptr;
+
+  ERICoreBase(const SturmintSystem& system, IntegralIdentifier id)
+        : IntegralCoreBase(system, id) {}
+};
 
 }  // namespace nlm_order
 }  // namespace atomic

@@ -128,20 +128,6 @@ scalar_type ERICore::operator()(size_t a, size_t b) const {
   return static_cast<scalar_type>(system().k * sum);
 }
 
-void ERICore::update(const krims::GenMap& map) {
-  const std::string occ_coeff_key = Integral<stored_matrix_type>::update_key_coefficients;
-
-  if (!map.exists(occ_coeff_key)) return;
-
-  // Get coefficients as a shared pointer (having ownership)
-  coefficients_occupied_ptr =
-        static_cast<coefficients_ptr_type>(map.at_ptr<coefficients_type>(occ_coeff_key));
-
-  // We will contract the coefficient row index over the number of
-  // basis functions.
-  if (coefficients_occupied_ptr->n_vectors() == 0) return;
-}
-
 }  // namespace cs_naive
 }  // namespace atomic
 }  // namespace sturmian

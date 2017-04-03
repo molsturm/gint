@@ -22,6 +22,43 @@
 namespace gint {
 
 template <typename StoredMatrix>
+void IntegralCoreBase<StoredMatrix>::apply(const const_multivector_type& x,
+                                           multivector_type& y,
+                                           const linalgwrap::Transposed mode,
+                                           const scalar_type c_A,
+                                           const scalar_type c_y) const {
+  const auto& A(*this);
+
+  assert_finite(c_A);
+  assert_finite(c_y);
+  assert_size(x.n_cols(), y.n_cols());
+  assert_size(x.n_rows(), n_cols());
+  assert_size(y.n_rows(), n_rows());
+  assert_sufficiently_tested(mode != linalgwrap::Transposed::ConjTrans);
+
+  // All modes are same case since we assume symmetric and real, so no
+  // switching over mode.
+
+  for (size_t i = 0; i < y.n_rows(); i++) {
+    for (size_t j = 0; j < y.n_cols(); j++) {
+      y(i, j) = (c_y != 0. ? c_y * y(i, j) : 0);
+    }
+  }
+
+  for (size_t a = 0; a < A.n_rows(); ++a)
+    for (size_t b = 0; b < A.n_cols(); ++b) {
+      for (size_t q = 0; q < x.n_cols(); q++) {
+        // Only implemented for symmetric matrices:
+        assert_dbg(
+              mode == linalgwrap::Transposed::None || std::abs(A(a, b) - A(b, a)) < 1e-14,
+              krims::ExcNotImplemented());
+
+        y(a, q) += c_A * A(a, b) * x(b, q);
+      }
+    }
+}
+
+template <typename StoredMatrix>
 void IntegralCoreBase<StoredMatrix>::extract_block(stored_matrix_type& M,
                                                    const size_t start_row,
                                                    const size_t start_col,
@@ -46,14 +83,22 @@ void IntegralCoreBase<StoredMatrix>::extract_block(stored_matrix_type& M,
   }
   assert_sufficiently_tested(mode != Transposed::ConjTrans);
 
-  if (c_M == 0.)
+  if (c_M == 0.) {
     M.set_zero();
-  else
+  } else {
     M *= c_M;
+  }
 
-  for (size_t i = start_row, i0 = 0; i < start_row + M.n_rows(); i++, i0++)
-    for (size_t j = start_col, j0 = 0; j < start_col + M.n_cols(); j++, j0++)
+  for (size_t i = start_row, i0 = 0; i < start_row + M.n_rows(); i++, i0++) {
+    for (size_t j = start_col, j0 = 0; j < start_col + M.n_cols(); j++, j0++) {
+      // Only implemented for symmetric matrices:
+      assert_dbg(
+            mode == linalgwrap::Transposed::None || std::abs(A(i, j) - A(j, i)) < 1e-14,
+            krims::ExcNotImplemented());
+
       M(i0, j0) += c_A * A(i, j);
+    }
+  }
 }
 
 // Explicitly instantiate real and complex version:

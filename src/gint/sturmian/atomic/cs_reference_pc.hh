@@ -50,24 +50,8 @@ class IntegralCollection final : public IntegralCollectionBase<stored_matrix_typ
 
 //
 
-class ERICore : public IntegralCoreBase {
+class ERICore : public ERICoreBase {
  public:
-  typedef typename stored_matrix_type::vector_type vector_type;
-  typedef const linalgwrap::MultiVector<const vector_type> coefficients_type;
-  typedef std::shared_ptr<coefficients_type> coefficients_ptr_type;
-
-  //! The occupied coefficients as a pointer
-  coefficients_ptr_type coefficients_occupied_ptr;
-
-  /** \brief Multiplication with a stored matrix */
-  // J_{aq} = J_{ab} X_{bq} = J_{abcd} X_{bq} Cocc_{cp} Cocc_{dp} = J_{abcd} X_{bq}
-  // D_{cd}
-  // K_{aq} = K_{ab} X_{bq} = J_{acbd} X_{bq} Cocc_{cp} Cocc_{dp} = J_{acbd} X_{bq}
-  // D_{cd}
-  void apply(const const_multivector_type& x, multivector_type& y,
-             const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
-             const scalar_type alpha = 1, const scalar_type beta = 0) const override;
-
   /** \brief return an element of the matrix    */
   // J_{ab} = J_{abcd} Cocc_{cp} Cocc_{dp} = J_{abcd} P_{cd}
   // K_{ab} = J_{cbad} Cocc_{cp} Cocc_{dp} = J_{acbd} P_{cd}
@@ -75,15 +59,11 @@ class ERICore : public IntegralCoreBase {
 
   ERICore(const Atomic& integral_calculator, const SturmintSystem& system,
           IntegralType type)
-        : IntegralCoreBase(system, {IntegralCollection::id, type}),
+        : ERICoreBase(system, {IntegralCollection::id, type}),
           m_integral_calculator(integral_calculator) {
     assert_dbg(type == IntegralType::exchange || type == IntegralType::coulomb,
                krims::ExcInternalError());
   }
-
-  /** \brief Update the internal data of all objects in this expression
-   *         given the GenMap                                     */
-  virtual void update(const krims::GenMap& map) override;
 
   /** \brief Clone the expression */
   std::unique_ptr<base_core_type> clone() const override {
