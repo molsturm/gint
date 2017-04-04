@@ -18,9 +18,12 @@
 //
 
 #pragma once
-#include "nlm_order/ERICore.hh"
+
+/** \file Contains the includes needed for the headers,
+ *  which set up the sturmint integral collections
+ */
+
 #include "nlm_order/NlmBasis.hh"
-#include "nlm_order/OneElectronIntegralCores.hh"
 #include "nlm_order/SturmintSystem.hh"
 
 namespace gint {

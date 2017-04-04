@@ -40,11 +40,13 @@ working_scalar_type ERICore<RepulsionCalculator>::compute_jk_element(size_t a,
   // TODO The density matrix expression: Maybe bump to working_scalar_type as well!
   const auto dens = compute_density_matrix();
 
-  /*
+  /* e.g. using the code
    *  working_scalar_type density_cd{0};
-      for (size_t p = 0; p < coeff_bo().n_vectors(); p++)
-        density_cd += coeff_bo()[p][c] * coeff_bo()[p][d];
-  */
+   *  for (size_t p = 0; p < coeff_bo().n_vectors(); p++)
+   *    density_cd += coeff_bo()[p][c] * coeff_bo()[p][d];
+   *
+   * in the loop below
+   */
 
   working_scalar_type sum = 0;
   for (size_t c = 0; c < n_bas(); c++) {

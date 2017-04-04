@@ -1,4 +1,7 @@
 #include "cs_dummy.hh"
+#include "nlm_order/ERICore.hh"
+#include "nlm_order/ERICoreHighPrecision.hh"
+#include "nlm_order/OneElectronIntegralCores.hh"
 
 namespace gint {
 namespace sturmian {

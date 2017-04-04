@@ -37,6 +37,9 @@ class ERICore : public IntegralCoreBase, public CoefficientContainer<stored_matr
   // Note: The CoefficientContainer contains the current coefficients and allows access
   // to the density derived from these.
  public:
+  /** The precision used at the level of the sturmint library */
+  typedef sturmint::real_type working_scalar_type;
+
   static_assert(
         std::is_base_of<sturmint::RepulsionCalculator_i, RepulsionCalculator>::value,
         "Replusion calculator needs to be derived off sturmint::RepulsionCalculator_i");
@@ -72,9 +75,6 @@ class ERICore : public IntegralCoreBase, public CoefficientContainer<stored_matr
   }
 
  protected:
-  /** The precision used at the level of the sturmint library */
-  typedef sturmint::real_type working_scalar_type;
-
   /** Compute a single element at the precision offered by the sturmian library */
   working_scalar_type compute_jk_element(size_t a, size_t b) const;
 
