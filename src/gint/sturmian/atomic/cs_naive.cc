@@ -1,4 +1,7 @@
 #include "cs_naive.hh"
+#include "nlm_order/ERICore.hh"
+#include "nlm_order/ERICoreHighPrecision.hh"
+#include "nlm_order/OneElectronIntegralCores.hh"
 
 namespace gint {
 namespace sturmian {
@@ -33,11 +36,12 @@ IntegralCollection::IntegralCollection(const krims::GenMap& parameters)
   m_system.Z = parameters.at<scalar_type>("Z_charge");
   m_system.k = parameters.at<scalar_type>("k_exponent");
   m_system.basis = NlmBasis(n_max, l_max, m_max);
+  m_integral_calculator = Atomic(m_system.basis);
 }
 
 Integral<stored_matrix_type> IntegralCollection::lookup_integral(
       IntegralType type) const {
-  typedef ERICore eri_type;
+  typedef ERICoreHighPrecision<Atomic> eri_type;
   const std::string& id = IntegralCollection::id;
 
   switch (type) {
@@ -56,47 +60,6 @@ Integral<stored_matrix_type> IntegralCollection::lookup_integral(
     default:
       assert_dbg(false, krims::ExcNotImplemented());
       return Integral<stored_matrix_type>(nullptr);
-  }
-}
-
-//
-// ERI Integral core
-//
-
-void ERICore::apply(const const_multivector_type& x, multivector_type& y,
-                    const linalgwrap::Transposed mode, const scalar_type c_A,
-                    const scalar_type c_y) const {
-  // TODO Conceptionally this is code duplication with the apply function
-  // in gint/IntegralCoreBase.cc, but just performed at elevated long double
-  // precision. Be careful about this.
-  //
-  // If the elevated precision is not need, one might be able to remove this,
-  // else one could merge it into the above place.
-
-  assert_finite(c_A);
-  assert_finite(c_y);
-  assert_size(x.n_cols(), y.n_cols());
-  assert_size(x.n_rows(), n_cols());
-  assert_size(y.n_rows(), n_rows());
-  assert_sufficiently_tested(mode != linalgwrap::Transposed::ConjTrans);
-  // All modes are same case since we are symmetric and real, so no
-  // switching over mode.
-
-  const size_t norb = x.n_rows(), n_vectors = x.n_cols();
-
-  for (size_t i = 0; i < y.n_rows(); i++)
-    for (size_t j = 0; j < y.n_cols(); j++) y(i, j) = (c_y != 0 ? c_y * y(i, j) : 0);
-
-  // Work internally in highest available precision
-  vector<working_scalar_type> ysum(n_vectors);
-  for (size_t a = 0; a < norb; a++) {
-    std::fill(std::begin(ysum), std::end(ysum), 0);
-    for (size_t b = 0; b < norb; b++) {
-      for (size_t q = 0; q < n_vectors; q++) {
-        ysum[q] += c_A * compute_jk_element(a, b) * x(b, q);
-      }
-    }
-    for (size_t q = 0; q < n_vectors; q++) y(a, q) += ysum[q];
   }
 }
 

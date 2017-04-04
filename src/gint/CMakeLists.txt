@@ -17,6 +17,7 @@ set(GINT_SOURCES
 
   sturmian/atomic/nlm_order/NlmBasis.cc
   sturmian/atomic/nlm_order/ERICore.cc
+  sturmian/atomic/nlm_order/ERICoreHighPrecision.cc
   sturmian/atomic/cs_dummy.cc
   sturmian/atomic/cs_naive.cc
   sturmian/atomic/cs_reference.cc
