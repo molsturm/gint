@@ -17,20 +17,24 @@
 // along with gint. If not, see <http://www.gnu.org/licenses/>.
 //
 
-#pragma once
-#include "nlm_order/ERICore.hh"
-#include "nlm_order/NlmBasis.hh"
-#include "nlm_order/OneElectronIntegralCores.hh"
-#include "nlm_order/SturmintSystem.hh"
+#include "CoefficientContainer.hh"
+#include "gint/IntegralUpdateKeys.hh"
 
 namespace gint {
-namespace sturmian {
-namespace atomic {
-namespace nlm_order {
-// Everything in this namespace is real-valued:
-using namespace gint::real_valued;
 
-}  // namespace nlm_order
-}  // namespace atomic
-}  // namespace sturmian
+template <typename StoredMatrix>
+void CoefficientContainer<StoredMatrix>::update(const krims::GenMap& map) {
+  const std::string& key = IntegralUpdateKeys::coefficients_occupied;
+  if (!map.exists(key)) return;
+
+  // Get coefficients as a shared pointer (having ownership)
+  coeff_bo_ptr = static_cast<coefficients_ptr_type>(map.at_ptr<coefficients_type>(key));
+}
+
+// Explicitly instantiate real and complex version:
+template class CoefficientContainer<real_valued::stored_matrix_type>;
+
+// TODO complex version not yet implemented.
+// template class CoefficientContainer<complex_valued::stored_matrix_type>;
+
 }  // namespace gint

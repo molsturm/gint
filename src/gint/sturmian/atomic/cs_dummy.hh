@@ -53,31 +53,6 @@ class IntegralCollection final : public IntegralCollectionBase<stored_matrix_typ
   Atomic m_integral_calculator;
 };
 
-//
-
-class ERICore : public ERICoreBase {
- public:
-  scalar_type operator()(size_t a, size_t b) const override {
-    return ERICoreBase::compute_jk_element(m_calculator, a, b);
-  }
-
-  ERICore(const Atomic& integral_calculator, const SturmintSystem& system,
-          IntegralType type)
-        : ERICoreBase(system, {IntegralCollection::id, type}),
-          m_calculator(integral_calculator) {
-    assert_dbg(type == IntegralType::exchange || type == IntegralType::coulomb,
-               krims::ExcInternalError());
-  }
-
-  /** \brief Clone the expression */
-  std::unique_ptr<base_core_type> clone() const override {
-    return std::unique_ptr<base_core_type>(new ERICore(*this));
-  }
-
- private:
-  const Atomic& m_calculator;
-};
-
 }  // namespace cs_dummy
 }  // namespace atomic
 }  // namespace sturmian

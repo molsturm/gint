@@ -70,6 +70,7 @@ flags = [
     '-isystem', 'external/krims/src',
     '-isystem', 'external/linalgwrap/src',
     '-isystem', 'external/sturmint/src',
+    '-isystem', 'build/external/sturmint/src',
     '-isystem', 'external/rapidcheck/include',
     '-isystem', 'external/rapidcheck/ext/catch/include',
     '-isystem', '../krims/src',

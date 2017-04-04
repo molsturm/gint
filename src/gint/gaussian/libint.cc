@@ -351,8 +351,6 @@ void OneElecIntegralCore::compute(const krims::Range<size_t>& rows,
 
 void ERICore::compute(const krims::Range<size_t>& rows, const krims::Range<size_t>& cols,
                       typename base_type::kernel_type&& kernel) const {
-  assert_dbg(coefficients_occupied_ptr != nullptr, krims::ExcInvalidPointer());
-
   const LibintBasisShellData data{base_type::system()};
   const krims::Range<size_t> row_shells = data.containing_shell_range(rows);
   const krims::Range<size_t> col_shells = data.containing_shell_range(cols);
@@ -370,15 +368,8 @@ void ERICore::compute(const krims::Range<size_t>& rows, const krims::Range<size_
   libint2::Engine int_engine(libint2::Operator::coulomb, max_nprim, max_l,
                              derivative_order, tolerance);
 
-  // TODO Be more clever about this, e.g. have the contraction with the coefficients
-  //      be done implicitly in the loops below
-  //      OR
-  //      build the density matrix on update.
-  //
   // Compute density matrix:
-  const coefficients_type& Cocc(*coefficients_occupied_ptr);
-  const auto dens = linalgwrap::outer_prod_sum(Cocc, Cocc);
-  assert_dbg(dens.is_symmetric(), krims::ExcInternalError());
+  const auto dens = compute_density_matrix();
 
   // Loop over shell sets {sa,sb,sc,sd}
   for (size_t sa : row_shells) {
@@ -452,20 +443,6 @@ void ERICore::compute(const krims::Range<size_t>& rows, const krims::Range<size_
       }
     }  // sh_b
   }    // sh_a
-}
-
-void ERICore::update(const krims::GenMap& map) {
-  const std::string occ_coeff_key = IntegralUpdateKeys::coefficients_occupied;
-  if (!map.exists(occ_coeff_key)) return;
-
-  // Get coefficients as a shared pointer (having ownership)
-  coefficients_occupied_ptr =
-        static_cast<coefficients_ptr_type>(map.at_ptr<coefficients_type>(occ_coeff_key));
-
-  // We will contract the coefficient row index over the number of
-  // basis functions.
-  if (coefficients_occupied_ptr->n_vectors() == 0) return;
-  assert_size(coefficients_occupied_ptr->n_elem(), base_type::system().n_bas());
 }
 
 }  // namespace libint

@@ -9,13 +9,14 @@ set(GINT_SOURCES
   IntegralCoreBase.cc
   IntegralLookup.cc
   IntegralType.cc
+  CoefficientContainer.cc
 
   Atom.cc
   Element.cc
   Structure.cc
 
   sturmian/atomic/nlm_order/NlmBasis.cc
-  sturmian/atomic/nlm_order/ERICoreBase.cc
+  sturmian/atomic/nlm_order/ERICore.cc
   sturmian/atomic/cs_dummy.cc
   sturmian/atomic/cs_naive.cc
   sturmian/atomic/cs_reference.cc

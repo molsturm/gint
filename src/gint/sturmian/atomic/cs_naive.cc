@@ -37,6 +37,7 @@ IntegralCollection::IntegralCollection(const krims::GenMap& parameters)
 
 Integral<stored_matrix_type> IntegralCollection::lookup_integral(
       IntegralType type) const {
+  typedef ERICore eri_type;
   const std::string& id = IntegralCollection::id;
 
   switch (type) {
@@ -49,7 +50,8 @@ Integral<stored_matrix_type> IntegralCollection::lookup_integral(
 
     case IntegralType::coulomb: /* nobreak */
     case IntegralType::exchange:
-      return make_integral<ERICore>(m_integral_calculator, m_system, type);
+      return make_integral<eri_type>(m_integral_calculator, m_system,
+                                     IntegralIdentifier{id, type});
 
     default:
       assert_dbg(false, krims::ExcNotImplemented());
@@ -64,8 +66,6 @@ Integral<stored_matrix_type> IntegralCollection::lookup_integral(
 void ERICore::apply(const const_multivector_type& x, multivector_type& y,
                     const linalgwrap::Transposed mode, const scalar_type c_A,
                     const scalar_type c_y) const {
-  using sturmint::data_real_t;
-
   // TODO Conceptionally this is code duplication with the apply function
   // in gint/IntegralCoreBase.cc, but just performed at elevated long double
   // precision. Be careful about this.
@@ -82,61 +82,22 @@ void ERICore::apply(const const_multivector_type& x, multivector_type& y,
   // All modes are same case since we are symmetric and real, so no
   // switching over mode.
 
-  assert_dbg(coefficients_occupied_ptr != nullptr, krims::ExcInvalidPointer());
-
   const size_t norb = x.n_rows(), n_vectors = x.n_cols();
 
   for (size_t i = 0; i < y.n_rows(); i++)
     for (size_t j = 0; j < y.n_cols(); j++) y(i, j) = (c_y != 0 ? c_y * y(i, j) : 0);
 
   // Work internally in highest available precision
-  vector<data_real_t> ysum(n_vectors);
+  vector<working_scalar_type> ysum(n_vectors);
   for (size_t a = 0; a < norb; a++) {
     std::fill(std::begin(ysum), std::end(ysum), 0);
     for (size_t b = 0; b < norb; b++) {
-      data_real_t JKab = (*this)(a, b);
-
       for (size_t q = 0; q < n_vectors; q++) {
-        ysum[q] += c_A * JKab * x(b, q);
+        ysum[q] += c_A * compute_jk_element(a, b) * x(b, q);
       }
     }
     for (size_t q = 0; q < n_vectors; q++) y(a, q) += ysum[q];
   }
-}
-
-scalar_type ERICore::operator()(size_t a, size_t b) const {
-  using sturmint::data_real_t;
-
-  // TODO Conceptionally this is very similar to the compute_jk_element
-  // function in nlm_order/ERICoreBase.hh.
-  //
-  // Maybe this can be merged some day.
-
-  assert_greater(a, n_rows());
-  assert_greater(b, n_cols());
-  assert_dbg(coefficients_occupied_ptr != nullptr, krims::ExcInvalidPointer());
-
-  const coefficients_type& Cocc(*coefficients_occupied_ptr);
-  const auto& basis = system().basis;
-
-  // Internally work with the data precision (i.e. long double for now)
-  data_real_t sum = 0;
-
-  for (size_t c = 0; c < n_bas(); c++) {
-    // Swap b and c if computing exchange
-    const bool exchange = type() == IntegralType::exchange;
-    size_t A = exchange ? c : a;
-    size_t C = exchange ? a : c;
-
-    for (size_t d = 0; d < n_bas(); d++) {
-      sturmint::data_real_t density_cd = 0;
-      for (size_t p = 0; p < Cocc.n_vectors(); p++) density_cd += Cocc[p][c] * Cocc[p][d];
-
-      sum += m_integral_calculator.repulsion(basis[A], basis[b], basis[C], basis[d]) *
-             density_cd;
-    }
-  }
-  return static_cast<scalar_type>(system().k * sum);
 }
 
 }  // namespace cs_naive

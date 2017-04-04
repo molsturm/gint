@@ -26,6 +26,7 @@ IntegralCollection::IntegralCollection(const krims::GenMap& parameters)
 
 Integral<stored_matrix_type> IntegralCollection::lookup_integral(
       IntegralType type) const {
+  typedef ERICore<Atomic> eri_type;
   const std::string& id = IntegralCollection::id;
 
   switch (type) {
@@ -38,7 +39,8 @@ Integral<stored_matrix_type> IntegralCollection::lookup_integral(
 
     case IntegralType::coulomb: /* nobreak */
     case IntegralType::exchange:
-      return make_integral<ERICore>(m_integral_calculator, m_system, type);
+      return make_integral<eri_type>(m_integral_calculator, m_system,
+                                     IntegralIdentifier{id, type});
 
     default:
       assert_dbg(false, krims::ExcNotImplemented());

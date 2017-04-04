@@ -5,6 +5,7 @@
 #include <krims/SubscriptionPointer.hh>
 #include <libint2.hpp>
 
+#include "gint/CoefficientContainer.hh"
 #include "gint/Integral.hh"
 #include "gint/IntegralCollectionBase.hh"
 #include "gint/IntegralCoreBase.hh"
@@ -133,6 +134,7 @@ class LibintIntegralCoreBase : public IntegralCoreBase<stored_matrix_type> {
 
   size_t n_rows() const override { return m_system_ptr->n_bas(); }
   size_t n_cols() const override { return m_system_ptr->n_bas(); }
+  size_t n_bas() const { return m_system_ptr->n_bas(); }
 
   scalar_type operator()(size_t row, size_t col) const override;
 
@@ -239,16 +241,11 @@ class OneElecIntegralCore final : public LibintIntegralCoreBase {
   libint2::Operator m_operator;
 };
 
-class ERICore final : public LibintIntegralCoreBase {
+class ERICore final : public LibintIntegralCoreBase,
+                      public CoefficientContainer<stored_matrix_type> {
  public:
   typedef LibintIntegralCoreBase base_type;
   typedef IntegralCoreBase<stored_matrix_type> core_base_type;
-  typedef typename stored_matrix_type::vector_type vector_type;
-  typedef const linalgwrap::MultiVector<const vector_type> coefficients_type;
-  typedef std::shared_ptr<coefficients_type> coefficients_ptr_type;
-
-  //! The occupied coefficients as a pointer
-  coefficients_ptr_type coefficients_occupied_ptr;
 
   ERICore(IntegralType type, const LibintSystem& system, const LibintGlobalInit& global)
         : base_type(system, global), m_type(type) {
@@ -265,7 +262,12 @@ class ERICore final : public LibintIntegralCoreBase {
   /** \brief Update the internal data of all objects in this expression
    *         given the GenMap
    **/
-  void update(const krims::GenMap& map) override;
+  void update(const krims::GenMap& map) override {
+    CoefficientContainer<stored_matrix_type>::update(map);
+    assert_dbg(coeff_bo_ptr == nullptr || coeff_bo().n_vectors() == 0 ||
+                     coeff_bo_ptr->n_elem() == n_bas(),
+               krims::ExcSizeMismatch(coeff_bo_ptr->n_elem(), n_bas()));
+  }
 
  protected:
   void compute(const krims::Range<size_t>& rows, const krims::Range<size_t>& cols,
