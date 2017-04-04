@@ -94,12 +94,8 @@ typename ERICore::scalar_type ERICore::operator()(size_t a, size_t b) const {
   // Repulsion integrals indexed in shell-pairs
   const auto& i_bbbb = Static14Data::i_bbbb_base;
   const size_t nbas = Static14Data::nbas;
-
-  assert_dbg(coefficients_occupied_ptr != nullptr, krims::ExcInvalidPointer());
-
   // Density matrix expression
-  auto density_bb =
-        outer_prod_sum(*coefficients_occupied_ptr, *coefficients_occupied_ptr);
+  const auto density_bb = compute_density_matrix();
   assert_dbg(density_bb.n_rows() == nbas, krims::ExcInternalError());
   assert_dbg(density_bb.n_cols() == nbas, krims::ExcInternalError());
 
@@ -130,20 +126,6 @@ typename ERICore::scalar_type ERICore::operator()(size_t a, size_t b) const {
   }    // c
 
   return mat_ab;
-}
-
-void ERICore::update(const krims::GenMap& map) {
-  const std::string occ_coeff_key = IntegralUpdateKeys::coefficients_occupied;
-  if (!map.exists(occ_coeff_key)) return;
-
-  // Get coefficients as a shared pointer (having ownership)
-  coefficients_occupied_ptr =
-        static_cast<coefficients_ptr_type>(map.at_ptr<coefficients_type>(occ_coeff_key));
-
-  // We will contract the coefficient row index over the number of
-  // basis functions.
-  if (coefficients_occupied_ptr->n_vectors() == 0) return;
-  assert_size(coefficients_occupied_ptr->n_elem(), Static14Data::nbas);
 }
 
 }  // namespace cs_static14

@@ -2,6 +2,7 @@
 #ifdef GINT_HAVE_STATIC_INTEGRALS
 
 #include "Static14Data.hh"
+#include "gint/CoefficientContainer.hh"
 #include "gint/Integral.hh"
 #include "gint/IntegralCollectionBase.hh"
 #include "gint/IntegralCoreBase.hh"
@@ -132,20 +133,13 @@ class OneElecIntegralCore final : public gint::IntegralCoreBase<stored_matrix_ty
   IntegralType m_type;
 };
 
-class ERICore final : public gint::IntegralCoreBase<stored_matrix_type> {
+class ERICore final : public gint::IntegralCoreBase<stored_matrix_type>,
+                      public CoefficientContainer<stored_matrix_type> {
  public:
-  typedef stored_matrix_type stored_matrix_type;
   typedef gint::IntegralCoreBase<stored_matrix_type> base_type;
-  typedef typename stored_matrix_type::vector_type vector_type;
-  typedef real_type scalar_type;
-  typedef const linalgwrap::MultiVector<const vector_type> coefficients_type;
-  typedef std::shared_ptr<coefficients_type> coefficients_ptr_type;
 
   //! The exponent
   const real_type k;
-
-  //! The occupied coefficients as a pointer
-  coefficients_ptr_type coefficients_occupied_ptr;
 
   /** \brief Number of rows of the matrix */
   size_t n_rows() const override { return Static14Data::nbas; }
@@ -163,7 +157,12 @@ class ERICore final : public gint::IntegralCoreBase<stored_matrix_type> {
     return std::unique_ptr<base_type>(new ERICore(*this));
   }
 
-  void update(const krims::GenMap& map) override;
+  void update(const krims::GenMap& map) override {
+    CoefficientContainer<stored_matrix_type>::update(map);
+    assert_dbg(coeff_bo_ptr == nullptr || coeff_bo().n_vectors() == 0 ||
+                     coeff_bo_ptr->n_elem() == Static14Data::nbas,
+               krims::ExcSizeMismatch(coeff_bo_ptr->n_elem(), Static14Data::nbas));
+  }
 
   /** \brief Get the identifier of the integral */
   IntegralIdentifier id() const override { return {IntegralCollection::id, type}; }
