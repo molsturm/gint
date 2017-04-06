@@ -19,25 +19,34 @@
 
 #pragma once
 #include "gint/config.hh"
-#include <krims/ExceptionSystem.hh>
 
 namespace gint {
-
-DefException1(ExcUnknownElementSymbol, std::string, << "An element with symbol \"" << arg1
-                                                    << "\" is not known to gint.");
 
 /** Very simple structure to describe an atom in 3D
  * A (possibly non-integer) nuclear charge and 3 coordinates. */
 struct Atom {
-  //! Nuclear charge of the atom
+  /** Nuclear charge of the atom
+   * \note This may be set to a different value than atomic_number
+   *       in order to artificially screen the charge of an atom.
+   *       The mass and or the atomic number (and hence the basis
+   *       functions assigned) are not changed, but the nuclear
+   *       electrostatic potential is.
+   */
   double nuclear_charge;
 
   //! Coordinates of the atom position {x,y,z}
   std::array<real_type, 3> coords;
 
-  Atom(double charge_, std::array<real_type, 3> coords_)
-        : nuclear_charge(charge_), coords(std::move(coords_)) {}
+  //! The atomic number of the atom
+  unsigned int atomic_number;
 
+  /** Construct an atom from an atomic number and a set of coordinates to place it */
+  Atom(unsigned int atomic_number_, std::array<real_type, 3> coords_)
+        : nuclear_charge(atomic_number_),
+          coords(std::move(coords_)),
+          atomic_number(atomic_number_) {}
+
+  /** Construct an atom from an atomic symbol string and a set of coordinates */
   Atom(const std::string& symbol, std::array<real_type, 3> coords_);
 };
 

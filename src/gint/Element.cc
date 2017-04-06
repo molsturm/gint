@@ -18,11 +18,12 @@
 //
 
 #include "Element.hh"
+#include <algorithm>
 
 namespace gint {
 
-const std::vector<Element>& elements() {
-  static std::vector<Element> elements{
+const std::array<Element, 118>& elements() {
+  static std::array<Element, 118> elements{{
         {1, "H", "hydrogen"},       {2, "He", "helium"},
         {3, "Li", "lithium"},       {4, "Be", "beryllium"},
         {5, "B", "boron"},          {6, "C", "carbon"},
@@ -81,9 +82,46 @@ const std::vector<Element>& elements() {
         {111, "Rg", "roentgenium"}, {112, "Cn", "copernicium"},
         {113, "Nh", "nihonium"},    {114, "Fl", "flerovium"},
         {115, "Mc", "moscovium"},   {116, "Lv", "livermorium"},
-        {117, "Ts", "tennessine"},  {118, "Og", "oganesson"}};
+        {117, "Ts", "tennessine"},  {118, "Og", "oganesson"},
+  }};
 
   return elements;
+}
+
+bool ignore_case_equal(const std::string& a, const std::string& b) {
+  return a.size() == b.size() &&
+         std::equal(std::begin(a), std::end(a), std::begin(b), [](char ca, char cb) {
+           return std::tolower(ca) == std::tolower(cb);
+         });
+}
+
+bool is_element_symbol(const std::string& symbol) {
+  return std::any_of(elements().begin(), elements().end(), [&symbol](const Element& e) {
+    return ignore_case_equal(symbol, e.symbol);
+  });
+}
+
+const Element& Element::by_symbol(const std::string& symbol) {
+  auto res = std::find_if(
+        std::begin(elements()), std::end(elements()),
+        [&symbol](const Element& e) { return ignore_case_equal(symbol, e.symbol); });
+
+  assert_throw(res != std::end(elements()),
+               ExcUnknownElement("Element symbol \"" + symbol + "\" not known."));
+  return *res;
+}
+
+bool is_atomic_number(unsigned int atomic_number) {
+  return 0 < atomic_number && atomic_number <= elements().size();
+}
+
+const Element& Element::by_atomic_number(unsigned int atomic_number) {
+  assert_throw(is_atomic_number(atomic_number),
+               ExcUnknownElement("Only know atomic numbers in range [1," +
+                                 std::to_string(elements().size()) + "]."));
+  const auto& e = elements()[atomic_number - 1];
+  assert_dbg(e.atomic_number == atomic_number, krims::ExcInternalError());
+  return e;
 }
 
 }  // namespace gint

@@ -22,40 +22,23 @@
 
 namespace gint {
 
-bool ignore_case_equal(const std::string& a, const std::string& b) {
-  return a.size() == b.size() &&
-         std::equal(std::begin(a), std::end(a), std::begin(b), [](char ca, char cb) {
-           return std::tolower(ca) == std::tolower(cb);
-         });
-}
-
 Atom::Atom(const std::string& symbol, std::array<real_type, 3> coords_)
-      : Atom(0.0, std::move(coords_)) {
-  auto has_symbol = [&symbol](const Element& e) {
-    return ignore_case_equal(symbol, e.symbol);
-  };
-  auto res = std::find_if(std::begin(elements()), std::end(elements()), has_symbol);
-
-  assert_throw(res != std::end(elements()), ExcUnknownElementSymbol(symbol));
-  nuclear_charge = res->atomic_number;
+      : Atom(0, std::move(coords_)) {
+  const auto& e = Element::by_symbol(symbol);
+  nuclear_charge = atomic_number = e.atomic_number;
 }
 
 std::ostream& operator<<(std::ostream& o, const Atom& atom) {
-  const int integer_charge = static_cast<int>(atom.nuclear_charge);
-  if (atom.nuclear_charge - integer_charge < 1e-14 && integer_charge > 0 &&
-      static_cast<size_t>(integer_charge) < elements().size()) {
-    // Find element symbol and print it.
-
-    auto has_charge = [&integer_charge](const Element& e) {
-      return static_cast<unsigned short>(integer_charge) == e.atomic_number;
-    };
-    auto it = std::find_if(std::begin(elements()), std::end(elements()), has_charge);
-    assert_dbg(it != std::end(elements()), krims::ExcInternalError());
-
-    o << it->symbol;
+  if (is_atomic_number(atom.atomic_number)) {
+    // We know this atomic number => Print element symbol
+    o << Element::by_atomic_number(atom.atomic_number).symbol;
   } else {
-    // Print floating point charge:
-    o << atom.nuclear_charge;
+    o << atom.atomic_number;
+  }
+
+  // If significantly different charge, print too
+  if (std::abs(atom.nuclear_charge - atom.atomic_number) > 1e-14) {
+    o << " (Z=" << atom.nuclear_charge << ")";
   }
 
   o << "  " << atom.coords[0] << "  " << atom.coords[1] << "  " << atom.coords[2];

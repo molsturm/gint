@@ -18,19 +18,40 @@
 //
 
 #pragma once
+#include <array>
+#include <krims/ExceptionSystem.hh>
 #include <string>
-#include <vector>
 
 namespace gint {
 
+DefException1(ExcUnknownElement, std::string, << "Element unknown to gint: " << arg1);
+
 /** Structure for all elements of the periodic table */
 struct Element {
-  unsigned short atomic_number;
+  unsigned int atomic_number;
   std::string symbol;
   std::string name;
+
+  /** Look up an element by element symbol.
+   * \throws ExcUnknownElement if the symbol is not known */
+  static const Element& by_symbol(const std::string& symbol);
+
+  /** Look up an element by atomic number.
+   * \throws ExcUnknownElement if the atomic number is not known */
+  static const Element& by_atomic_number(unsigned int atomic_number);
 };
 
-/** Get the list of all elements known to gint */
-const std::vector<Element>& elements();
+/** Get the list of all elements known to gint
+ * No particular order should be assumed here.
+ * \note Use Element::by_symbol or Element::by_atomic_number
+ * to lookup an element.
+ */
+const std::array<Element, 118>& elements();
+
+/** Check whether the provided number is a valid atomic number */
+bool is_atomic_number(unsigned int atomic_number);
+
+/** Check whether the provided string is a valid element symbol */
+bool is_element_symbol(const std::string& symbol);
 
 }  // namespace gint
