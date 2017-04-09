@@ -31,6 +31,9 @@
 #include "IntegralUpdateKeys.hh"
 #include "OrbitalType.hh"
 
+// Sturmians
+#include "sturmian/atomic/NlmBasis.hh"
+
 // Chemistry
 #include "Atom.hh"
 #include "Structure.hh"

@@ -18,16 +18,22 @@
 //
 
 #pragma once
-#include <sturmint/atomic/cs/cs_atomic.hh>
+#include <limits>
+#include <vector>
 
 namespace gint {
 namespace sturmian {
 namespace atomic {
-namespace nlm_order {
-using sturmint::atomic::cs::nlm_t;
+
+/** Struct representing an n,l,m triple */
+struct Nlm {
+  int n;
+  int l;
+  int m;
+};
 
 /** Structure representing a collection of n,l,m triples */
-struct NlmBasis : public std::vector<nlm_t> {
+struct NlmBasis : public std::vector<Nlm> {
   static constexpr int all = std::numeric_limits<int>::max();
   int n_max;
 
@@ -59,7 +65,6 @@ struct NlmBasis : public std::vector<nlm_t> {
   void add_shell(int n, int l_max, int m_max);
 };
 
-}  // namespace nlm_order
 }  // namespace atomic
 }  // namespace sturmian
 }  // namespace gint

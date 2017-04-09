@@ -18,9 +18,9 @@
 //
 
 #pragma once
+#include "atomic/NlmBasis.hh"
 #include "atomic/cs_dummy.hh"
 #include "atomic/cs_naive.hh"
 #include "atomic/cs_reference.hh"
 #include "atomic/cs_reference_pc.hh"
 #include "atomic/cs_static14.hh"
-#include "atomic/nlm_order/NlmBasis.hh"

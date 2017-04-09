@@ -158,8 +158,8 @@ inline scalar_type KineticIntegralCore::operator()(size_t row, size_t col) const
   assert_greater(row, n_rows());
   assert_greater(col, n_cols());
 
-  const nlm_t mui = system().basis[row];
-  const nlm_t muj = system().basis[col];
+  const nlm_type mui = system().basis[row];
+  const nlm_type muj = system().basis[col];
   const auto k = system().k;
   return static_cast<scalar_type>(k * k * sturmint::atomic::cs::kinetic(mui, muj));
 }
@@ -199,8 +199,8 @@ inline scalar_type OverlapIntegralCore::operator()(size_t row, size_t col) const
   assert_greater(row, n_rows());
   assert_greater(col, n_cols());
 
-  const nlm_t mui = system().basis[row];
-  const nlm_t muj = system().basis[col];
+  const nlm_type mui = system().basis[row];
+  const nlm_type muj = system().basis[col];
   return static_cast<scalar_type>(sturmint::atomic::cs::overlap(mui, muj));
 }
 

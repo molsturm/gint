@@ -18,27 +18,35 @@
 //
 
 #pragma once
-#include "NlmBasis.hh"
 #include "gint/config.hh"
+#include "gint/sturmian/atomic/NlmBasis.hh"
 #include <krims/Subscribable.hh>
+#include <sturmint/atomic/cs/cs_atomic.hh>
 
 namespace gint {
 namespace sturmian {
 namespace atomic {
 namespace nlm_order {
 
-// Everything in this namespace is real-valued:
+// Import real-valued structures and nlm type:
 using namespace gint::real_valued;
+using nlm_type = sturmint::atomic::cs::nlm_t;
 
 /** Structure, which collects the system information relevant to
  *  compute sturmint integrals */
 struct SturmintSystem : public krims::Subscribable {
   scalar_type k;
+  std::vector<nlm_type> basis;
   scalar_type Z;
-  NlmBasis basis;
 
   /** Return the number of basis functions */
   size_t n_bas() const { return basis.size(); }
+
+  SturmintSystem() = default;
+  SturmintSystem(scalar_type Z, scalar_type k, std::vector<nlm_type> basis)
+        : k(std::move(k)), basis(std::move(basis)), Z(std::move(Z)) {}
+
+  SturmintSystem(scalar_type Z, scalar_type k, const NlmBasis& basis_);
 };
 
 }  // namespace nlm_order

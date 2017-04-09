@@ -1,4 +1,5 @@
 #include "cs_naive.hh"
+#include "gint/sturmian/atomic/NlmBasis.hh"
 #include "nlm_order/ERICore.hh"
 #include "nlm_order/ERICoreHighPrecision.hh"
 #include "nlm_order/OneElectronIntegralCores.hh"
@@ -11,11 +12,16 @@ namespace cs_naive {
 const std::string IntegralCollection::id = "atomic/cs_naive";
 
 IntegralCollection::IntegralCollection(const krims::GenMap& parameters)
-      : m_system{}, m_integral_calculator{} {
+      : IntegralCollectionBase{parameters}, m_integral_calculator{m_system.basis} {
+
+  // Implement some day. Most importantly think about the required range checks.
+  assert_throw(!parameters.exists(IntegralCollectionBaseKeys::nlm_basis),
+               krims::ExcNotImplemented());
+
+  // Check range of n,l,m values
   const int n_max = parameters.at<int>("n_max");
   const int l_max = parameters.at<int>("l_max");
   const int m_max = parameters.at<int>("m_max");
-
   assert_throw(0 < n_max && n_max <= 6,
                ExcInvalidIntegralParameters(
                      "Maximum principle quantum number (" + std::to_string(n_max) +
@@ -32,11 +38,6 @@ IntegralCollection::IntegralCollection(const krims::GenMap& parameters)
                                      std::to_string(m_max) +
                                      ") needs to be in the range [0,4] for cs_naive, "
                                      "since higher values are not yet implemented."));
-
-  m_system.Z = parameters.at<scalar_type>("Z_charge");
-  m_system.k = parameters.at<scalar_type>("k_exponent");
-  m_system.basis = NlmBasis(n_max, l_max, m_max);
-  m_integral_calculator = Atomic(m_system.basis);
 }
 
 Integral<stored_matrix_type> IntegralCollection::lookup_integral(

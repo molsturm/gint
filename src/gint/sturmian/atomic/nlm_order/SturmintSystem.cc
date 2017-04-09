@@ -17,21 +17,23 @@
 // along with gint. If not, see <http://www.gnu.org/licenses/>.
 //
 
-#pragma once
-
-/** \file Contains the includes needed for the headers,
- *  which set up the sturmint integral collections
- */
-
-#include "nlm_order/IntegralCollectionBase.hh"
-#include "nlm_order/SturmintSystem.hh"
+#include "SturmintSystem.hh"
 
 namespace gint {
 namespace sturmian {
 namespace atomic {
 namespace nlm_order {
-// Everything in this namespace is real-valued:
-using namespace gint::real_valued;
+
+SturmintSystem::SturmintSystem(scalar_type Z, scalar_type k, const NlmBasis& basis_)
+      : k(std::move(k)), basis(), Z(std::move(Z)) {
+  basis.reserve(basis_.size());
+  for (const Nlm& nlm : basis_) {
+    assert_greater(0, nlm.n);
+    assert_greater_equal(0, nlm.l);
+    assert_greater_equal(0, nlm.m);
+    basis.push_back(nlm_type{nlm.n, nlm.l, nlm.m});
+  }
+}
 
 }  // namespace nlm_order
 }  // namespace atomic

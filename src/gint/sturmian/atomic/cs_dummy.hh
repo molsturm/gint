@@ -1,5 +1,4 @@
 #pragma once
-#include "gint/IntegralCollectionBase.hh"
 #include "nlm_order.hh"
 #include <sturmint/atomic/cs_dummy/cs_atomic.hh>
 
@@ -10,11 +9,9 @@ namespace cs_dummy {
 using namespace nlm_order;
 using sturmint::atomic::cs_dummy::Atomic;
 
-// This integral class uses (n,l,m)-ordering: {{n,1,nmax},{l,0,n-1},{m,-l,l}}
-class IntegralCollection final : public IntegralCollectionBase<stored_matrix_type> {
+/**  This integral class uses (n,l,m)-ordering: {{n,1,nmax},{l,0,n-1},{m,-l,l}} */
+class IntegralCollection final : public IntegralCollectionBase {
  public:
-  typedef IntegralCollectionBase<stored_matrix_type> base_type;
-
   const static std::string id;
 
   /** Construct collection object from a set of parameters
@@ -43,9 +40,6 @@ class IntegralCollection final : public IntegralCollectionBase<stored_matrix_typ
   }
 
  private:
-  /** The system information in a way usable by sturmint integrals */
-  SturmintSystem m_system;
-
   /** The filename to be used to read repulsion data */
   std::string m_repulsiondata_filename;
 

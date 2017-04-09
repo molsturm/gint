@@ -18,20 +18,33 @@
 //
 
 #pragma once
-
-/** \file Contains the includes needed for the headers,
- *  which set up the sturmint integral collections
- */
-
-#include "nlm_order/IntegralCollectionBase.hh"
-#include "nlm_order/SturmintSystem.hh"
+#include "SturmintSystem.hh"
+#include "gint/IntegralCollectionBase.hh"
 
 namespace gint {
 namespace sturmian {
 namespace atomic {
 namespace nlm_order {
-// Everything in this namespace is real-valued:
-using namespace gint::real_valued;
+
+struct IntegralCollectionBaseKeys {
+  static const std::string Z_charge;
+  static const std::string k_exponent;
+  static const std::string nlm_basis;
+
+  /** TODO Add all of them */
+};
+
+class IntegralCollectionBase : public gint::IntegralCollectionBase<stored_matrix_type> {
+ public:
+  typedef gint::IntegralCollectionBase<stored_matrix_type> base_type;
+
+  /** Parse the parameters and setup the SturmintSystem object. */
+  IntegralCollectionBase(const krims::GenMap& parameters);
+
+ protected:
+  /** The system information in a way usable by sturmint integrals */
+  SturmintSystem m_system;
+};
 
 }  // namespace nlm_order
 }  // namespace atomic

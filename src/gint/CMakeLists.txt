@@ -15,14 +15,16 @@ set(GINT_SOURCES
   Element.cc
   Structure.cc
 
-  sturmian/atomic/nlm_order/NlmBasis.cc
   sturmian/atomic/nlm_order/ERICore.cc
   sturmian/atomic/nlm_order/ERICoreHighPrecision.cc
+  sturmian/atomic/nlm_order/IntegralCollectionBase.cc
+  sturmian/atomic/nlm_order/SturmintSystem.cc
   sturmian/atomic/cs_dummy.cc
   sturmian/atomic/cs_naive.cc
   sturmian/atomic/cs_reference.cc
   sturmian/atomic/cs_reference_pc.cc
   sturmian/atomic/cs_static14.cc
+  sturmian/atomic/NlmBasis.cc
   sturmian/atomic/Static14Data.cc
 
   gaussian/libint.cc

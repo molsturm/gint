@@ -18,26 +18,25 @@
 //
 
 #include "NlmBasis.hh"
+#include <krims/ExceptionSystem.hh>
 
 namespace gint {
 namespace sturmian {
 namespace atomic {
-namespace nlm_order {
 
 void NlmBasis::add_shell(int n, int l_max, int m_max) {
   assert_greater(0, n);
   assert_greater_equal(0, l_max);
   assert_greater_equal(0, m_max);
 
-  for (int l = 0; l <= min(l_max, n - 1); ++l) {
-    const int ms = min(m_max, l);
+  for (int l = 0; l <= std::min(l_max, n - 1); ++l) {
+    const int ms = std::min(m_max, l);
     for (int m = -ms; m <= ms; ++m) {
-      this->push_back(nlm_t{n, l, m});
+      this->push_back({n, l, m});
     }
   }
 }
 
-}  // namespace nlm_order
 }  // namespace atomic
 }  // namespace sturmian
 }  // namespace gint
