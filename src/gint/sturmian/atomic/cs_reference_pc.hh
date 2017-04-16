@@ -21,6 +21,9 @@ class IntegralCollection final : public IntegralCollectionBase {
    *   - k_exponent (double): The exponent of all Coulomb sturmians
    *   - Z_charge (double): The nuclear change of the system
    *   - n_max (int): The maximal principle quantum number
+   *   - l_max (int): Maximal azimuthal quantum number
+   *   - m_max (int): Maximal magnetic quantum number
+   *   - nlmbasis (NlmCollection): The precise basis triples (nlm) to use
    */
   IntegralCollection(const krims::GenMap& parameters);
 
