@@ -22,8 +22,8 @@
 
 namespace gint {
 
-const std::array<Element, 118>& elements() {
-  static std::array<Element, 118> elements{{
+const std::array<Element, n_elements>& elements() {
+  static std::array<Element, n_elements> elements{{
         {1, "H", "hydrogen"},       {2, "He", "helium"},
         {3, "Li", "lithium"},       {4, "Be", "beryllium"},
         {5, "B", "boron"},          {6, "C", "carbon"},
