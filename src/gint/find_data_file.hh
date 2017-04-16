@@ -23,17 +23,22 @@
 
 namespace gint {
 
+/** Specialisation of the krims::FindDataFile functor for the gint library */
+struct FindDataFile : public krims::FindDataFile {
+  FindDataFile() : krims::FindDataFile("gint") {
+    extra_directories.push_back(std::string(detail::data_download_dir));
+    extra_directories.push_back(std::string(detail::data_install_dir));
+  }
+};
+
 /** Search a datafile in gint's static data directories
  *  and return the full path to it.
  *
  *  In case the file could not be found a krims::ExcDatafileNotFound
  *  exception is raised.
  */
-std::string find_data_file(const std::string& file) {
-  krims::FindDataFile find("gint");
-  find.extra_directories.push_back(std::string(detail::data_download_dir));
-  find.extra_directories.push_back(std::string(detail::data_install_dir));
-  return find(file);
+inline std::string find_data_file(const std::string& file) {
+  return FindDataFile{}(file);
 }
 
 }  // namespace gint
