@@ -9,6 +9,7 @@ set(GINT_TESTS_SOURCES
   QuickAtomicStatic14Test.cc
   QuickLibintTests.cc
   CoefficientTest.cc
+  ReadBasisSetTest.cc
   main.cc
 )
 

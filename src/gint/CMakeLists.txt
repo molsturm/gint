@@ -28,6 +28,8 @@ set(GINT_SOURCES
   sturmian/atomic/Static14Data.cc
 
   gaussian/libint.cc
+  gaussian/Basis.cc
+  gaussian/read_basisset.cc
 )
 
 # Write the config file config.hh (into the binary dir)
