@@ -32,7 +32,7 @@ IntegralCollectionBase::IntegralCollectionBase(const krims::GenMap& parameters) 
   const auto Z = parameters.at<scalar_type>(IntegralCollectionBaseKeys::Z_charge);
   const auto k = parameters.at<scalar_type>(IntegralCollectionBaseKeys::k_exponent);
 
-  if (parameters.exists("nlmbasis")) {
+  if (parameters.exists(IntegralCollectionBaseKeys::nlm_basis)) {
     const auto& nlmbasis =
           parameters.at<const NlmBasis>(IntegralCollectionBaseKeys::nlm_basis);
 
