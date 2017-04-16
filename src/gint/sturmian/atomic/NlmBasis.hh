@@ -18,7 +18,9 @@
 //
 
 #pragma once
+#include <krims/Subscribable.hh>
 #include <limits>
+#include <ostream>
 #include <vector>
 
 namespace gint {
@@ -32,8 +34,11 @@ struct Nlm {
   int m;
 };
 
+/** Print an Nlm triple to an output stream */
+std::ostream& operator<<(std::ostream& o, const Nlm& nlm);
+
 /** Structure representing a collection of n,l,m triples */
-struct NlmBasis : public std::vector<Nlm> {
+struct NlmBasis : public std::vector<Nlm>, public krims::Subscribable {
   static constexpr int all = std::numeric_limits<int>::max();
   int n_max;
 
@@ -64,6 +69,18 @@ struct NlmBasis : public std::vector<Nlm> {
    *  quantum number to use */
   void add_shell(int n, int l_max, int m_max);
 };
+
+/** Print an NlmBasis structure to an output stream */
+std::ostream& operator<<(std::ostream& o, const NlmBasis& basis);
+
+//
+// ----------------------------------------------------------------
+//
+
+inline std::ostream& operator<<(std::ostream& o, const Nlm& nlm) {
+  o << '(' << nlm.n << ',' << nlm.l << ',' << nlm.m << ')';
+  return o;
+}
 
 }  // namespace atomic
 }  // namespace sturmian

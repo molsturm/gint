@@ -18,6 +18,7 @@
 //
 
 #include "NlmBasis.hh"
+#include <krims/Algorithm.hh>
 #include <krims/ExceptionSystem.hh>
 
 namespace gint {
@@ -35,6 +36,11 @@ void NlmBasis::add_shell(int n, int l_max, int m_max) {
       this->push_back({n, l, m});
     }
   }
+}
+
+std::ostream& operator<<(std::ostream& o, const NlmBasis& basis) {
+  o << krims::join(std::begin(basis), std::end(basis), ", ");
+  return o;
 }
 
 }  // namespace atomic
