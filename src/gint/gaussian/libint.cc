@@ -281,7 +281,7 @@ krims::Range<size_t> LibintBasisShellData::containing_shell_range(
 
   // Shortcut for the full range:
   if (bfct_indices.lower_bound() == 0 &&
-      bfct_indices.upper_bound() == static_cast<size_t>(m_system_ptr->basis().nbf())) {
+      bfct_indices.upper_bound() == static_cast<size_t>(m_system_ptr->n_bas())) {
     return {0, n_shells()};
   }
 
