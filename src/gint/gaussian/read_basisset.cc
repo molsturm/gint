@@ -21,6 +21,7 @@
 #include "BasisSet.hh"
 #include "Shell.hh"
 #include "gint/Element.hh"
+#include "gint/qnum.hh"
 #include <algorithm>
 #include <functional>
 
@@ -28,31 +29,6 @@ namespace gint {
 namespace gaussian {
 
 namespace detail {
-
-// TODO Make publicly accessible utility function!
-/** Converts an AM letter to the am quantum number. Returns -1 on error */
-int letter_to_am(char l) {
-  switch (std::toupper(l)) {
-    /* clang-format off */
-    case 'S': return 0;
-    case 'P': return 1;
-    case 'D': return 2;
-    case 'F': return 3;
-    case 'G': return 4;
-    case 'H': return 5;
-    case 'I': return 6;
-    case 'J': return 7;
-    case 'K': return 8;
-    case 'L': return 9;
-    case 'M': return 10;
-    case 'N': return 11;
-    case 'O': return 12;
-    /* clang-format on */
-    default:
-      return -1;
-  }
-}
-
 /** Convert a Fortran float string (containing 'D's and 'd's to a corresponding string
  * which can be interpreted by C++ */
 std::string floatstring_fortran_to_c(std::string in) {
@@ -153,12 +129,17 @@ std::vector<Shell> read_gaussian94_element_section(std::istream& f) {
       ret.push_back(std::move(s));
       ret.push_back(std::move(p));
     } else {
-      Shell sh;
-      sh.l = detail::letter_to_am(amstr[0]);
       assert_throw(
-            amstr.size() == 1 && sh.l != -1,
+            amstr.size() == 1,
             ExcInvalidBasisSetFile("Invalid angular momentum string \"" + amstr + "\"."));
 
+      Shell sh;
+      try {
+        sh.l = qnum::letter_to_am(amstr[0]);
+      } catch (qnum::ExcInvalidAmLetter& e) {
+        assert_throw(false, ExcInvalidBasisSetFile("Invalid angular momentum string \"" +
+                                                   amstr + "\"."));
+      }
       sh.pure = force_cartesian_d ? (sh.l > 2) : (sh.l > 1);
       sh.exponents.resize(n_contr);
       sh.coefficients.resize(n_contr);
@@ -235,9 +216,6 @@ BasisSet read_gaussian94(std::istream& f) {
       throw;
     }
   }
-
-  // TODO How about normalisation ??
-  //      Check how libint does this!
 
   return b;
 }

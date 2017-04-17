@@ -3,6 +3,7 @@
 #
 set(GINT_SOURCES
   version.cc
+  qnum.cc
 
   IntegralUpdateKeys.cc
   Integral.cc

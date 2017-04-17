@@ -34,7 +34,14 @@ struct Shell {
   int l;
 
   /** Should we use pure or Cartesian functions for the
-   * spherical harmonic/angular part of the shell */
+   * spherical harmonic/angular part of the shell
+   *
+   * \note
+   * For angular momentum quantum numbers less than
+   * 2 (i.e. s and p shells) the value of pure should not
+   * make a difference. By convention it should be false
+   * in these cases.
+   **/
   bool pure;
 
   /** Contraction coefficients */

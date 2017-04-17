@@ -22,114 +22,34 @@
 #include <gint/gaussian/BasisSet.hh>
 #include <gint/gaussian/Shell.hh>
 #include <gint/gaussian/read_basisset.hh>
+#include <gint/qnum.hh>
 
 namespace gint {
 namespace tests {
+using namespace gaussian;
+
+template <typename T>
+void check_vectors(const std::vector<T>& c, const std::vector<T>& d) {
+  CHECK(c.size() == d.size());
+  for (size_t i = 0; i < c.size(); ++i) {
+    CHECK(c[i] == d[i]);
+  }
+}
+
+void check_am_pure(const Shell& s, char am_char) {
+  CHECK(s.l == qnum::letter_to_am(am_char));
+  if (s.l < 2) {
+    CHECK_FALSE(s.pure);
+  } else {
+    CHECK(s.pure);
+  }
+}
 
 TEST_CASE("read_basisset tests", "[read_basisset]") {
-
-  SECTION("sto-3g test") {
-    std::string file = find_data_file("basis/sto-3g.g94");
-    std::ifstream f(file);
-    const gaussian::BasisSet b =
-          gaussian::read_basisset(f, gaussian::BasisSetFileFormat::Gaussian94);
-
-    SECTION("Check hydrogen") {
-      const std::vector<gaussian::Shell>& sh_h = b.shells_for_atom(1);
-      CHECK(sh_h.size() == 1);
-
-      const gaussian::Shell& h_1s = sh_h[0];
-      CHECK(h_1s.l == 0);
-      CHECK(h_1s.coefficients.size() == 3);
-      CHECK(h_1s.exponents.size() == 3);
-
-      CHECK(h_1s.coefficients[0] == 0.15432897);
-      CHECK(h_1s.coefficients[1] == 0.53532814);
-      CHECK(h_1s.coefficients[2] == 0.44463454);
-      CHECK(h_1s.exponents[0] == 3.42525091);
-      CHECK(h_1s.exponents[1] == 0.62391373);
-      CHECK(h_1s.exponents[2] == 0.16885540);
-    }  // H
-
-    SECTION("Check magnesium") {
-      const std::vector<gaussian::Shell>& sh_mg = b.shells_for_atom(12);
-      CHECK(sh_mg.size() == 5);
-
-      const gaussian::Shell& mg_1s = sh_mg[0];
-      CHECK(mg_1s.l == 0);
-      CHECK(mg_1s.coefficients.size() == 3);
-      CHECK(mg_1s.exponents.size() == 3);
-
-      CHECK(mg_1s.coefficients[0] == 0.1543289673);
-      CHECK(mg_1s.coefficients[1] == 0.5353281423);
-      CHECK(mg_1s.coefficients[2] == 0.4446345422);
-      CHECK(mg_1s.exponents[0] == 299.2374000);
-      CHECK(mg_1s.exponents[1] == 54.5064700);
-      CHECK(mg_1s.exponents[2] == 14.7515800);
-
-      //
-
-      const gaussian::Shell& mg_2s = sh_mg[1];
-      CHECK(mg_2s.l == 0);
-      CHECK(mg_2s.coefficients.size() == 3);
-      CHECK(mg_2s.exponents.size() == 3);
-
-      CHECK(mg_2s.coefficients[0] == -0.09996722919);
-      CHECK(mg_2s.coefficients[1] == 0.39951282610);
-      CHECK(mg_2s.coefficients[2] == 0.70011546890);
-      CHECK(mg_2s.exponents[0] == 15.1218200);
-      CHECK(mg_2s.exponents[1] == 3.5139870);
-      CHECK(mg_2s.exponents[2] == 1.1428570);
-
-      //
-
-      const gaussian::Shell& mg_2p = sh_mg[2];
-      CHECK(mg_2p.l == 1);
-      CHECK(mg_2p.coefficients.size() == 3);
-      CHECK(mg_2p.exponents.size() == 3);
-
-      CHECK(mg_2p.coefficients[0] == 0.1559162750);
-      CHECK(mg_2p.coefficients[1] == 0.6076837186);
-      CHECK(mg_2p.coefficients[2] == 0.3919573931);
-      CHECK(mg_2p.exponents[0] == 15.1218200);
-      CHECK(mg_2p.exponents[1] == 3.5139870);
-      CHECK(mg_2p.exponents[2] == 1.1428570);
-
-      //
-
-      const gaussian::Shell& mg_3s = sh_mg[3];
-      CHECK(mg_3s.l == 0);
-      CHECK(mg_3s.coefficients.size() == 3);
-      CHECK(mg_3s.exponents.size() == 3);
-
-      CHECK(mg_3s.coefficients[0] == -0.2196203690);
-      CHECK(mg_3s.coefficients[1] == 0.2255954336);
-      CHECK(mg_3s.coefficients[2] == 0.9003984260);
-      CHECK(mg_3s.exponents[0] == 1.3954480);
-      CHECK(mg_3s.exponents[1] == 0.3893260);
-      CHECK(mg_3s.exponents[2] == 0.1523800);
-
-      //
-
-      const gaussian::Shell& mg_3p = sh_mg[4];
-      CHECK(mg_3p.l == 1);
-      CHECK(mg_3p.coefficients.size() == 3);
-      CHECK(mg_3p.exponents.size() == 3);
-
-      CHECK(mg_3p.coefficients[0] == 0.01058760429);
-      CHECK(mg_3p.coefficients[1] == 0.59516700530);
-      CHECK(mg_3p.coefficients[2] == 0.46200101200);
-      CHECK(mg_3p.exponents[0] == 1.3954480);
-      CHECK(mg_3p.exponents[1] == 0.3893260);
-      CHECK(mg_3p.exponents[2] == 0.1523800);
-    }  // Mg
-
-    // TODO Check pure vs cartesian for d, f and further!
-  }  // sto-3g
-
+  //
+  // Failling
+  //
   SECTION("Failing Gaussan94 examples") {
-    using namespace gaussian;
-
     BasisSetFileFormat g94 = BasisSetFileFormat::Gaussian94;
     std::stringstream ss("");
 
@@ -182,8 +102,124 @@ TEST_CASE("read_basisset tests", "[read_basisset]") {
          << "****" << '\n';
       CHECK_THROWS_AS(read_basisset(ss, g94), ExcInvalidBasisSetFile);
     }
-
   }  // failing
+
+  //
+  // sto-3g
+  //
+  SECTION("sto-3g test") {
+    std::ifstream f(find_data_file("basis/sto-3g.g94"));
+    const BasisSet b = read_basisset(f, BasisSetFileFormat::Gaussian94);
+
+    SECTION("Check hydrogen") {
+      const std::vector<Shell>& h = b.shells_for_atom(1);
+      CHECK(h.size() == 1);
+
+      check_am_pure(h[0], 's');
+      check_vectors(h[0].coefficients, {0.15432897, 0.53532814, 0.44463454});
+      check_vectors(h[0].exponents, {3.42525091, 0.62391373, 0.16885540});
+    }  // H
+
+    SECTION("Check magnesium") {
+      const std::vector<Shell>& mg = b.shells_for_atom(12);
+      CHECK(mg.size() == 5);
+
+      check_am_pure(mg[0], 's');
+      check_vectors(mg[0].coefficients, {0.1543289673, 0.5353281423, 0.4446345422});
+      check_vectors(mg[0].exponents, {299.2374000, 54.5064700, 14.7515800});
+
+      check_am_pure(mg[1], 's');
+      check_vectors(mg[1].coefficients, {-0.09996722919, 0.39951282610, 0.70011546890});
+      check_vectors(mg[1].exponents, {15.1218200, 3.5139870, 1.1428570});
+
+      check_am_pure(mg[2], 'p');
+      check_vectors(mg[2].coefficients, {0.1559162750, 0.6076837186, 0.3919573931});
+      check_vectors(mg[2].exponents, {15.1218200, 3.5139870, 1.1428570});
+
+      check_am_pure(mg[3], 's');
+      check_vectors(mg[3].coefficients, {-0.2196203690, 0.2255954336, 0.9003984260});
+      check_vectors(mg[3].exponents, {1.3954480, 0.3893260, 0.1523800});
+
+      check_am_pure(mg[4], 'p');
+      check_vectors(mg[4].coefficients, {0.01058760429, 0.59516700530, 0.46200101200});
+      check_vectors(mg[4].exponents, {1.3954480, 0.3893260, 0.1523800});
+    }  // Mg
+  }    // sto-3g
+
+  //
+  // 6-31g*
+  //
+  SECTION("6-31g* test") {
+    std::ifstream f(find_data_file("basis/6-31g*.g94"));
+    const BasisSet b = read_basisset(f, BasisSetFileFormat::Gaussian94);
+
+    SECTION("Check hydrogen") {
+      const std::vector<Shell>& h = b.shells_for_atom(1);
+      CHECK(h.size() == 2);
+
+      INFO("Checking h shell " << 0);
+      check_am_pure(h[0], 's');
+      check_vectors(h[0].exponents, {18.7311370, 2.8253937, 0.6401217});
+      check_vectors(h[0].coefficients, {0.03349460, 0.23472695, 0.81375733});
+
+      INFO("Checking h shell " << 1);
+      check_am_pure(h[1], 's');
+      check_vectors(h[1].exponents, {0.1612778});
+      check_vectors(h[1].coefficients, {1.0000000});
+    }  // H
+
+    SECTION("Check magnesium") {
+      const std::vector<Shell>& mg = b.shells_for_atom(12);
+      CHECK(mg.size() == 8);
+
+      INFO("Checking mg shell " << 0);
+      check_am_pure(mg[0], 's');
+      check_vectors(mg[0].exponents, {11722.8000000, 1759.9300000, 400.8460000,
+                                      112.8070000, 35.9997000, 12.1828000});
+      check_vectors(mg[0].coefficients,
+                    {0.0019778, 0.0151140, 0.0739110, 0.2491910, 0.4879280, 0.3196620});
+
+      INFO("Checking mg shell " << 1);
+      check_am_pure(mg[1], 's');
+      check_vectors(mg[1].exponents, {189.1800000, 45.2119000, 14.3563000, 5.1388600,
+                                      1.9065200, 0.7058870});
+      check_vectors(mg[1].coefficients, {-0.0032372, -0.0410080, -0.1126000, 0.1486330,
+                                         0.6164970, 0.3648290});
+
+      INFO("Checking mg shell " << 2);
+      check_am_pure(mg[2], 'p');
+      check_vectors(mg[2].exponents, {189.1800000, 45.2119000, 14.3563000, 5.1388600,
+                                      1.9065200, 0.7058870});
+      check_vectors(mg[2].coefficients,
+                    {0.0049281, 0.0349890, 0.1407250, 0.3336420, 0.4449400, 0.2692540});
+
+      INFO("Checking mg shell " << 3);
+      check_am_pure(mg[3], 's');
+      check_vectors(mg[3].exponents, {0.9293400, 0.2690350, 0.1173790});
+      check_vectors(mg[3].coefficients, {-0.2122900, -0.1079850, 1.1758400});
+
+      INFO("Checking mg shell " << 4);
+      check_am_pure(mg[4], 'p');
+      check_vectors(mg[4].exponents, {0.9293400, 0.2690350, 0.1173790});
+      check_vectors(mg[4].coefficients, {-0.0224190, 0.1922700, 0.8461810});
+
+      INFO("Checking mg shell " << 5);
+      check_am_pure(mg[5], 's');
+      check_vectors(mg[5].exponents, {0.0421061});
+      check_vectors(mg[5].coefficients, {1.0000000});
+
+      INFO("Checking mg shell " << 6);
+      check_am_pure(mg[6], 'p');
+      check_vectors(mg[6].exponents, {0.0421061});
+      check_vectors(mg[6].coefficients, {1.0000000});
+
+      INFO("Checking mg shell " << 7);
+      check_am_pure(mg[7], 'd');
+      check_vectors(mg[7].exponents, {0.1750000});
+      check_vectors(mg[7].coefficients, {1.0000000});
+    }  // Mg
+  }    // 6-31g*
+
 }  // read_basisset
 }  // namespace tests
 }  // namespace gint
