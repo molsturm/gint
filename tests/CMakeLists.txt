@@ -10,6 +10,7 @@ set(GINT_TESTS_SOURCES
   QuickLibintTests.cc
   CoefficientTest.cc
   ReadBasisSetTest.cc
+  BasisSetTests.cc
   main.cc
 )
 

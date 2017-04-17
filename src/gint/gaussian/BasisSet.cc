@@ -27,11 +27,11 @@ namespace gint {
 namespace gaussian {
 
 namespace detail {
-std::string normalise_basisset_name(const std::string& name) {
-  auto normalise_char = [](char c) {
+std::string normalise_basisset_name(const std::string& name, bool full = true) {
+  auto normalise_char = [&full](char c) {
     switch (c) {
       case '/':
-        return 'I';
+        return full ? 'I' : '/';
       default:
         return static_cast<char>(::tolower(c));
     }
@@ -42,11 +42,14 @@ std::string normalise_basisset_name(const std::string& name) {
   std::transform(std::begin(name), std::end(name),
                  std::back_insert_iterator<std::string>(normalised), normalise_char);
 
-  return name;
+  return normalised;
 }
 }  // namespace detail
 
 BasisSet lookup_basisset(const std::string& name) {
+  // TODO Augmentation and other stuff ??
+  //      Shall we use an extra file like libint?
+
   const std::string datafile = "basis/" + detail::normalise_basisset_name(name) + ".g94";
 
   // Find files, but also search in current working directory (i.e. basis files in
@@ -54,9 +57,11 @@ BasisSet lookup_basisset(const std::string& name) {
   gint::FindDataFile find;
   find.cwd_suffixes.push_back(".");
 
-  std::ifstream file(find(name));
-  BasisSet b = read_basisset(file, BasisSetFileFormat::Gaussian94);
-  b.name = name;
+  const std::string fullpath = find(datafile);
+  std::ifstream f(fullpath);
+  BasisSet b = read_basisset(f, BasisSetFileFormat::Gaussian94);
+  b.name = detail::normalise_basisset_name(name, false);
+  b.filename = fullpath;
   return b;
 }
 

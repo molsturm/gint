@@ -30,6 +30,7 @@ set(GINT_SOURCES
 
   gaussian/libint.cc
   gaussian/Basis.cc
+  gaussian/BasisSet.cc
   gaussian/read_basisset.cc
 )
 
