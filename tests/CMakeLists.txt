@@ -11,6 +11,7 @@ set(GINT_TESTS_SOURCES
   CoefficientTest.cc
   ReadBasisSetTest.cc
   BasisSetTests.cc
+  BasisTests.cc
   main.cc
 )
 

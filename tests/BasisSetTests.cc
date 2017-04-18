@@ -37,6 +37,9 @@ TEST_CASE("BasisSet tests", "[basis_set]") {
     SECTION("Test hydrogen") {
       auto& h = bs.shells_for_atom(1);
       CHECK(h.size() == 1);
+      CHECK(h[0].coefficients.size() == 3);
+      CHECK(h[0].exponents.size() == 3);
+
       CHECK(h[0].coefficients[0] == 0.15432897);
       CHECK(h[0].coefficients[1] == 0.53532814);
       CHECK(h[0].coefficients[2] == 0.44463454);

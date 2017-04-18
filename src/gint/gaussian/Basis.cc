@@ -19,6 +19,7 @@
 
 #include "Basis.hh"
 #include "Shell.hh"
+#include "gint/Structure.hh"
 #include <iterator>
 
 namespace gint {

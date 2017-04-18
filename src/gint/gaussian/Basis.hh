@@ -19,13 +19,14 @@
 
 #pragma once
 #include "BasisSet.hh"
-#include "gint/Structure.hh"
 #include <krims/Subscribable.hh>
 #include <vector>
 
-class Shell;
-
 namespace gint {
+
+// Forward-declare Structure class
+class Structure;
+
 namespace gaussian {
 
 /** Structure for a Gaussian basis.
