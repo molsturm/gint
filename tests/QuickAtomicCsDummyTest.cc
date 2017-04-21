@@ -1,6 +1,7 @@
 #include "SturmianTestData.hh"
 #include "integral_quick_tests.hh"
 #include <gint/IntegralLookup.hh>
+#include <gint/IntegralLookupKeys.hh>
 #include <gint/OrbitalType.hh>
 #include <gint/config.hh>
 #include <linalgwrap/SmallVector.hh>
@@ -21,12 +22,12 @@ TEST_CASE("Quick atomic cs_dummy test", "[quicktest cs_dummy]") {
   // Setup parameters for the integral library
   const krims::GenMap params{
         {"k_exponent", refdata_type::k_exp},
-        {"structure", refdata_type::structure},
+        {IntegralLookupKeys::structure, refdata_type::structure},
         {"n_max", 3},
         {"l_max", 2},
         {"m_max", 2},
-        {"orbital_type", OrbitalType::COMPLEX_ATOMIC},
-        {"basis_type", "atomic/cs_dummy"},
+        {IntegralLookupKeys::orbital_type, OrbitalType::COMPLEX_ATOMIC},
+        {IntegralLookupKeys::basis_type, "atomic/cs_dummy"},
   };
 
   IntegralDummyTests<int_lookup_type, refdata_type>::run_all("cs_dummy: ",

@@ -2,6 +2,7 @@
 #include "SturmianTestData.hh"
 #include "integral_quick_tests.hh"
 #include <gint/IntegralLookup.hh>
+#include <gint/IntegralLookupKeys.hh>
 #include <gint/OrbitalType.hh>
 #include <linalgwrap/SmallVector.hh>
 #include <rapidcheck.h>
@@ -21,9 +22,9 @@ TEST_CASE("Quick atomic static14 test", "[quicktest static14]") {
   // Setup parameters for the integral library
   const krims::GenMap params{
         {"k_exponent", refdata_type::k_exp},
-        {"structure", refdata_type::structure},
-        {"orbital_type", OrbitalType::COMPLEX_ATOMIC},
-        {"basis_type", "atomic/cs_static14"},
+        {IntegralLookupKeys::structure, refdata_type::structure},
+        {IntegralLookupKeys::orbital_type, OrbitalType::COMPLEX_ATOMIC},
+        {IntegralLookupKeys::basis_type, "atomic/cs_static14"},
   };
 
   IntegralDummyTests<int_lookup_type, refdata_type>::run_all("static14: ",
