@@ -37,7 +37,7 @@ class IntegralCollection final : public IntegralCollectionBase<stored_matrix_typ
    *
    * The following parameters are read:
    *   - k_exponent (double): The exponent of all Coulomb sturmians
-   *   - Z_charge (double): The nuclear change of the system
+   *   - structure (gint::Structure): The structure of the system (i.e. an atom)
    */
   IntegralCollection(const krims::GenMap& parameters);
 

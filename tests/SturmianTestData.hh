@@ -1,5 +1,6 @@
 #pragma once
 #include <cmath>
+#include <gint/Structure.hh>
 #include <linalgwrap/MultiVector.hh>
 
 namespace gint {
@@ -14,7 +15,7 @@ struct SturmianTestData {
   typedef typename stored_matrix_type::vector_type vector_type;
   typedef linalgwrap::MultiVector<vector_type> mulvector_type;
 
-  static const double Z;
+  static const gint::Structure structure;
   static const double k_exp;
 
   static const stored_matrix_type Sref;
@@ -31,7 +32,7 @@ struct SturmianTestData {
 };
 
 template <typename StoredMatrix>
-const double SturmianTestData<StoredMatrix>::Z = 4.;
+const gint::Structure SturmianTestData<StoredMatrix>::structure{{"Be", {{0, 0, 0}}}};
 template <typename StoredMatrix>
 const double SturmianTestData<StoredMatrix>::k_exp = 1.3;
 

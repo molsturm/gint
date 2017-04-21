@@ -17,12 +17,21 @@
 // along with gint. If not, see <http://www.gnu.org/licenses/>.
 //
 
-#include "IntegralCollectionKeys.hh"
+#pragma once
+#include <string>
 
 namespace gint {
 
-const std::string IntegralCollectionKeys::basis_set = "basis_set";
-const std::string IntegralCollectionKeys::basis = "basis";
-const std::string IntegralCollectionKeys::structure = "structure";
+/** The struct of keys all integral libraries understand */
+struct IntegralLookupKeys {
+  /** The type of basis to use (Type: std::string) */
+  static const std::string basis_type;
+
+  /** The type of orbitals to use (Type: gint::OrbitalType) */
+  static const std::string orbital_type;
+
+  /** The molecular structure to model (Type: gint::Structure) */
+  static const std::string structure;
+};
 
 }  // namespace gint

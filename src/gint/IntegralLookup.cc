@@ -1,4 +1,5 @@
 #include "IntegralLookup.hh"
+#include "IntegralLookupKeys.hh"
 #include "OrbitalType.hh"
 #include <mutex>
 #include <sstream>
@@ -57,12 +58,12 @@ IntegralLookup<StoredMatrix>::IntegralLookup(const krims::GenMap& parameters) {
   // TODO The orbital type is entirely ignored at the moment.
   //      We would need different integral collections for the different orbital types.
   //      Think about a way to build this into the existing system when we need it.
-  const OrbitalType otype =
-        parameters.at<OrbitalType>("orbital_type", OrbitalType::REAL_MOLECULAR);
+  const OrbitalType otype = parameters.at<OrbitalType>(IntegralLookupKeys::orbital_type,
+                                                       OrbitalType::REAL_MOLECULAR);
   (void)otype;
 
-  const auto basis_type =
-        parameters.at<std::string>("basis_type", "<No basis_type supplied>");
+  const auto basis_type = parameters.at<std::string>(IntegralLookupKeys::basis_type,
+                                                     "<No basis_type supplied>");
   auto it = map_basis_collection_generator.find(basis_type);
 
   if (it == std::end(map_basis_collection_generator)) {

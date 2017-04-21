@@ -17,30 +17,11 @@
 // along with gint. If not, see <http://www.gnu.org/licenses/>.
 //
 
-#pragma once
-/// \file Header file defining the public interface of gint
-
-#include "version.hh"
-
-// Integrals
-#include "Integral.hh"
-#include "IntegralCollectionBase.hh"
-#include "IntegralIdentifier.hh"
-#include "IntegralLookup.hh"
 #include "IntegralLookupKeys.hh"
-#include "IntegralType.hh"
-#include "IntegralUpdateKeys.hh"
-#include "OrbitalType.hh"
 
-// Sturmians
-#include "sturmian/atomic/NlmBasis.hh"
+namespace gint {
+const std::string IntegralLookupKeys::basis_type = "basis_type";
+const std::string IntegralLookupKeys::orbital_type = "orbital_type";
+const std::string IntegralLookupKeys::structure = "structure";
 
-// Gaussians
-#include "gaussian/Basis.hh"
-#include "gaussian/BasisSet.hh"
-#include "gaussian/IntegralCollectionKeys.hh"
-#include "gaussian/Shell.hh"
-
-// Chemistry
-#include "Atom.hh"
-#include "Structure.hh"
+}  // namespace gint

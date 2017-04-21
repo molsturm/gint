@@ -21,7 +21,7 @@ TEST_CASE("Quick atomic cs_reference test", "[quicktest cs_reference]") {
   // Setup parameters for the integral library
   const krims::GenMap params{
         {"k_exponent", refdata_type::k_exp},
-        {"Z_charge", refdata_type::Z},
+        {"structure", refdata_type::structure},
         {"n_max", 3},
         {"l_max", 2},
         {"m_max", 2},

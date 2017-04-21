@@ -2,6 +2,7 @@
 #include <gint/IntegralLookup.hh>
 #include <gint/IntegralUpdateKeys.hh>
 #include <gint/OrbitalType.hh>
+#include <gint/Structure.hh>
 #include <gint/find_data_file.hh>
 #include <krims/FileUtils.hh>
 #include <krims/GenMap.hh>
@@ -72,14 +73,15 @@ TEST_CASE("Quick atomic coefficient test", "[quicktest coefficients]") {
   typedef typename stored_matrix_type::vector_type vector_type;
   typedef const linalgwrap::MultiVector<const vector_type> coefficients_type;
 
-  int n_electrons = 2;
+  unsigned int n_electrons = 2;
   int nmax = 5;
   int lmax = 0;
   int mmax = 0;
 
   // Setup parameters for the integral library
+  const gint::Atom at(n_electrons, {{0, 0, 0}});  // Have a neutral atom
   const krims::GenMap params{{"k_exponent", 1.703},
-                             {"Z_charge", real_type(n_electrons)},  // Neutral atom
+                             {"structure", gint::Structure{at}},
                              {"n_max", nmax},
                              {"l_max", lmax},
                              {"m_max", mmax},

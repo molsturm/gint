@@ -1,6 +1,8 @@
 #ifdef GINT_HAVE_STATIC_INTEGRALS
 #include "cs_static14.hh"
+#include "gint/IntegralLookupKeys.hh"
 #include "gint/IntegralUpdateKeys.hh"
+#include "gint/Structure.hh"
 
 namespace gint {
 namespace sturmian {
@@ -9,9 +11,20 @@ namespace cs_static14 {
 
 const std::string IntegralCollection::id = "atomic/cs_static14";
 
+double atom_charge(const krims::GenMap& parameters) {
+  const auto structure_ptr =
+        parameters.at_ptr<const Structure>(IntegralLookupKeys::structure);
+  assert_throw(structure_ptr->n_atoms(),
+               ExcInvalidIntegralParameters("The structure provided to cs_static14 is "
+                                            "not an atom, but a molecule consisting of " +
+                                            std::to_string(structure_ptr->n_atoms()) +
+                                            " atoms."));
+  return (*structure_ptr)[0].nuclear_charge;
+}
+
 IntegralCollection::IntegralCollection(const krims::GenMap& parameters)
       : k_exponent{parameters.at<double>("k_exponent")},
-        Z_charge{parameters.at<double>("Z_charge")} {}
+        Z_charge{atom_charge(parameters)} {}
 
 Integral<stored_matrix_type> IntegralCollection::lookup_integral(
       IntegralType type) const {

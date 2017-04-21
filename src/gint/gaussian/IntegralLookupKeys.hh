@@ -18,12 +18,14 @@
 //
 
 #pragma once
+#include "gint/IntegralLookupKeys.hh"
 #include <string>
 
 namespace gint {
+namespace gaussian {
 
 /** The struct of keys all gaussian integral library integral collections understand */
-struct IntegralCollectionKeys {
+struct IntegralLookupKeys : public gint::IntegralLookupKeys {
   /** The basis set to use (Type: std::string)
    *  Either the name of a basis set, which is looked up on the filesystem,
    *  or a (realative) path to a basis set to use.
@@ -36,9 +38,7 @@ struct IntegralCollectionKeys {
   /** The basis to use (Type: gint::gaussian::Basis)
    *  Takes preference over the basis_set supplied */
   static const std::string basis;
-
-  /** The molecular structure to model (Type: gint::Structure) */
-  static const std::string structure;
 };
 
+}  // namespace gaussian
 }  // namespace gint

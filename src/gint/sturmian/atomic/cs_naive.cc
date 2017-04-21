@@ -15,7 +15,7 @@ IntegralCollection::IntegralCollection(const krims::GenMap& parameters)
       : IntegralCollectionBase{parameters}, m_integral_calculator{m_system.basis} {
 
   // Implement some day. Most importantly think about the required range checks.
-  assert_throw(!parameters.exists(IntegralCollectionBaseKeys::nlm_basis),
+  assert_throw(!parameters.exists(IntegralLookupKeys::nlm_basis),
                krims::ExcNotImplemented());
 
   // Check range of n,l,m values

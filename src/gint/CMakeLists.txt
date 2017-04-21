@@ -5,15 +5,15 @@ set(GINT_SOURCES
   version.cc
   qnum.cc
 
-  IntegralUpdateKeys.cc
+  Atom.cc
+  CoefficientContainer.cc
+  Element.cc
   Integral.cc
   IntegralCoreBase.cc
   IntegralLookup.cc
+  IntegralLookupKeys.cc
   IntegralType.cc
-  CoefficientContainer.cc
-
-  Atom.cc
-  Element.cc
+  IntegralUpdateKeys.cc
   Structure.cc
 
   sturmian/atomic/nlm_order/ERICore.cc
@@ -32,7 +32,7 @@ set(GINT_SOURCES
   gaussian/Basis.cc
   gaussian/BasisSet.cc
   gaussian/read_basisset.cc
-  gaussian/IntegralCollectionKeys.cc
+  gaussian/IntegralLookupKeys.cc
 )
 
 # Write the config file config.hh (into the binary dir)

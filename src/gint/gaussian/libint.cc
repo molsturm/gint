@@ -1,7 +1,7 @@
 #ifdef GINT_HAVE_LIBINT
 #include "libint.hh"
 #include "BasisSet.hh"
-#include "IntegralCollectionKeys.hh"
+#include "IntegralLookupKeys.hh"
 #include "Shell.hh"
 #include "gint/IntegralUpdateKeys.hh"
 #include "krims/FileSystem.hh"
@@ -60,24 +60,23 @@ const std::string IntegralCollection::id = "gaussian/libint";
 
 IntegralCollection::IntegralCollection(const krims::GenMap& parameters)
       : m_system{}, m_global{} {
-  auto structure_ptr =
-        parameters.at_ptr<const Structure>(IntegralCollectionKeys::structure);
+  auto structure_ptr = parameters.at_ptr<const Structure>(IntegralLookupKeys::structure);
 
   // Check if an explicit basis is specified and use it directly if yes.
-  if (parameters.exists(IntegralCollectionKeys::basis)) {
+  if (parameters.exists(IntegralLookupKeys::basis)) {
     m_system = LibintSystem(structure_ptr,
-                            parameters.at<const Basis>(IntegralCollectionKeys::basis));
+                            parameters.at<const Basis>(IntegralLookupKeys::basis));
     return;
   }
 
   // Else we read it from file / the gint library
   const std::string& key =
-        parameters.at<const std::string>(IntegralCollectionKeys::basis_set);
+        parameters.at<const std::string>(IntegralLookupKeys::basis_set);
 
   const std::string errmsg =
         " Could not construct gaussian basis for the structure (provided via key \"" +
-        IntegralCollectionKeys::structure + "\") and the gaussian basis set \"" + key +
-        "\" (provided via key \"" + IntegralCollectionKeys::basis_set + "\")." +
+        IntegralLookupKeys::structure + "\") and the gaussian basis set \"" + key +
+        "\" (provided via key \"" + IntegralLookupKeys::basis_set + "\")." +
         "\n\nDetails:\n--------\n";
 
   // If key is a valid file => Read it directly,

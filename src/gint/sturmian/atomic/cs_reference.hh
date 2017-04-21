@@ -19,7 +19,7 @@ class IntegralCollection final : public IntegralCollectionBase {
    *
    * The following parameters are read:
    *   - k_exponent (double): The exponent of all Coulomb sturmians
-   *   - Z_charge (double): The nuclear change of the system
+   *   - structure (gint::Structure): The structure of the system (i.e. an atom)
    *   - n_max (int): The maximal principle quantum number
    *   - l_max (int): Maximal azimuthal quantum number
    *   - m_max (int): Maximal magnetic quantum number

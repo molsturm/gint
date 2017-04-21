@@ -21,7 +21,7 @@ TEST_CASE("Quick atomic static14 test", "[quicktest static14]") {
   // Setup parameters for the integral library
   const krims::GenMap params{
         {"k_exponent", refdata_type::k_exp},
-        {"Z_charge", refdata_type::Z},
+        {"structure", refdata_type::structure},
         {"orbital_type", OrbitalType::COMPLEX_ATOMIC},
         {"basis_type", "atomic/cs_static14"},
   };

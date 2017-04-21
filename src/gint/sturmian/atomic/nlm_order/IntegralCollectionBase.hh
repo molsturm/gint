@@ -20,14 +20,14 @@
 #pragma once
 #include "SturmintSystem.hh"
 #include "gint/IntegralCollectionBase.hh"
+#include "gint/IntegralLookupKeys.hh"
 
 namespace gint {
 namespace sturmian {
 namespace atomic {
 namespace nlm_order {
 
-struct IntegralCollectionBaseKeys {
-  static const std::string Z_charge;
+struct IntegralLookupKeys : public gint::IntegralLookupKeys {
   static const std::string k_exponent;
   static const std::string nlm_basis;
 

@@ -13,7 +13,7 @@ const std::string IntegralCollection::id = "atomic/cs_dummy";
 
 IntegralCollection::IntegralCollection(const krims::GenMap& parameters)
       : IntegralCollectionBase(parameters) {
-  if (parameters.exists(IntegralCollectionBaseKeys::nlm_basis)) {
+  if (parameters.exists(IntegralLookupKeys::nlm_basis)) {
     m_repulsiondata_filename = parameters.at<string>("repulsiondata_filename");
   } else {
     const int nmax = parameters.at<int>("n_max");
