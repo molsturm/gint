@@ -27,6 +27,21 @@ namespace tests {
 using namespace gaussian;
 
 TEST_CASE("BasisSet tests", "[basis_set]") {
+  SECTION("Test determination of default angular funcs") {
+    for (auto& s : {"sto-3g", "6-311g", "6-311g**", "6-311++g"}) {
+      INFO("Testing: " << s);
+      const auto pure = DefaultAngularFunctions::Pure;
+      CHECK(lookup_default_angular_functions(s) == pure);
+    }
+
+    for (auto& s :
+         {"6-31g", "6-31g*", "6-31++g*", "6-31g**", "3-21G", "6-21G", "4-31G"}) {
+      INFO("Testing: " << s);
+      const auto cartd = DefaultAngularFunctions::CartesianForD;
+      CHECK(lookup_default_angular_functions(s) == cartd);
+    }
+  }  // angular functions
+
   SECTION("Test lookup_basisset for sto-3g") {
     const BasisSet bs = lookup_basisset("sto-3g");
 
@@ -64,7 +79,7 @@ TEST_CASE("BasisSet tests", "[basis_set]") {
 
     CHECK(bs.name == "6-31g*");
     CHECK(bs.filename.substr(bs.filename.size() - 16) == "basis/6-31g*.g94");
-    CHECK(bs.atomic_number_to_shells.size() == 30);
+    CHECK(bs.atomic_number_to_shells.size() == 36);
 
     // Hydrogen
     CHECK(bs.shells_for_atom(1).size() == 2);
@@ -74,12 +89,15 @@ TEST_CASE("BasisSet tests", "[basis_set]") {
 
     // Cobalt
     CHECK(bs.shells_for_atom(27).size() == 12);
-    CHECK(bs.shells_for_atom(27).back().l == 3);  // Check for F Shell
+    CHECK(bs.shells_for_atom(27)[10].l == 2);      // Check for d
+    CHECK_FALSE(bs.shells_for_atom(27)[10].pure);  // Check that d is cartesian
+    CHECK(bs.shells_for_atom(27).back().l == 3);   // Check for F Shell
+    CHECK(bs.shells_for_atom(27).back().pure);     // Check that f is pure
 
     // Osmium and Xenon (should not exist)
     CHECK_THROWS_AS(bs.shells_for_atom(54), ExcNoBasisForAtom);
     CHECK_THROWS_AS(bs.shells_for_atom(76), ExcNoBasisForAtom);
-  }  // sto-3g
+  }  // 6-31g*
 
   SECTION("Check normalisation") {
     const BasisSet bs1 = lookup_basisset("sto-3g");

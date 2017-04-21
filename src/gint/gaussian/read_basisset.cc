@@ -22,8 +22,10 @@
 #include "Shell.hh"
 #include "gint/Element.hh"
 #include "gint/qnum.hh"
+#include "krims/FileSystem.hh"
 #include <algorithm>
 #include <functional>
+#include <libgen.h>
 
 namespace gint {
 namespace gaussian {
@@ -89,10 +91,6 @@ void read_gaussian94_shell_section(
 std::vector<Shell> read_gaussian94_element_section(std::istream& f) {
   std::vector<Shell> ret;
 
-  // Should the use of Cartesian d functions be enforced
-  // By default this is not done, i.e. spherical harmonics are used instead.
-  const bool force_cartesian_d = false;
-
   std::string line;
   while (std::getline(f, line) && line != "****") {
     if (line.empty() || line[0] == '!') continue;  // Ignore comments, empty
@@ -140,7 +138,7 @@ std::vector<Shell> read_gaussian94_element_section(std::istream& f) {
         assert_throw(false, ExcInvalidBasisSetFile("Invalid angular momentum string \"" +
                                                    amstr + "\"."));
       }
-      sh.pure = force_cartesian_d ? (sh.l > 2) : (sh.l > 1);
+      sh.pure = (sh.l > 1);  // By convention, since for s and p there is no difference.
       sh.exponents.resize(n_contr);
       sh.coefficients.resize(n_contr);
       sh.origin = {{0, 0, 0}};
@@ -223,6 +221,19 @@ BasisSet read_gaussian94(std::istream& f) {
 //
 // General
 //
+BasisSet read_basisset(const std::string& file, BasisSetFileFormat fmt) {
+  const std::pair<std::string, std::string> rest_ext = krims::splitext(file);
+
+  if (fmt == BasisSetFileFormat::Autodetermine) {
+    if (rest_ext.second == ".g94") fmt = BasisSetFileFormat::Gaussian94;
+  }
+
+  std::ifstream f(file);
+  assert_dbg(f, krims::ExcFileNotOpen(file.c_str()));
+  BasisSet b = read_basisset(f, fmt);
+  b.filename = file;
+  return b;
+}
 
 BasisSet read_basisset(std::istream& in, BasisSetFileFormat fmt) {
   try {
@@ -232,6 +243,7 @@ BasisSet read_basisset(std::istream& in, BasisSetFileFormat fmt) {
         break;
       default:
         assert_throw(false, krims::ExcNotImplemented());
+        return BasisSet();
     }
   } catch (ExcInvalidBasisSetFile& e) {
     e.prepend_extra(

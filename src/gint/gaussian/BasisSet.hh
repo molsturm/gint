@@ -26,6 +26,18 @@ namespace gint {
 namespace gaussian {
 struct Shell;
 
+enum class DefaultAngularFunctions {
+  /** Use pure spherical harmonics for representing the angular momentum */
+  Pure = 0,
+
+  /** Use cartesian functions for representing the angular momentum */
+  Cartesian = 1,
+
+  /** Use cartesian functions only for d, but pure spherical harmonics for higher
+     angular momentum */
+  CartesianForD = 3,
+};
+
 DefException3(ExcNoBasisForAtom, unsigned int, std::string, std::string,
               << "Could not find atom number " << arg1 << " in basis set \"" << arg2
               << "\", which was read from file \"" << arg3 << "\".");
@@ -61,9 +73,21 @@ struct BasisSet {
 /** Lookup basis set by name.
  *
  * Tries to find the basis with the data distributed with gint.
- * The input string is normalised before use
+ * The input string is normalised before use.
+ *
+ * \note This function honours the convention imposed by the function
+ *       lookup_default_angular_functions when it comes to the kind of
+ *       angular momentum functions used (Cartesian or Pure).
  */
 BasisSet lookup_basisset(const std::string& name);
+
+/** Determine basis set options from the name
+ *
+ * Some basis sets (like 6-31G*) enforce the use of Cartesian functions for the
+ * d orbitals. This sets the relevant options in those cases
+ * See http://gaussian.com/basissets
+ */
+DefaultAngularFunctions lookup_default_angular_functions(const std::string& name);
 
 }  // namespace gaussian
 }  // namespace gint

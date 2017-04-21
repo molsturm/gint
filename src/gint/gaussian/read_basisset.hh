@@ -29,17 +29,37 @@ struct BasisSet;
 /** Enum allowing to multiplex between the different basis set file formats gint
  * understands. */
 enum class BasisSetFileFormat {
+  /** Autodetermine basis set format, mostly by the extension used */
+  Autodetermine,
+
   /** Gaussian 94 basis format, see http://gaussian.com/gen/ for details */
-  Gaussian94
+  Gaussian94,
 };
 
 DefException1(ExcInvalidBasisSetFile, std::string, << arg1);
 
-/** Read a basis set from a file and return a BasisSet structure
+/** Read a basis set from an input stream and return a BasisSet structure
+ *
+ * \note By default pure will be false for s and p and true for higher
+ *       angular momentum, i.e. Spherical Harmonics and not Cartesian
+ *       functions will be used to represent the angular part of the
+ *       wavefunction.
  *
  * \throws ExcInvalidBasisSetFile if the file cannot be parsed.
  * */
 BasisSet read_basisset(std::istream& in, BasisSetFileFormat fmt);
+
+/** Read a basis set from an input file and return a BasisSet structure
+ *
+ * \note By default pure will be false for s and p and true for higher
+ *       angular momentum, i.e. Spherical Harmonics and not Cartesian
+ *       functions will be used to represent the angular part of the
+ *       wavefunction.
+ *
+ * \throws ExcInvalidBasisSetFile if the file cannot be parsed.
+ * */
+BasisSet read_basisset(const std::string& file,
+                       BasisSetFileFormat fmt = BasisSetFileFormat::Autodetermine);
 
 }  // namespace gaussian
 }  // namespace gint

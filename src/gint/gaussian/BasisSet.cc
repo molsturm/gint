@@ -46,22 +46,62 @@ std::string normalise_basisset_name(const std::string& name, bool full = true) {
 }
 }  // namespace detail
 
-BasisSet lookup_basisset(const std::string& name) {
-  // TODO Augmentation and other stuff ??
-  //      Shall we use an extra file like libint?
+DefaultAngularFunctions lookup_default_angular_functions(const std::string& name) {
+  const std::string nrm = detail::normalise_basisset_name(name);
+  // We need cartesian ds for:
+  //     - 3-21g
+  //     - 4-31g
+  //     - 6-21g
+  //     - 6-31??g??
+  // BUT NOT
+  //     - 6-311??g??
 
+  const size_t gpos = nrm.find('g');
+  if (gpos == std::string::npos) {
+    // No g found, so not one of the Cartesian guys
+    return DefaultAngularFunctions::Pure;
+  }
+
+  if (nrm.find("3-21") == 0 || nrm.find("4-31") == 0 || nrm.find("6-21") == 0 ||
+      nrm.find("6-31") == 0) {
+    if (nrm.size() == 4 || (nrm[4] != '+' && nrm[4] != 'g')) {
+      // To make sure 6-311??g?? get pure ds
+      return DefaultAngularFunctions::Pure;
+    }
+    if (gpos + 1 == nrm.size() || nrm[gpos + 1] == '*') {
+      return DefaultAngularFunctions::CartesianForD;
+    }
+  }
+  return DefaultAngularFunctions::Pure;
+}
+
+BasisSet lookup_basisset(const std::string& name) {
   const std::string datafile = "basis/" + detail::normalise_basisset_name(name) + ".g94";
 
   // Find files, but also search in current working directory (i.e. basis files in
   // the basis subfolder will be recognised)
   gint::FindDataFile find;
   find.cwd_suffixes.push_back(".");
+  find.env_vars.push_back("BASIS_DIR");
 
-  const std::string fullpath = find(datafile);
-  std::ifstream f(fullpath);
-  BasisSet b = read_basisset(f, BasisSetFileFormat::Gaussian94);
+  BasisSet b = read_basisset(find(datafile), BasisSetFileFormat::Gaussian94);
   b.name = detail::normalise_basisset_name(name, false);
-  b.filename = fullpath;
+
+  const DefaultAngularFunctions func = lookup_default_angular_functions(name);
+  if (func == DefaultAngularFunctions::Pure) {
+    // This is done by default, so
+    return b;
+  }
+
+  for (auto& kv : b.atomic_number_to_shells) {
+    for (Shell& s : kv.second) {
+      if (func == DefaultAngularFunctions::Cartesian) {
+        s.pure = false;
+      } else if (func == DefaultAngularFunctions::CartesianForD) {
+        s.pure = (s.l > 2);
+      }
+    }
+  }
   return b;
 }
 
