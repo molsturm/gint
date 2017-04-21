@@ -32,6 +32,7 @@ set(GINT_SOURCES
   gaussian/Basis.cc
   gaussian/BasisSet.cc
   gaussian/read_basisset.cc
+  gaussian/IntegralCollectionKeys.cc
 )
 
 # Write the config file config.hh (into the binary dir)

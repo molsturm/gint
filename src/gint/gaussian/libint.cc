@@ -1,28 +1,18 @@
 #ifdef GINT_HAVE_LIBINT
 #include "libint.hh"
+#include "BasisSet.hh"
+#include "IntegralCollectionKeys.hh"
+#include "Shell.hh"
 #include "gint/IntegralUpdateKeys.hh"
+#include "krims/FileSystem.hh"
+#include "krims/FileUtils/FindDataFile.hh"
+#include "read_basisset.hh"
 
 namespace gint {
 namespace gaussian {
 namespace libint {
 
 namespace detail {
-std::vector<libint2::Atom> make_libint_atomlist(const Structure& structure) {
-  std::vector<libint2::Atom> atom_list;
-  atom_list.reserve(structure.n_atoms());
-
-  for (const gint::Atom& atom : structure) {
-    libint2::Atom a_converted;
-    a_converted.x = atom.coords[0];
-    a_converted.y = atom.coords[1];
-    a_converted.z = atom.coords[2];
-    a_converted.atomic_number = static_cast<int>(atom.nuclear_charge);
-    atom_list.push_back(std::move(a_converted));
-  }
-
-  return atom_list;
-}
-
 std::vector<std::pair<double, std::array<double, 3>>> inline make_libint_point_charges(
       const Structure& structure) {
   std::vector<std::pair<double, std::array<double, 3>>> ret;
@@ -30,17 +20,37 @@ std::vector<std::pair<double, std::array<double, 3>>> inline make_libint_point_c
   for (const auto& atom : structure) ret.emplace_back(atom.nuclear_charge, atom.coords);
   return ret;
 }
+
+/** Convert a gint::gaussian::Basis to a libint basis */
+std::vector<libint2::Shell> make_libint_basis(Basis basis) {
+  std::vector<libint2::Shell> ret;
+  ret.reserve(basis.size());
+
+  for (const Shell& sh : basis) {
+    libint2::Shell::Contraction cntr{sh.l, sh.pure, std::move(sh.coefficients)};
+    libint2::Shell tosh{std::move(sh.exponents), {std::move(cntr)}, std::move(sh.origin)};
+    ret.push_back(std::move(tosh));
+  }
+
+  return ret;
+}
+
 }  // namespace detail
 
 //
 // LibintSystem
 //
 
-LibintSystem::LibintSystem(const std::string& basisset_name,
-                           krims::SubscriptionPointer<const Structure> structure_ptr)
-      : m_basis(basisset_name, detail::make_libint_atomlist(*structure_ptr)),
+LibintSystem::LibintSystem(krims::SubscriptionPointer<const Structure> structure_ptr,
+                           Basis basis)
+      : m_n_bas(0),
+        m_basis(detail::make_libint_basis(std::move(basis))),
+        m_max_nprim(libint2::BasisSet::max_nprim(m_basis)),
+        m_max_l(libint2::BasisSet::max_l(m_basis)),
         m_structure_ptr(std::move(structure_ptr)),
-        m_point_charges(detail::make_libint_point_charges(*m_structure_ptr)) {}
+        m_point_charges(detail::make_libint_point_charges(*m_structure_ptr)) {
+  m_n_bas = libint2::BasisSet::nbf(m_basis);
+}
 
 //
 // LibintCollection
@@ -50,24 +60,45 @@ const std::string IntegralCollection::id = "gaussian/libint";
 
 IntegralCollection::IntegralCollection(const krims::GenMap& parameters)
       : m_system{}, m_global{} {
-  // Try to setup the basis of the system to model.
-  const std::string& basis_set = parameters.at<const std::string>("basis_set");
-  auto structure_ptr = parameters.at_ptr<const Structure>("structure");
+  auto structure_ptr =
+        parameters.at_ptr<const Structure>(IntegralCollectionKeys::structure);
 
-  const std::string error_msg =
-        "Could not construct gaussian basis for the given structure and the "
-        "gaussian basis set name \"" +
-        basis_set + "\". Check that all atoms are supported for a basis of this name.";
-  const std::string details = "\n\nDetails:\n--------\n";
+  // Check if an explicit basis is specified and use it directly if yes.
+  if (parameters.exists(IntegralCollectionKeys::basis)) {
+    m_system = LibintSystem(structure_ptr,
+                            parameters.at<const Basis>(IntegralCollectionKeys::basis));
+    return;
+  }
 
+  // Else we read it from file / the gint library
+  const std::string& key =
+        parameters.at<const std::string>(IntegralCollectionKeys::basis_set);
+
+  const std::string errmsg =
+        " Could not construct gaussian basis for the structure (provided via key \"" +
+        IntegralCollectionKeys::structure + "\") and the gaussian basis set \"" + key +
+        "\" (provided via key \"" + IntegralCollectionKeys::basis_set + "\")." +
+        "\n\nDetails:\n--------\n";
+
+  // If key is a valid file => Read it directly,
+  // else interpret it as a basis set name and look it up in the library
+  // of basis set files shipped with gint.
+  const BasisSet basis_set = [&key, &errmsg] {
+    try {
+      return krims::path_exists(key) ? read_basisset(key) : lookup_basisset(key);
+    } catch (const krims::ExcDatafileNotFound& e) {
+      assert_throw(false, ExcInvalidIntegralParameters(errmsg + e.extra()));
+    } catch (const ExcInvalidBasisSetFile& e) {
+      assert_throw(false, ExcInvalidIntegralParameters(errmsg + e.extra()));
+    }
+    return BasisSet();
+  }();
+
+  // Construct the basis using the structure:
   try {
-    m_system = LibintSystem(basis_set, structure_ptr);
-  } catch (std::exception& e) {
-    assert_throw(false, ExcInvalidIntegralParameters(error_msg + details + e.what()));
-  } catch (std::string& e) {
-    assert_throw(false, ExcInvalidIntegralParameters(error_msg + details + e));
-  } catch (...) {
-    assert_throw(false, ExcInvalidIntegralParameters(error_msg));
+    m_system = LibintSystem(structure_ptr, Basis(*structure_ptr, basis_set));
+  } catch (const ExcNoBasisForAtom& e) {
+    assert_throw(false, ExcInvalidIntegralParameters(errmsg + e.extra()));
   }
 }
 
@@ -244,7 +275,7 @@ struct LibintBasisShellData {
   }
 
   /** Return the number of shells */
-  size_t n_shells() const { return m_system_ptr->basis().size(); }
+  size_t n_shells() const { return m_system_ptr->n_shells(); }
 
   /** Return the shell range which covers the requested index range
    * in the basis functions.
@@ -265,7 +296,8 @@ struct LibintBasisShellData {
   const std::vector<size_t> shell2bf;
 
   explicit LibintBasisShellData(const LibintSystem& system)
-        : shell2bf(system.basis().shell2bf()), m_system_ptr("LibintBasisData", system) {}
+        : shell2bf(libint2::BasisSet::compute_shell2bf(system.basis())),
+          m_system_ptr("LibintBasisData", system) {}
 
  private:
   // Pointer to the molecular system info we use:
@@ -322,10 +354,10 @@ void OneElecIntegralCore::compute(const krims::Range<size_t>& rows,
   //
   // TODO Parallelise here!
 
-  const libint2::BasisSet& basis = base_type::system().basis();
-  const size_t max_nprim = basis.max_nprim();         // Maximum number of primitives
-  const int max_l = static_cast<int>(basis.max_l());  // Maximum angular momentum
-  const int derivative_order = 0;                     // Calculate no derivatives
+  const LibintSystem& system = base_type::system();
+  const size_t max_nprim = system.max_nprim();  // Maximum number of primitives
+  const int max_l = system.max_l();             // Maximum angular momentum
+  const int derivative_order = 0;               // Calculate no derivatives
   const real_type tolerance = std::numeric_limits<real_type>::epsilon();
   libint2::Engine int_engine(m_operator, max_nprim, max_l, derivative_order, tolerance);
 
@@ -339,6 +371,7 @@ void OneElecIntegralCore::compute(const krims::Range<size_t>& rows,
     for (size_t sb : col_shells) {
       // Compute the integral for a shell pair and call the kernel function with the
       // location where the computed integrals are stored.
+      const auto& basis = system.basis();
       int_engine.compute1(basis[sa], basis[sb]);
       kernel(data.shell_info(sa), data.shell_info(sb), int_engine.results()[0]);
     }  // sb
@@ -360,10 +393,10 @@ void ERICore::compute(const krims::Range<size_t>& rows, const krims::Range<size_
   //
   // TODO Parallelise here!
 
-  const libint2::BasisSet& basis = base_type::system().basis();
-  const size_t max_nprim = basis.max_nprim();         // Maximum number of primitives
-  const int max_l = static_cast<int>(basis.max_l());  // Maximum angular momentum
-  const int derivative_order = 0;                     // Calculate no derivatives
+  const LibintSystem& system = base_type::system();
+  const size_t max_nprim = system.max_nprim();  // Maximum number of primitives
+  const int max_l = system.max_l();             // Maximum angular momentum
+  const int derivative_order = 0;               // Calculate no derivatives
   const real_type tolerance = std::numeric_limits<real_type>::epsilon();
   libint2::Engine int_engine(libint2::Operator::coulomb, max_nprim, max_l,
                              derivative_order, tolerance);
@@ -387,6 +420,7 @@ void ERICore::compute(const krims::Range<size_t>& rows, const krims::Range<size_
           const bool exchange = m_type == IntegralType::exchange;
           size_t sA = exchange ? sc : sa;
           size_t sC = exchange ? sa : sc;
+          const auto& basis = system.basis();
 
           // Compute integrals (A b | C d), i.e. as in chemists/Mullikan notation
           // the shells A and b are on the same centre, so are C and d.

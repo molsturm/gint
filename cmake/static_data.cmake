@@ -28,7 +28,7 @@ include_krims_cmake_module(DataFiles)
 set(DATA_DOWN_TARGET "${PROJECT_NAME}-download-data")
 
 # Download the data tarball and unpack it into the data directory
-set(TARHASH 40e1d61e111adec23ba4d05d260a79c3e66fa1635eff6980e092ccaf02b83133)
+set(TARHASH 108257433737d85322035152041be09959cbf1a517a72b03dc3c5d7f6e3ad78e)
 data_download_target(${DATA_DOWN_TARGET}
 	"https://get.molsturm.org/data_tar/${PROJECT_NAME}/${TARHASH}.tar.gz"
 	SHA256=${TARHASH}

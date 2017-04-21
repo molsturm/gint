@@ -5,6 +5,7 @@
 #include <krims/SubscriptionPointer.hh>
 #include <libint2.hpp>
 
+#include "Basis.hh"
 #include "gint/CoefficientContainer.hh"
 #include "gint/Integral.hh"
 #include "gint/IntegralCollectionBase.hh"
@@ -40,11 +41,10 @@ class LibintGlobalInit : public krims::Subscribable {
 class LibintSystem : public krims::Subscribable {
  public:
   LibintSystem() : m_structure_ptr("LibintSystem") {}
-  LibintSystem(const std::string& basisset_name,
-               krims::SubscriptionPointer<const Structure> structure_ptr);
+  LibintSystem(krims::SubscriptionPointer<const Structure> structure_ptr, Basis basis);
 
   /** Access to the libint basis structure */
-  const libint2::BasisSet& basis() const { return m_basis; }
+  const std::vector<libint2::Shell>& basis() const { return m_basis; }
 
   /** Access the molecular structure, which was used to build this basis */
   const Structure& structure() const { return *m_structure_ptr; }
@@ -58,10 +58,19 @@ class LibintSystem : public krims::Subscribable {
   size_t n_shells() const { return m_basis.size(); }
 
   /** Access to the total number of basis functions */
-  size_t n_bas() const { return static_cast<size_t>(m_basis.nbf()); }
+  size_t n_bas() const { return m_n_bas; }
+
+  /** The maximal number of primitives for this system */
+  size_t max_nprim() const { return m_max_nprim; }
+
+  /** The maximal angular momentum */
+  int max_l() const { return m_max_l; }
 
  private:
-  libint2::BasisSet m_basis;
+  size_t m_n_bas;
+  std::vector<libint2::Shell> m_basis;
+  size_t m_max_nprim;
+  int m_max_l;
   krims::SubscriptionPointer<const Structure> m_structure_ptr;
   std::vector<std::pair<double, std::array<double, 3>>> m_point_charges;
 };
@@ -88,8 +97,11 @@ class IntegralCollection final : public IntegralCollectionBase<stored_matrix_typ
   /** Construct collection object from a set of parameters
    *
    * The following parameters are read:
-   *   - basis_set  (std::string)  The string describing the
-   *                                    Gaussian basis set to use.
+   *   - basis_set  (std::string)
+   *     Either the name of a Gaussian basis set to use or the
+   *     path to a basis set file to read the basis set from.
+   *   - basis     (gint::gaussian::Basis)  The basis to use to model the
+   *                                        molecule.
    *   - structure (gint::Structure)  The structure of the molecule.
    */
   explicit IntegralCollection(const krims::GenMap& parameters);
