@@ -18,6 +18,7 @@
 //
 
 #include "SturmintSystem.hh"
+#include <complex>
 
 namespace gint {
 namespace sturmian {
@@ -30,7 +31,7 @@ SturmintSystem::SturmintSystem(scalar_type Z, scalar_type k, const NlmBasis& bas
   for (const Nlm& nlm : basis_) {
     assert_greater(0, nlm.n);
     assert_greater_equal(0, nlm.l);
-    assert_greater_equal(0, nlm.m);
+    assert_greater_equal(std::abs(nlm.m), nlm.l);
     basis.push_back(nlm_type{nlm.n, nlm.l, nlm.m});
   }
 }
