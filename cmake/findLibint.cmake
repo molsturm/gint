@@ -100,7 +100,7 @@ function(SETUP_LIBINT2_FOR_EXTERNAL_BUILD TARGET LIBINT_MAX_AM)
 	include(DefaultExternalProjects)
 	setup_autotools_project(libint
 		GIT_REPOSITORY "https://github.com/evaleev/libint.git"
-		GIT_TAG "v2.3.0-beta.4"
+		GIT_TAG "v2.3.1"
 		#
 		# TODO Find out how to test libint ... e.g. TEST_COMMAND make check
 
