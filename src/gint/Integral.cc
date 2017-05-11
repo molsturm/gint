@@ -29,7 +29,7 @@ void Integral<StoredMatrix>::apply(
       linalgwrap::MultiVector<linalgwrap::MutableMemoryVector_i<scalar_type>>& y_out,
       const linalgwrap::Transposed mode, const scalar_type c_this,
       const scalar_type c_y) const {
-  assert_dbg(m_core_ptr != nullptr, krims::ExcInternalError());
+  assert_internal(m_core_ptr != nullptr);
   assert_size(x_in.n_elem(), y_out.n_elem());
   assert_size(x_in.n_vectors(), y_out.n_vectors());
 
@@ -55,7 +55,7 @@ void Integral<StoredMatrix>::apply_inverse(
       linalgwrap::MultiVector<linalgwrap::MutableMemoryVector_i<scalar_type>>& y_out,
       const linalgwrap::Transposed mode, const scalar_type c_this,
       const scalar_type c_y) const {
-  assert_dbg(m_core_ptr != nullptr, krims::ExcInternalError());
+  assert_internal(m_core_ptr != nullptr);
   assert_size(x_in.n_elem(), y_out.n_elem());
   assert_size(x_in.n_vectors(), y_out.n_vectors());
 

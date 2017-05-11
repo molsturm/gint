@@ -44,7 +44,7 @@ Integral<stored_matrix_type> IntegralCollection::lookup_integral(
                                      IntegralIdentifier{id, type});
 
     default:
-      assert_dbg(false, krims::ExcNotImplemented());
+      assert_implemented(false);
       return Integral<stored_matrix_type>(nullptr);
   }
 }

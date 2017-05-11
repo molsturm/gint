@@ -39,7 +39,7 @@ Integral<stored_matrix_type> IntegralCollection::lookup_integral(
       return make_integral<ERICore>(type, k_exponent);
 
     default:
-      assert_throw(false, krims::ExcNotImplemented());
+      assert_implemented(false);
       return Integral<stored_matrix_type>(nullptr);
   }
 }
@@ -64,7 +64,7 @@ OneElecIntegralCore::OneElecIntegralCore(IntegralType type, const scalar_type Z,
       m_mat_ptr.reset(Static14Data::t_bb_base);
       break;
     default:
-      assert_dbg(false, krims::ExcInternalError());
+      assert_internal(false);
   }
 }
 
@@ -109,8 +109,7 @@ typename ERICore::scalar_type ERICore::operator()(size_t a, size_t b) const {
   const size_t nbas = Static14Data::nbas;
   // Density matrix expression
   const auto density_bb = compute_density_matrix();
-  assert_dbg(density_bb.n_rows() == nbas, krims::ExcInternalError());
-  assert_dbg(density_bb.n_cols() == nbas, krims::ExcInternalError());
+  assert_internal(density_bb.n_rows() == nbas && density_bb.n_cols() == nbas);
 
   // Shell pair index for basis functions a and b:
   const size_t ab_pair = a * nbas + b;

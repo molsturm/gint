@@ -64,7 +64,7 @@ void read_gaussian94_shell_section(
 // shell(N=1), as well as the SP case(N=2)  where two coefficients are supplied at once
 #ifdef DEBUG
   for (std::vector<real_type>& cv : coeff_vecs) {
-    assert_dbg(exponents.size() == cv.size(), krims::ExcInternalError());
+    assert_internal(exponents.size() == cv.size());
   }
 #endif  // DEBUG
 
@@ -242,7 +242,7 @@ BasisSet read_basisset(std::istream& in, BasisSetFileFormat fmt) {
         return read_gaussian94(in);
         break;
       default:
-        assert_throw(false, krims::ExcNotImplemented());
+        assert_implemented(false);
         return BasisSet();
     }
   } catch (ExcInvalidBasisSetFile& e) {

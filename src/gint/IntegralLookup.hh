@@ -25,7 +25,7 @@ class IntegralLookup {
   /** Return a particular integral, given an integral type key
    *  (see IntegralType.hh for valid key strings) */
   integral_type lookup_integral(const std::string& integral_type_key) const {
-    assert_dbg(m_integral_collection_ptr != nullptr, krims::ExcInternalError());
+    assert_internal(m_integral_collection_ptr != nullptr);
     return m_integral_collection_ptr->lookup_integral(integral_type_key);
   }
 
@@ -42,13 +42,13 @@ class IntegralLookup {
    *       parameter upon construction of this object.
    * */
   const std::string& basis_id() const {
-    assert_dbg(m_integral_collection_ptr != nullptr, krims::ExcInternalError());
+    assert_internal(m_integral_collection_ptr != nullptr);
     return m_integral_collection_ptr->basis_id();
   }
 
   /** Return the friendly name of the basis type to which this object is initialised */
   const std::string basis_name() const {
-    assert_dbg(m_integral_collection_ptr != nullptr, krims::ExcInternalError());
+    assert_internal(m_integral_collection_ptr != nullptr);
     return m_integral_collection_ptr->basis_name();
   }
 

@@ -45,7 +45,7 @@ class Integral final : public linalgwrap::LazyMatrix_i<StoredMatrix> {
 
   Integral& operator=(const Integral& I) {
     m_core_ptr = I.m_core_ptr->clone();
-    assert_dbg(m_core_ptr != nullptr, krims::ExcInternalError());
+    assert_internal(m_core_ptr != nullptr);
     return *this;
   }
 
@@ -56,32 +56,32 @@ class Integral final : public linalgwrap::LazyMatrix_i<StoredMatrix> {
 
   /** \brief Number of rows of the matrix */
   size_t n_rows() const override {
-    assert_dbg(m_core_ptr != nullptr, krims::ExcInternalError());
+    assert_internal(m_core_ptr != nullptr);
     return m_core_ptr->n_rows();
   }
 
   /** \brief Number of columns of the matrix  */
   size_t n_cols() const override {
-    assert_dbg(m_core_ptr != nullptr, krims::ExcInternalError());
+    assert_internal(m_core_ptr != nullptr);
     return m_core_ptr->n_cols();
   }
 
   /** \brief return an element of the matrix    */
   scalar_type operator()(size_t row, size_t col) const override {
-    assert_dbg(m_core_ptr != nullptr, krims::ExcInternalError());
+    assert_internal(m_core_ptr != nullptr);
     return m_core_ptr->operator()(row, col);
   }
 
   /** Are operation modes Transposed::Trans and Transposed::ConjTrans
    *  supported for this matrix type. **/
   bool has_transpose_operation_mode() const override {
-    assert_dbg(m_core_ptr != nullptr, krims::ExcInternalError());
+    assert_internal(m_core_ptr != nullptr);
     return m_core_ptr->has_transpose_operation_mode();
   }
 
   /** Is inverse_apply available for this matrix type */
   bool has_apply_inverse() const override {
-    assert_dbg(m_core_ptr != nullptr, krims::ExcInternalError());
+    assert_internal(m_core_ptr != nullptr);
     return m_core_ptr->has_apply_inverse();
   }
 
@@ -157,7 +157,7 @@ class Integral final : public linalgwrap::LazyMatrix_i<StoredMatrix> {
   void mmult(const stored_matrix_type& in, stored_matrix_type& out,
              const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
              const scalar_type c_this = 1, const scalar_type c_out = 0) const override {
-    assert_dbg(m_core_ptr != nullptr, krims::ExcInternalError());
+    assert_internal(m_core_ptr != nullptr);
     m_core_ptr->mmult(in, out, mode, c_this, c_out);
   }
 
@@ -178,7 +178,7 @@ class Integral final : public linalgwrap::LazyMatrix_i<StoredMatrix> {
                      const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
                      const scalar_type c_this = 1,
                      const scalar_type c_M = 0) const override {
-    assert_dbg(m_core_ptr != nullptr, krims::ExcInternalError());
+    assert_internal(m_core_ptr != nullptr);
     m_core_ptr->extract_block(M, start_row, start_col, mode, c_this, c_M);
   }
 
@@ -186,7 +186,7 @@ class Integral final : public linalgwrap::LazyMatrix_i<StoredMatrix> {
    *         given the GenMap
    * */
   void update(const krims::GenMap& p) override {
-    assert_dbg(m_core_ptr != nullptr, krims::ExcInternalError());
+    assert_internal(m_core_ptr != nullptr);
     m_core_ptr->update(p);
   }
 
@@ -202,7 +202,7 @@ class Integral final : public linalgwrap::LazyMatrix_i<StoredMatrix> {
    * integral as human readable strings.
    **/
   IntegralIdentifier id() const {
-    assert_dbg(m_core_ptr != nullptr, krims::ExcInternalError());
+    assert_internal(m_core_ptr != nullptr);
     return m_core_ptr->id();
   }
 

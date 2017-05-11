@@ -133,8 +133,8 @@ scalar_type LibintIntegralCoreBase::operator()(size_t row, size_t col) const {
   scalar_type ret = 0;
   auto kernel = [&row, &col, &ret](LibintShell s, LibintShell t,
                                    const scalar_type* values) {
-    assert_dbg(s.first_bfct <= row, krims::ExcInternalError());
-    assert_dbg(t.first_bfct <= col, krims::ExcInternalError());
+    assert_internal(s.first_bfct <= row);
+    assert_internal(t.first_bfct <= col);
 
     if (values == nullptr) return;  // All values are zero => ret will be zero, too
 
@@ -201,7 +201,7 @@ void LibintIntegralCoreBase::extract_block(stored_matrix_type& M, const size_t s
         // Shift i and j for placement into M:
         const size_t i_shifted = i - row_range.lower_bound();
         const size_t j_shifted = j - col_range.lower_bound();
-        assert_dbg(fst < s.n_bfct * t.n_bfct, krims::ExcInternalError());
+        assert_internal(fst < s.n_bfct * t.n_bfct);
 
         M(i_shifted, j_shifted) += c_A * values[fst];
       }  // j
@@ -456,10 +456,9 @@ void ERICore::compute(const krims::Range<size_t>& rows, const krims::Range<size_
                   const size_t i_AbCd = i_AbC * data.n_bfct(sd) + d;
 
                   // Perform explicit bound checks:
-                  assert_dbg(i_ab < buffer.size(), krims::ExcInternalError());
-                  assert_dbg(i_AbCd < data.n_bfct(sa) * data.n_bfct(sb) *
-                                            data.n_bfct(sc) * data.n_bfct(sd),
-                             krims::ExcInternalError());
+                  assert_internal(i_ab < buffer.size());
+                  assert_internal(i_AbCd < data.n_bfct(sa) * data.n_bfct(sb) *
+                                                 data.n_bfct(sc) * data.n_bfct(sd));
 
                   buffer[i_ab] += dens(idens_c, idens_d) * values[i_AbCd];
                 }  // d

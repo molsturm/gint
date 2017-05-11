@@ -51,7 +51,7 @@ class CoefficientContainer {
   // TODO The better solution for this would be a lazy matrix for the density object.
   real_valued::stored_matrix_type compute_density_matrix() const {
     auto dens = linalgwrap::outer_prod_sum(coeff_bo(), coeff_bo());
-    assert_dbg(dens.is_symmetric(), krims::ExcInternalError());
+    assert_internal(dens.is_symmetric());
     return dens;
   }
 };

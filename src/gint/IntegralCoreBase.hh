@@ -103,7 +103,7 @@ class IntegralCoreBase {
         const scalar_type c_out = linalgwrap::Constants<scalar_type>::zero) const {
     // TODO for simplicity we do not force this method to be implemented
     // at the moment
-    assert_dbg(false, krims::ExcNotImplemented());
+    assert_implemented(false);
     (void)in;
     (void)out;
     (void)c_this;

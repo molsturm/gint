@@ -56,9 +56,8 @@ class ERICore : public IntegralCoreBase, public CoefficientContainer<stored_matr
   ERICore(const RepulsionCalculator& calculator, const SturmintSystem& system,
           IntegralIdentifier id)
         : IntegralCoreBase(system, id), m_calculator_ptr("ERICore", calculator) {
-    assert_dbg(id.integral_type() == IntegralType::exchange ||
-                     id.integral_type() == IntegralType::coulomb,
-               krims::ExcInternalError());
+    assert_internal(id.integral_type() == IntegralType::exchange ||
+                    id.integral_type() == IntegralType::coulomb);
   }
 
   /** \brief Compute and return an element of the matrix

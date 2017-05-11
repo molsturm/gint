@@ -120,7 +120,7 @@ const Element& Element::by_atomic_number(unsigned int atomic_number) {
                ExcUnknownElement("Only know atomic numbers in range [1," +
                                  std::to_string(elements().size()) + "]."));
   const auto& e = elements()[atomic_number - 1];
-  assert_dbg(e.atomic_number == atomic_number, krims::ExcInternalError());
+  assert_internal(e.atomic_number == atomic_number);
   return e;
 }
 

@@ -195,7 +195,7 @@ class LibintIntegralCoreBase : public IntegralCoreBase<stored_matrix_type> {
                        kernel_type&& kernel) const = 0;
 
   void compute(kernel_type&& kernel) const {
-    assert_dbg(n_rows() == n_cols(), krims::ExcInternalError());
+    assert_internal(n_rows() == n_cols());
     const auto full_range = krims::range(n_rows());
     compute(full_range, full_range, std::forward<kernel_type>(kernel));
   }
@@ -239,7 +239,7 @@ class OneElecIntegralCore final : public LibintIntegralCoreBase {
         return {IntegralCollection::id, IntegralType::nuclear_attraction};
       default:
         // This is not a one electron integral operator known to us atm.
-        assert_throw(false, krims::ExcInternalError());
+        assert_internal(false);
         return {IntegralCollection::id, IntegralType::overlap};
     }
   }
@@ -261,8 +261,7 @@ class ERICore final : public LibintIntegralCoreBase,
 
   ERICore(IntegralType type, const LibintSystem& system, const LibintGlobalInit& global)
         : base_type(system, global), m_type(type) {
-    assert_dbg(type == IntegralType::exchange || type == IntegralType::coulomb,
-               krims::ExcInternalError());
+    assert_internal(type == IntegralType::exchange || type == IntegralType::coulomb);
   }
 
   std::unique_ptr<core_base_type> clone() const override {

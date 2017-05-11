@@ -15,8 +15,7 @@ IntegralCollection::IntegralCollection(const krims::GenMap& parameters)
       : IntegralCollectionBase{parameters}, m_integral_calculator{m_system.basis} {
 
   // Implement some day. Most importantly think about the required range checks.
-  assert_throw(!parameters.exists(IntegralLookupKeys::nlm_basis),
-               krims::ExcNotImplemented());
+  assert_implemented(!parameters.exists(IntegralLookupKeys::nlm_basis));
 
   // Check range of n,l,m values
   const int n_max = parameters.at<int>("n_max");
@@ -59,7 +58,7 @@ Integral<stored_matrix_type> IntegralCollection::lookup_integral(
                                      IntegralIdentifier{id, type});
 
     default:
-      assert_dbg(false, krims::ExcNotImplemented());
+      assert_implemented(false);
       return Integral<stored_matrix_type>(nullptr);
   }
 }
