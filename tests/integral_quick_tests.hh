@@ -1,5 +1,6 @@
 #pragma once
 #include <catch.hpp>
+#include <gint/IntegralType.hh>
 #include <gint/IntegralUpdateKeys.hh>
 #include <krims/GenMap.hh>
 #include <linalgwrap/TestingUtils.hh>
@@ -25,11 +26,11 @@ struct IntegralDummyTests {
 
   static void run_all(const std::string& prefix, const IntegralLookup& integrals) {
     // Obtain integral objects:
-    integral_type S_bb = integrals.lookup_integral("overlap");
-    integral_type T_bb = integrals.lookup_integral("kinetic");
-    integral_type V0_bb = integrals.lookup_integral("nuclear_attraction");
-    integral_type J_bb = integrals.lookup_integral("coulomb");
-    integral_type K_bb = integrals.lookup_integral("exchange");
+    integral_type S_bb = integrals.lookup_integral(IntegralTypeKeys::overlap);
+    integral_type T_bb = integrals.lookup_integral(IntegralTypeKeys::kinetic);
+    integral_type V0_bb = integrals.lookup_integral(IntegralTypeKeys::nuclear_attraction);
+    integral_type J_bb = integrals.lookup_integral(IntegralTypeKeys::coulomb);
+    integral_type K_bb = integrals.lookup_integral(IntegralTypeKeys::exchange);
 
     // The update key we need to update the lazy coulomb and exchange matrices
     const std::string update_key = IntegralUpdateKeys::coefficients_occupied;
@@ -160,6 +161,21 @@ struct IntegralDummyTests {
             make_apply_ptr_vector_test(K_bb, data::Kref_for_coeff_2, apply_tol)));
       CHECK(rc::check(prefix + "Test apply and extract_block of exchange 2",
                       make_compare_ref_test(K_bb, data::Kref_for_coeff_2, apply_tol)));
+    }
+
+    SECTION(prefix + "Test eri tensor contraction") {
+      auto& eri = integrals.eri_tensor();
+
+      std::vector<scalar_type> res;
+      eri.contract_with(data::coeffref_bo_1, data::coeffref_bo_1, data::coeffref_bo_1,
+                        data::coeffref_bo_1, res);
+
+      auto full = krims::range(S_bb.n_rows());
+      std::vector<scalar_type> out;
+      eri.extract_block({{full, full, full, full}}, out);
+
+      // TODO check properly
+      CHECK(false);
     }
   }
 

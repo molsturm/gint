@@ -4,7 +4,26 @@
 #include "gint/config.hh"
 #include <krims/GenMap.hh>
 
+#include "EriTensor_i.hh"
+
 namespace gint {
+
+template <typename Scalar>
+class EriTensor_i;
+
+template <typename Scalar>
+class EriTensorDummy : public EriTensor_i<Scalar> {
+  typedef typename EriTensor_i<Scalar>::iface_multivector_type iface_multivector_type;
+
+  void contract_with(const iface_multivector_type& c_wb,
+                     const iface_multivector_type& c_xb,
+                     const iface_multivector_type& c_yb,
+                     const iface_multivector_type& c_zb,
+                     std::vector<Scalar>& out) const override {}
+
+  void extract_block(std::array<krims::Range<size_t>, 4> block,
+                     std::vector<Scalar>& out) const override {}
+};
 
 DefException1(ExcInvalidIntegralParameters, std::string,
               << "An invalid set of parameters for the integral evaluation was "
@@ -39,6 +58,10 @@ class IntegralCollectionBase {
   /** Lookup an integral in this collection by its integral type */
   virtual integral_matrix_type lookup_integral(IntegralType type) const = 0;
 
+  virtual const EriTensor_i<typename StoredMatrix::scalar_type>& eri_tensor() const {
+    return m_dummy;
+  }
+
   /** Obtain the id string of the collection / basis type */
   virtual const std::string& basis_id() const = 0;
 
@@ -51,6 +74,9 @@ class IntegralCollectionBase {
   IntegralCollectionBase(const IntegralCollectionBase&) = default;
   IntegralCollectionBase(IntegralCollectionBase&&) = default;
   IntegralCollectionBase() = default;
+
+ private:
+  EriTensorDummy<typename StoredMatrix::scalar_type> m_dummy;
 };
 
 //! Type of the generator function, which generates a particular IntegralCollection */

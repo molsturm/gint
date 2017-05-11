@@ -38,6 +38,89 @@ std::vector<libint2::Shell> make_libint_basis(Basis basis) {
 }  // namespace detail
 
 //
+// LibintBasisShellData
+//
+
+// TODO The next data structure feels somewhat over the top and obsolete.
+
+/** When initialised with a LibintSystem it computes and makes available some data which
+ * is needed to work with libint shell pairs */
+struct LibintBasisShellData {
+  /** Return the index of the first basis function of a particular shell */
+  size_t first_bfct(size_t shell) const { return shell2bf[shell]; }
+
+  /** Return the number of basis functions of a particular shell */
+  size_t n_bfct(size_t shell) const { return m_system_ptr->basis()[shell].size(); }
+
+  /** Return the shell information for a particular shell */
+  LibintShell shell_info(size_t shell) const {
+    return LibintShell{shell, m_system_ptr->basis()[shell].size(), shell2bf[shell]};
+  }
+
+  /** Return the number of shells */
+  size_t n_shells() const { return m_system_ptr->n_shells(); }
+
+  /** Return the shell range which covers the requested index range
+   * in the basis functions.
+   *
+   * In other words if only some basis function indices are required,
+   * this function returns the range of shells which need to be computed
+   * in order to compute the values for all basis functions.
+   * Note that it is very likely that extra values at the beginning and
+   * the end will be computed as well.
+   */
+  krims::Range<size_t> containing_shell_range(krims::Range<size_t> bfct_indices) const;
+
+  /** The map shell index to index of first basis function of the shell
+   *  Obtain the map shell index to basis function index
+   *  E.g. shell2bf[0] = index of the first basis function in shell 0
+   *       shell2bf[1] = index of the first basis function in shell 1
+   */
+  const std::vector<size_t> shell2bf;
+
+  explicit LibintBasisShellData(const LibintSystem& system)
+        : shell2bf(libint2::BasisSet::compute_shell2bf(system.basis())),
+          m_system_ptr("LibintBasisData", system) {}
+
+ private:
+  // Pointer to the molecular system info we use:
+  krims::SubscriptionPointer<const LibintSystem> m_system_ptr;
+};
+
+krims::Range<size_t> LibintBasisShellData::containing_shell_range(
+      krims::Range<size_t> bfct_indices) const {
+  // We assume here that shell2bf is sorted:
+  assert_internal(std::is_sorted(std::begin(shell2bf), std::end(shell2bf)));
+  assert_internal(!shell2bf.empty());
+
+  // Shortcut for the full range:
+  if (bfct_indices.lower_bound() == 0 &&
+      bfct_indices.upper_bound() == static_cast<size_t>(m_system_ptr->n_bas())) {
+    return {0, n_shells()};
+  }
+
+  // Get the lower bound of the element one greater than the basis function index.
+  // The lower bound is the first element which is not smaller than index+1,
+  // so the one before that is the first shell we care about.
+  const auto lower = std::lower_bound(std::begin(shell2bf), std::end(shell2bf),
+                                      bfct_indices.lower_bound() + 1);
+  const size_t begin_shell =
+        lower == std::end(shell2bf)
+              ? shell2bf.size() - 1
+              : static_cast<size_t>(lower - std::begin(shell2bf)) - 1;
+
+  // Get the lower bound on the upper bound of the basis function indices.
+  // This is the first shell we do not care about any more
+  const auto upper =
+        std::lower_bound(lower, std::end(shell2bf), bfct_indices.upper_bound());
+  const size_t end_shell = upper == std::end(shell2bf)
+                                 ? shell2bf.size()
+                                 : static_cast<size_t>(upper - std::begin(shell2bf));
+
+  return {begin_shell, end_shell};
+}
+
+//
 // LibintSystem
 //
 
@@ -53,23 +136,190 @@ LibintSystem::LibintSystem(krims::SubscriptionPointer<const Structure> structure
 }
 
 //
+// LibintEriTensor
+//
+
+void EriTensor::contract_with(const iface_multivector_type& c_wa,
+                              const iface_multivector_type& c_xb,
+                              const iface_multivector_type& c_yc,
+                              const iface_multivector_type& c_zd,
+                              std::vector<scalar_type>& out) const {
+  // Resize output array
+  const size_t n_w = c_wa.n_vectors();
+  const size_t n_x = c_xb.n_vectors();
+  const size_t n_y = c_yc.n_vectors();
+  const size_t n_z = c_zd.n_vectors();
+  out.resize(n_w * n_x * n_y * n_z);
+
+  if (out.size() == 0) return;  // Nothing to be done
+
+  const LibintSystem& system = *m_system_ptr;
+  assert_size(c_wa.n_elem(), system.n_bas());
+  assert_size(c_xb.n_elem(), system.n_bas());
+  assert_size(c_yc.n_elem(), system.n_bas());
+  assert_size(c_zd.n_elem(), system.n_bas());
+
+  // TODO libint2::Engine is not thread-safe, so for running this in
+  // parallel, we need one engine object for each thread.
+  //
+  // TODO Parallelise here!
+  //
+  // TODO Code duplication with the extraction routine and the ERICores
+
+  const size_t max_nprim = system.max_nprim();  // Maximum number of primitives
+  const int max_l = system.max_l();             // Maximum angular momentum
+  const int derivative_order = 0;               // Calculate no derivatives
+  const real_type tolerance = std::numeric_limits<real_type>::epsilon();
+  libint2::Engine int_engine(libint2::Operator::coulomb, max_nprim, max_l,
+                             derivative_order, tolerance);
+
+  const LibintBasisShellData data{system};
+  const krims::Range<size_t> a_shells = data.containing_shell_range(block[0]);
+  const krims::Range<size_t> b_shells = data.containing_shell_range(block[1]);
+  const krims::Range<size_t> c_shells = data.containing_shell_range(block[2]);
+  const krims::Range<size_t> d_shells = data.containing_shell_range(block[3]);
+
+  for (size_t sa : a_shells) {
+    for (size_t sb : b_shells) {
+      for (size_t sc : c_shells) {
+        for (size_t sd : d_shells) {
+          const auto& basis = system.basis();
+
+          // Compute integrals (a b | c d), i.e. as in chemists/Mullikan notation
+          // the shells a and b are on the same centre, so are c and d.
+          const size_t derivative_order = 0;
+          int_engine.compute2<libint2::Operator::coulomb, libint2::BraKet::xx_xx,
+                              derivative_order>(basis[sa], basis[sb], basis[sc],
+                                                basis[sd]);
+
+          // Extract computed values. If all values are zero (nullptr returned)
+          // Skip this shell pair set alltogether.
+          const scalar_type* values = int_engine.results()[0];
+          if (values == nullptr) continue;
+
+          for (size_t w = 0, i_wxyz = 0; w < n_w; ++w) {
+            for (size_t x = 0; x < n_x; ++x) {
+              for (size_t y = 0; y < n_y; ++y) {
+                for (size_t z = 0; z < n_z; ++z, ++i_wxyz) {
+
+                  for (size_t a = 0, i_abcd = 0; a < data.n_bfct(sa); ++a) {
+                    for (size_t b = 0; b < data.n_bfct(sb); ++b) {
+                      for (size_t c = 0; c < data.n_bfct(sc); ++c) {
+                        for (size_t d = 0; d < data.n_bfct(sd); ++d, ++i_abcd) {
+
+                          assert_internal(i_abcd < data.n_bfct(sa) * data.n_bfct(sb) *
+                                                         data.n_bfct(sc) *
+                                                         data.n_bfct(sd));
+                          assert_internal(i_wxyz < out.size());
+
+                          const size_t aa = a + data.first_bfct(sa);
+                          const size_t bb = b + data.first_bfct(sb);
+                          const size_t cc = c + data.first_bfct(sc);
+                          const size_t dd = d + data.first_bfct(sd);
+                          out[i_wxyz] += c_wa[w][aa] * c_xb[x][bb] * c_yc[y][cc] *
+                                         c_zd[z][dd] * values[i_abcd];
+
+                        }  // d
+                      }    // c
+                    }      // b
+                  }        // a
+
+                }  // z
+              }    // y
+            }      // x
+          }        // w
+
+        }  // sd
+      }    // sc
+    }      // sb
+  }        // sa
+}
+
+void EriTensor::extract_block(std::array<krims::Range<size_t>, 4> block,
+                              std::vector<scalar_type>& out) const {
+  // TODO For now can only do the full thing
+  assert_implemented(block[0].length() == m_system_ptr->n_bas() &&
+                     block[1].length() == m_system_ptr->n_bas() &&
+                     block[2].length() == m_system_ptr->n_bas() &&
+                     block[3].length() == m_system_ptr->n_bas());
+
+  out.resize(block[0].length() * block[1].length() * block[2].length() *
+             block[3].length());
+  size_t n = m_system_ptr->n_bas();
+
+  const LibintSystem& system = *m_system_ptr;
+
+  // TODO libint2::Engine is not thread-safe, so for running this in
+  // parallel, we need one engine object for each thread.
+  //
+  // TODO Parallelise here!
+  //
+  // TODO Code duplication with the extraction routine and the ERICores
+
+  const size_t max_nprim = system.max_nprim();  // Maximum number of primitives
+  const int max_l = system.max_l();             // Maximum angular momentum
+  const int derivative_order = 0;               // Calculate no derivatives
+  const real_type tolerance = std::numeric_limits<real_type>::epsilon();
+  libint2::Engine int_engine(libint2::Operator::coulomb, max_nprim, max_l,
+                             derivative_order, tolerance);
+
+  const LibintBasisShellData data{system};
+
+  for (size_t sa = 0; sa < data.n_shells(); ++sa) {
+    for (size_t sb = 0; sb < data.n_shells(); ++sb) {
+      for (size_t sc = 0; sc < data.n_shells(); ++sc) {
+        for (size_t sd = 0; sd < data.n_shells(); ++sd) {
+          const auto& basis = system.basis();
+
+          // Compute integrals (a b | c d), i.e. as in chemists/Mullikan notation
+          // the shells a and b are on the same centre, so are c and d.
+          const size_t derivative_order = 0;
+          int_engine.compute2<libint2::Operator::coulomb, libint2::BraKet::xx_xx,
+                              derivative_order>(basis[sa], basis[sb], basis[sc],
+                                                basis[sd]);
+
+          // Extract computed values. If all values are zero (nullptr returned)
+          // Skip this shell pair set alltogether.
+          const scalar_type* values = int_engine.results()[0];
+          if (values == nullptr) continue;
+
+          for (size_t a = 0, i_abcd = 0; a < data.n_bfct(sa); ++a) {
+            for (size_t b = 0; b < data.n_bfct(sb); ++b) {
+              for (size_t c = 0; c < data.n_bfct(sc); ++c) {
+                for (size_t d = 0; d < data.n_bfct(sd); ++d, ++i_abcd) {
+
+                  const size_t aa = a + data.first_bfct(sa);
+                  const size_t bb = b + data.first_bfct(sb);
+                  const size_t cc = c + data.first_bfct(sc);
+                  const size_t dd = d + data.first_bfct(sd);
+                  const size_t idx = (((aa * n) * n + bb) * n + cc) * n + dd;
+
+                  assert_internal(i_abcd < data.n_bfct(sa) * data.n_bfct(sb) *
+                                                 data.n_bfct(sc) * data.n_bfct(sd));
+                  assert_internal(idx < out.size());
+                  out[idx] = values[i_abcd];
+                }  // d
+              }    // c
+            }      // b
+          }        // a
+
+        }  // sd
+      }    // sc
+    }      // sb
+  }        // sa
+}
+
+//
 // LibintCollection
 //
 
 const std::string IntegralCollection::id = "gaussian/libint";
 
-IntegralCollection::IntegralCollection(const krims::GenMap& parameters)
-      : m_system{}, m_global{} {
-  auto structure_ptr = parameters.at_ptr<const Structure>(IntegralLookupKeys::structure);
+Basis construct_basis(const krims::GenMap& parameters) {
+  // TODO Generalise this: This function is pretty much the same for
+  //      *all* gaussian basis set libraries.
 
-  // Check if an explicit basis is specified and use it directly if yes.
-  if (parameters.exists(IntegralLookupKeys::basis)) {
-    m_system = LibintSystem(structure_ptr,
-                            parameters.at<const Basis>(IntegralLookupKeys::basis));
-    return;
-  }
-
-  // Else we read it from file / the gint library
+  // The key: Either a file or the name of a basis set
   const std::string& key =
         parameters.at<const std::string>(IntegralLookupKeys::basis_set);
 
@@ -93,13 +343,30 @@ IntegralCollection::IntegralCollection(const krims::GenMap& parameters)
     return BasisSet();
   }();
 
-  // Construct the basis using the structure:
+  auto structure_ptr = parameters.at_ptr<const Structure>(IntegralLookupKeys::structure);
   try {
-    m_system = LibintSystem(structure_ptr, Basis(*structure_ptr, basis_set));
+    return Basis{*structure_ptr, basis_set};
   } catch (const ExcNoBasisForAtom& e) {
     assert_throw(false, ExcInvalidIntegralParameters(errmsg + e.extra()));
+    return Basis{};
   }
 }
+
+LibintSystem make_system(const krims::GenMap& parameters) {
+  auto structure_ptr = parameters.at_ptr<const Structure>(IntegralLookupKeys::structure);
+
+  // Check if an explicit basis is specified: Use it
+  // else construct a basis from the parameters
+  if (parameters.exists(IntegralLookupKeys::basis)) {
+    return LibintSystem(structure_ptr,
+                        parameters.at<const Basis>(IntegralLookupKeys::basis));
+  } else {
+    return LibintSystem(structure_ptr, construct_basis(parameters));
+  }
+}
+
+IntegralCollection::IntegralCollection(const krims::GenMap& parameters)
+      : m_system{make_system(parameters)}, m_global{}, m_eri_tensor{m_system, m_global} {}
 
 Integral<stored_matrix_type> IntegralCollection::lookup_integral(
       IntegralType type) const {
@@ -254,90 +521,6 @@ void LibintIntegralCoreBase::apply(const const_multivector_type& x, multivector_
 }
 
 //
-// LibintBasisShellData
-//
-
-// TODO The next data structure feels somewhat over the top and obsolete.
-
-/** When initialised with a LibintSystem it computes and makes available some data which
- * is needed to work with libint shell pairs */
-struct LibintBasisShellData {
-  /** Return the index of the first basis function of a particular shell */
-  size_t first_bfct(size_t shell) const { return shell2bf[shell]; }
-
-  /** Return the number of basis functions of a particular shell */
-  size_t n_bfct(size_t shell) const { return m_system_ptr->basis()[shell].size(); }
-
-  /** Return the shell information for a particular shell */
-  LibintShell shell_info(size_t shell) const {
-    return LibintShell{shell, m_system_ptr->basis()[shell].size(), shell2bf[shell]};
-  }
-
-  /** Return the number of shells */
-  size_t n_shells() const { return m_system_ptr->n_shells(); }
-
-  /** Return the shell range which covers the requested index range
-   * in the basis functions.
-   *
-   * In other words if only some basis function indices are required,
-   * this function returns the range of shells which need to be computed
-   * in order to compute the values for all basis functions.
-   * Note that it is very likely that extra values at the beginning and
-   * the end will be computed as well.
-   */
-  krims::Range<size_t> containing_shell_range(krims::Range<size_t> bfct_indices) const;
-
-  /** The map shell index to index of first basis function of the shell
-   *  Obtain the map shell index to basis function index
-   *  E.g. shell2bf[0] = index of the first basis function in shell 0
-   *       shell2bf[1] = index of the first basis function in shell 1
-   */
-  const std::vector<size_t> shell2bf;
-
-  explicit LibintBasisShellData(const LibintSystem& system)
-        : shell2bf(libint2::BasisSet::compute_shell2bf(system.basis())),
-          m_system_ptr("LibintBasisData", system) {}
-
- private:
-  // Pointer to the molecular system info we use:
-  krims::SubscriptionPointer<const LibintSystem> m_system_ptr;
-};
-
-krims::Range<size_t> LibintBasisShellData::containing_shell_range(
-      krims::Range<size_t> bfct_indices) const {
-  // We assume here that shell2bf is sorted:
-  assert_dbg(std::is_sorted(std::begin(shell2bf), std::end(shell2bf)),
-             krims::ExcInternalError());
-  assert_dbg(!shell2bf.empty(), krims::ExcInternalError());
-
-  // Shortcut for the full range:
-  if (bfct_indices.lower_bound() == 0 &&
-      bfct_indices.upper_bound() == static_cast<size_t>(m_system_ptr->n_bas())) {
-    return {0, n_shells()};
-  }
-
-  // Get the lower bound of the element one greater than the basis function index.
-  // The lower bound is the first element which is not smaller than index+1,
-  // so the one before that is the first shell we care about.
-  const auto lower = std::lower_bound(std::begin(shell2bf), std::end(shell2bf),
-                                      bfct_indices.lower_bound() + 1);
-  const size_t begin_shell =
-        lower == std::end(shell2bf)
-              ? shell2bf.size() - 1
-              : static_cast<size_t>(lower - std::begin(shell2bf)) - 1;
-
-  // Get the lower bound on the upper bound of the basis function indices.
-  // This is the first shell we do not care about any more
-  const auto upper =
-        std::lower_bound(lower, std::end(shell2bf), bfct_indices.upper_bound());
-  const size_t end_shell = upper == std::end(shell2bf)
-                                 ? shell2bf.size()
-                                 : static_cast<size_t>(upper - std::begin(shell2bf));
-
-  return {begin_shell, end_shell};
-}
-
-//
 // OneElecIntegralCore
 //
 
@@ -391,6 +574,8 @@ void ERICore::compute(const krims::Range<size_t>& rows, const krims::Range<size_
   // parallel, we need one engine object for each thread.
   //
   // TODO Parallelise here!
+  //
+  // TODO Code duplication with the extraction routine and the ERICores
 
   const LibintSystem& system = base_type::system();
   const size_t max_nprim = system.max_nprim();  // Maximum number of primitives
