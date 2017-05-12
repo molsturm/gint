@@ -1,6 +1,7 @@
 #include "cs_reference.hh"
 #include "nlm_order/ERICore.hh"
 #include "nlm_order/ERICoreHighPrecision.hh"
+#include "nlm_order/ERITensor.hh"
 #include "nlm_order/OneElectronIntegralCores.hh"
 
 namespace gint {
@@ -11,7 +12,9 @@ namespace cs_reference {
 const std::string IntegralCollection::id = "atomic/cs_reference";
 
 IntegralCollection::IntegralCollection(const krims::GenMap& parameters)
-      : IntegralCollectionBase(parameters), m_integral_calculator(m_system.basis) {}
+      : IntegralCollectionBase(parameters), m_integral_calculator(m_system.basis) {
+  m_eri_tensor_ptr.reset(new ERITensor<Atomic>(m_integral_calculator, m_system));
+}
 
 Integral<stored_matrix_type> IntegralCollection::lookup_integral(
       IntegralType type) const {

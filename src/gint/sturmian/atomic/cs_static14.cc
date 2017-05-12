@@ -24,7 +24,8 @@ double atom_charge(const krims::GenMap& parameters) {
 
 IntegralCollection::IntegralCollection(const krims::GenMap& parameters)
       : k_exponent{parameters.at<double>("k_exponent")},
-        Z_charge{atom_charge(parameters)} {}
+        Z_charge{atom_charge(parameters)},
+        m_eri_tensor(k_exponent) {}
 
 Integral<stored_matrix_type> IntegralCollection::lookup_integral(
       IntegralType type) const {
@@ -88,6 +89,30 @@ void apply_stored_matrix(const stored_matrix_type& A, const const_multivector_ty
 //
 // IntegralCores
 //
+void ERITensor::compute_kernel(const std::array<krims::Range<size_t>, 4>& block,
+                               kernel_type kernel) const {
+  const auto& i_bbbb = Static14Data::i_bbbb_base;
+  const size_t nbas = Static14Data::nbas;
+
+  // Copy the tensor data into a buffer and call the kernel
+  std::vector<scalar_type> buffer(block[0].length() * block[1].length() *
+                                  block[2].length() * block[3].length());
+
+  auto it = std::begin(buffer);
+  for (auto a : block[0]) {
+    for (auto b : block[1]) {
+      for (auto c : block[2]) {
+        for (auto d : block[3]) {
+          const size_t ab = a * nbas + b;
+          const size_t cd = c * nbas + d;
+          *(it++) = k * i_bbbb(ab, cd);
+        }  // d
+      }    // c
+    }      // b
+  }        // a
+
+  kernel(block, buffer.data());
+}
 
 typename ERICore::scalar_type ERICore::operator()(size_t a, size_t b) const {
   assert_greater(a, n_rows());

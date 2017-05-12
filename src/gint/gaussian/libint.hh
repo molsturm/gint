@@ -7,7 +7,6 @@
 
 #include "Basis.hh"
 #include "gint/CoefficientContainer.hh"
-#include "gint/EriTensor_i.hh"
 #include "gint/Integral.hh"
 #include "gint/IntegralCollectionBase.hh"
 #include "gint/IntegralCoreBase.hh"
@@ -83,24 +82,21 @@ struct LibintShell {
   size_t first_bfct;
 };
 
-class EriTensor final : public EriTensor_i<scalar_type> {
+class ERITensor final : public ERITensor_i<scalar_type> {
  public:
   /** Constructor
    * \param system  The molecular system and basis this core deals with
    * \param global  The global libint resources to acquire
    */
-  EriTensor(const LibintSystem& system, const LibintGlobalInit& global)
-        : m_system_ptr("LibIntEriTensor", system),
-          m_global_ptr("LibIntEriTensor", global) {}
+  ERITensor(const LibintSystem& system, const LibintGlobalInit& global)
+        : m_system_ptr("LibIntERITensor", system),
+          m_global_ptr("LibIntERITensor", global) {}
 
-  void contract_with(const iface_multivector_type& c_wa,
-                     const iface_multivector_type& c_xb,
-                     const iface_multivector_type& c_yc,
-                     const iface_multivector_type& c_zd,
-                     std::vector<scalar_type>& out) const override;
+  size_t n_bas() const override { return m_system_ptr->n_bas(); }
 
-  void extract_block(std::array<krims::Range<size_t>, 4> block,
-                     std::vector<scalar_type>& out) const override;
+ protected:
+  void compute_kernel(const std::array<krims::Range<size_t>, 4>& block,
+                      kernel_type kernel) const override;
 
  private:
   // Pointer to the molecular system info we use:
@@ -132,7 +128,7 @@ class IntegralCollection final : public IntegralCollectionBase<stored_matrix_typ
   using base_type::lookup_integral;
   integral_matrix_type lookup_integral(IntegralType type) const override;
 
-  const EriTensor_i<scalar_type>& eri_tensor() const override { return m_eri_tensor; }
+  const ERITensor_i<scalar_type>& eri_tensor() const override { return m_eri_tensor; }
 
   /** Obtain the id string of the collection / basis type */
   const std::string& basis_id() const override { return id; }
@@ -148,7 +144,7 @@ class IntegralCollection final : public IntegralCollectionBase<stored_matrix_typ
  private:
   LibintSystem m_system;
   LibintGlobalInit m_global;
-  EriTensor m_eri_tensor;
+  ERITensor m_eri_tensor;
 };
 
 //

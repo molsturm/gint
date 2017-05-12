@@ -2,6 +2,7 @@
 #include "gint/sturmian/atomic/NlmBasis.hh"
 #include "nlm_order/ERICore.hh"
 #include "nlm_order/ERICoreHighPrecision.hh"
+#include "nlm_order/ERITensor.hh"
 #include "nlm_order/OneElectronIntegralCores.hh"
 
 namespace gint {
@@ -37,6 +38,8 @@ IntegralCollection::IntegralCollection(const krims::GenMap& parameters)
                                      std::to_string(m_max) +
                                      ") needs to be in the range [0,4] for cs_naive, "
                                      "since higher values are not yet implemented."));
+
+  m_eri_tensor_ptr.reset(new ERITensor<Atomic>(m_integral_calculator, m_system));
 }
 
 Integral<stored_matrix_type> IntegralCollection::lookup_integral(

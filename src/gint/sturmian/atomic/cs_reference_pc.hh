@@ -35,6 +35,10 @@ class IntegralCollection final : public IntegralCollectionBase {
     return "Reference implementation of atomic Coulomb Sturmians";
   }
 
+  const ERITensor_i<scalar_type>& eri_tensor() const override {
+    return *m_eri_tensor_ptr;
+  }
+
   /** Create an integral collection for a particular basis set defined by parameters */
   static std::unique_ptr<base_type> create(const krims::GenMap& parameters) {
     return krims::make_unique<IntegralCollection>(parameters);
@@ -43,6 +47,9 @@ class IntegralCollection final : public IntegralCollectionBase {
  private:
   /** The integral calculator object */
   Atomic m_integral_calculator;
+
+  /** Pointer to the repulsion tensor object */
+  std::unique_ptr<ERITensor_i<scalar_type>> m_eri_tensor_ptr;
 };
 
 }  // namespace cs_reference_pc

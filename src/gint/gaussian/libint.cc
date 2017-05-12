@@ -52,6 +52,11 @@ struct LibintBasisShellData {
   /** Return the number of basis functions of a particular shell */
   size_t n_bfct(size_t shell) const { return m_system_ptr->basis()[shell].size(); }
 
+  /** Return the range of basis function indices covered by a particular shell */
+  krims::Range<size_t> range_bfct(size_t shell) const {
+    return {first_bfct(shell), first_bfct(shell) + n_bfct(shell)};
+  }
+
   /** Return the shell information for a particular shell */
   LibintShell shell_info(size_t shell) const {
     return LibintShell{shell, m_system_ptr->basis()[shell].size(), shell2bf[shell]};
@@ -136,35 +141,19 @@ LibintSystem::LibintSystem(krims::SubscriptionPointer<const Structure> structure
 }
 
 //
-// LibintEriTensor
+// ERITensor
 //
 
-void EriTensor::contract_with(const iface_multivector_type& c_wa,
-                              const iface_multivector_type& c_xb,
-                              const iface_multivector_type& c_yc,
-                              const iface_multivector_type& c_zd,
-                              std::vector<scalar_type>& out) const {
-  // Resize output array
-  const size_t n_w = c_wa.n_vectors();
-  const size_t n_x = c_xb.n_vectors();
-  const size_t n_y = c_yc.n_vectors();
-  const size_t n_z = c_zd.n_vectors();
-  out.resize(n_w * n_x * n_y * n_z);
-
-  if (out.size() == 0) return;  // Nothing to be done
-
+void ERITensor::compute_kernel(const std::array<krims::Range<size_t>, 4>& block,
+                               kernel_type kernel) const {
   const LibintSystem& system = *m_system_ptr;
-  assert_size(c_wa.n_elem(), system.n_bas());
-  assert_size(c_xb.n_elem(), system.n_bas());
-  assert_size(c_yc.n_elem(), system.n_bas());
-  assert_size(c_zd.n_elem(), system.n_bas());
 
   // TODO libint2::Engine is not thread-safe, so for running this in
   // parallel, we need one engine object for each thread.
   //
   // TODO Parallelise here!
   //
-  // TODO Code duplication with the extraction routine and the ERICores
+  // TODO Code duplication with the ERICores
 
   const size_t max_nprim = system.max_nprim();  // Maximum number of primitives
   const int max_l = system.max_l();             // Maximum angular momentum
@@ -186,7 +175,8 @@ void EriTensor::contract_with(const iface_multivector_type& c_wa,
           const auto& basis = system.basis();
 
           // Compute integrals (a b | c d), i.e. as in chemists/Mullikan notation
-          // the shells a and b are on the same centre, so are c and d.
+          // the shells a and b are basis functions of the same electron and so
+          // are c and d.
           const size_t derivative_order = 0;
           int_engine.compute2<libint2::Operator::coulomb, libint2::BraKet::xx_xx,
                               derivative_order>(basis[sa], basis[sb], basis[sc],
@@ -197,112 +187,10 @@ void EriTensor::contract_with(const iface_multivector_type& c_wa,
           const scalar_type* values = int_engine.results()[0];
           if (values == nullptr) continue;
 
-          for (size_t w = 0, i_wxyz = 0; w < n_w; ++w) {
-            for (size_t x = 0; x < n_x; ++x) {
-              for (size_t y = 0; y < n_y; ++y) {
-                for (size_t z = 0; z < n_z; ++z, ++i_wxyz) {
-
-                  for (size_t a = 0, i_abcd = 0; a < data.n_bfct(sa); ++a) {
-                    for (size_t b = 0; b < data.n_bfct(sb); ++b) {
-                      for (size_t c = 0; c < data.n_bfct(sc); ++c) {
-                        for (size_t d = 0; d < data.n_bfct(sd); ++d, ++i_abcd) {
-
-                          assert_internal(i_abcd < data.n_bfct(sa) * data.n_bfct(sb) *
-                                                         data.n_bfct(sc) *
-                                                         data.n_bfct(sd));
-                          assert_internal(i_wxyz < out.size());
-
-                          const size_t aa = a + data.first_bfct(sa);
-                          const size_t bb = b + data.first_bfct(sb);
-                          const size_t cc = c + data.first_bfct(sc);
-                          const size_t dd = d + data.first_bfct(sd);
-                          out[i_wxyz] += c_wa[w][aa] * c_xb[x][bb] * c_yc[y][cc] *
-                                         c_zd[z][dd] * values[i_abcd];
-
-                        }  // d
-                      }    // c
-                    }      // b
-                  }        // a
-
-                }  // z
-              }    // y
-            }      // x
-          }        // w
-
-        }  // sd
-      }    // sc
-    }      // sb
-  }        // sa
-}
-
-void EriTensor::extract_block(std::array<krims::Range<size_t>, 4> block,
-                              std::vector<scalar_type>& out) const {
-  // TODO For now can only do the full thing
-  assert_implemented(block[0].length() == m_system_ptr->n_bas() &&
-                     block[1].length() == m_system_ptr->n_bas() &&
-                     block[2].length() == m_system_ptr->n_bas() &&
-                     block[3].length() == m_system_ptr->n_bas());
-
-  out.resize(block[0].length() * block[1].length() * block[2].length() *
-             block[3].length());
-  size_t n = m_system_ptr->n_bas();
-
-  const LibintSystem& system = *m_system_ptr;
-
-  // TODO libint2::Engine is not thread-safe, so for running this in
-  // parallel, we need one engine object for each thread.
-  //
-  // TODO Parallelise here!
-  //
-  // TODO Code duplication with the extraction routine and the ERICores
-
-  const size_t max_nprim = system.max_nprim();  // Maximum number of primitives
-  const int max_l = system.max_l();             // Maximum angular momentum
-  const int derivative_order = 0;               // Calculate no derivatives
-  const real_type tolerance = std::numeric_limits<real_type>::epsilon();
-  libint2::Engine int_engine(libint2::Operator::coulomb, max_nprim, max_l,
-                             derivative_order, tolerance);
-
-  const LibintBasisShellData data{system};
-
-  for (size_t sa = 0; sa < data.n_shells(); ++sa) {
-    for (size_t sb = 0; sb < data.n_shells(); ++sb) {
-      for (size_t sc = 0; sc < data.n_shells(); ++sc) {
-        for (size_t sd = 0; sd < data.n_shells(); ++sd) {
-          const auto& basis = system.basis();
-
-          // Compute integrals (a b | c d), i.e. as in chemists/Mullikan notation
-          // the shells a and b are on the same centre, so are c and d.
-          const size_t derivative_order = 0;
-          int_engine.compute2<libint2::Operator::coulomb, libint2::BraKet::xx_xx,
-                              derivative_order>(basis[sa], basis[sb], basis[sc],
-                                                basis[sd]);
-
-          // Extract computed values. If all values are zero (nullptr returned)
-          // Skip this shell pair set alltogether.
-          const scalar_type* values = int_engine.results()[0];
-          if (values == nullptr) continue;
-
-          for (size_t a = 0, i_abcd = 0; a < data.n_bfct(sa); ++a) {
-            for (size_t b = 0; b < data.n_bfct(sb); ++b) {
-              for (size_t c = 0; c < data.n_bfct(sc); ++c) {
-                for (size_t d = 0; d < data.n_bfct(sd); ++d, ++i_abcd) {
-
-                  const size_t aa = a + data.first_bfct(sa);
-                  const size_t bb = b + data.first_bfct(sb);
-                  const size_t cc = c + data.first_bfct(sc);
-                  const size_t dd = d + data.first_bfct(sd);
-                  const size_t idx = (((aa * n) * n + bb) * n + cc) * n + dd;
-
-                  assert_internal(i_abcd < data.n_bfct(sa) * data.n_bfct(sb) *
-                                                 data.n_bfct(sc) * data.n_bfct(sd));
-                  assert_internal(idx < out.size());
-                  out[idx] = values[i_abcd];
-                }  // d
-              }    // c
-            }      // b
-          }        // a
-
+          // Call the kernel to do further computation
+          kernel({{data.range_bfct(sa), data.range_bfct(sb), data.range_bfct(sc),
+                   data.range_bfct(sd)}},
+                 values);
         }  // sd
       }    // sc
     }      // sb
@@ -575,7 +463,7 @@ void ERICore::compute(const krims::Range<size_t>& rows, const krims::Range<size_
   //
   // TODO Parallelise here!
   //
-  // TODO Code duplication with the extraction routine and the ERICores
+  // TODO Code duplication with the ERITensor
 
   const LibintSystem& system = base_type::system();
   const size_t max_nprim = system.max_nprim();  // Maximum number of primitives
@@ -650,8 +538,9 @@ void ERICore::compute(const krims::Range<size_t>& rows, const krims::Range<size_
               }    // c
             }      // b
           }        // a
-        }          // sh_d
-      }            // sh_c
+
+        }  // sh_d
+      }    // sh_c
 
       if (all_zero) {
         kernel(data.shell_info(sa), data.shell_info(sb), nullptr);

@@ -8,6 +8,7 @@ set(GINT_SOURCES
   Atom.cc
   CoefficientContainer.cc
   Element.cc
+  ERITensor_i.cc
   Integral.cc
   IntegralCoreBase.cc
   IntegralLookup.cc
@@ -18,6 +19,7 @@ set(GINT_SOURCES
 
   sturmian/atomic/nlm_order/ERICore.cc
   sturmian/atomic/nlm_order/ERICoreHighPrecision.cc
+  sturmian/atomic/nlm_order/ERITensor.cc
   sturmian/atomic/nlm_order/IntegralCollectionBase.cc
   sturmian/atomic/nlm_order/SturmintSystem.cc
   sturmian/atomic/cs_dummy.cc

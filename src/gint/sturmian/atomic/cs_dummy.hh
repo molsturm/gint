@@ -39,12 +39,19 @@ class IntegralCollection final : public IntegralCollectionBase {
     return krims::make_unique<IntegralCollection>(parameters);
   }
 
+  const ERITensor_i<scalar_type>& eri_tensor() const override {
+    return *m_eri_tensor_ptr;
+  }
+
  private:
   /** The filename to be used to read repulsion data */
   std::string m_repulsiondata_filename;
 
   /** The integral calculator object */
   Atomic m_integral_calculator;
+
+  /** Pointer to the repulsion tensor object */
+  std::unique_ptr<ERITensor_i<scalar_type>> m_eri_tensor_ptr;
 };
 
 }  // namespace cs_dummy

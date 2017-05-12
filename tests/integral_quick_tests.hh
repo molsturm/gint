@@ -163,16 +163,26 @@ struct IntegralDummyTests {
                       make_compare_ref_test(K_bb, data::Kref_for_coeff_2, apply_tol)));
     }
 
-    SECTION(prefix + "Test eri tensor contraction") {
+    SECTION(prefix + "Test eri_tensor extract_block") {
       auto& eri = integrals.eri_tensor();
-
-      std::vector<scalar_type> res;
-      eri.contract_with(data::coeffref_bo_1, data::coeffref_bo_1, data::coeffref_bo_1,
-                        data::coeffref_bo_1, res);
 
       auto full = krims::range(S_bb.n_rows());
       std::vector<scalar_type> out;
       eri.extract_block({{full, full, full, full}}, out);
+
+      // TODO check properly
+      CHECK(false);
+    }
+
+    SECTION(prefix + "Test eri tensor contraction") {
+      auto& eri = integrals.eri_tensor();
+
+      const size_t n1 = data::coeffref_bo_1.n_vectors();
+      const size_t n2 = data::coeffref_bo_2.n_vectors();
+
+      std::vector<scalar_type> res(n1 * n2 * n2 * n1);
+      eri.contract_with(data::coeffref_bo_1, data::coeffref_bo_2, data::coeffref_bo_2,
+                        data::coeffref_bo_1, res);
 
       // TODO check properly
       CHECK(false);

@@ -21,6 +21,19 @@ void apply_stored_matrix(const stored_matrix_type& A, const const_multivector_ty
                          const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
                          const scalar_type c_A = 1, const scalar_type c_y = 0);
 
+class ERITensor final : public ERITensor_i<scalar_type> {
+ public:
+  const real_type k;
+
+  ERITensor(real_type k) : k(k) {}
+
+  size_t n_bas() const override { return Static14Data::nbas; }
+
+ protected:
+  void compute_kernel(const std::array<krims::Range<size_t>, 4>& block,
+                      kernel_type kernel) const override;
+};
+
 /** This integral collection contains precomputed data for an atomic sturmian
  * basis with n_max = 3 and l_max=2, which yields 14 basis functions.
  *
@@ -44,6 +57,8 @@ class IntegralCollection final : public IntegralCollectionBase<stored_matrix_typ
   using base_type::lookup_integral;
   integral_matrix_type lookup_integral(IntegralType type) const override;
 
+  const ERITensor_i<scalar_type>& eri_tensor() const override { return m_eri_tensor; }
+
   /** Obtain the id string of the collection / basis type */
   const std::string& basis_id() const override { return id; }
 
@@ -56,6 +71,9 @@ class IntegralCollection final : public IntegralCollectionBase<stored_matrix_typ
   static std::unique_ptr<base_type> create(const krims::GenMap& parameters) {
     return krims::make_unique<IntegralCollection>(parameters);
   }
+
+ private:
+  ERITensor m_eri_tensor;
 };
 
 //

@@ -2,6 +2,7 @@
 #include "gint/sturmian/atomic/NlmBasis.hh"
 #include "nlm_order/ERICore.hh"
 #include "nlm_order/ERICoreHighPrecision.hh"
+#include "nlm_order/ERITensor.hh"
 #include "nlm_order/OneElectronIntegralCores.hh"
 
 namespace gint {
@@ -23,6 +24,7 @@ IntegralCollection::IntegralCollection(const krims::GenMap& parameters)
                                to_string(lmax) + "-" + to_string(mmax) + ".bin";
   }
   m_integral_calculator = Atomic(m_system.basis, m_repulsiondata_filename);
+  m_eri_tensor_ptr.reset(new ERITensor<Atomic>(m_integral_calculator, m_system));
 }
 
 Integral<stored_matrix_type> IntegralCollection::lookup_integral(
