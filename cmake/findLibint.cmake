@@ -160,7 +160,7 @@ endif()
 # Note: Eigen is exposed as Eigen3::Eigen by find_package
 set(EIGEN_TARGET "Eigen3::Eigen")
 find_package(Eigen3 QUIET)
-if (${Eigen3_DIR} MATCHES "-NOTFOUND")
+if (${Eigen3_DIR} MATCHES "-NOTFOUND" OR NOT TARGET ${EIGEN_TARGET})
 	set(EIGEN_TARGET "Eigen")
 	add_library(${EIGEN_TARGET} INTERFACE IMPORTED)
 	find_path(Eigen3_DIR signature_of_eigen3_matrix_library
