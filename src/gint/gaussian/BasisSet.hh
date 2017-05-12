@@ -66,6 +66,10 @@ struct BasisSet {
 
   /** The mapping from the atomic number Z to the list of
    *  Shells which should be used for modelling it.
+   *
+   *  It is best to not use this function directly, but instead use the
+   *  shells_for_atom function call, which does some extra
+   *  checking.
    */
   std::map<unsigned int, std::vector<Shell>> atomic_number_to_shells;
 };

@@ -28,7 +28,7 @@ namespace gaussian {
 Basis::Basis(const Structure& structure, const BasisSet& set) {
   for (const Atom& a : structure) {
     // Get shells for atom and copy them inside:
-    const auto& shells = set.atomic_number_to_shells.at(a.atomic_number);
+    const auto& shells = set.shells_for_atom(a.atomic_number);
 
     auto set_origin = [&a](Shell s) {
       s.origin = a.coords;
