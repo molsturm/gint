@@ -1,30 +1,36 @@
 #pragma once
 #include <catch.hpp>
+#include <gint/IntegralLookup.hh>
 #include <gint/IntegralType.hh>
 #include <gint/IntegralUpdateKeys.hh>
 #include <krims/GenMap.hh>
 #include <linalgwrap/TestingUtils.hh>
 #include <linalgwrap/io.hh>
 
+// Make this nicer => integral small tests
+
 namespace gint {
 namespace tests {
 using namespace linalgwrap;
 using namespace krims;
 
-template <typename IntegralLookup, typename RefData>
+template <typename RefData>
 struct IntegralDummyTests {
-  typedef IntegralLookup int_lookup_type;
-  typedef typename int_lookup_type::integral_type integral_type;
-  typedef typename integral_type::stored_matrix_type stored_matrix_type;
-  typedef typename stored_matrix_type::vector_type vector_type;
-  typedef typename stored_matrix_type::scalar_type scalar_type;
-  typedef const linalgwrap::MultiVector<const vector_type> coefficients_type;
   typedef RefData data;
+  typedef typename data::stored_matrix_type stored_matrix_type;
+  typedef typename data::vector_type vector_type;
+  typedef typename data::scalar_type scalar_type;
+  typedef const linalgwrap::MultiVector<const vector_type> coefficients_type;
+  typedef IntegralLookup<stored_matrix_type> int_lookup_type;
+  typedef typename int_lookup_type::integral_type integral_type;
   static_assert(std::is_same<typename integral_type::stored_matrix_type,
                              typename RefData::stored_matrix_type>::value,
                 "Stored matrix types of IntegralLookup and RefData need to agree.");
 
-  static void run_all(const std::string& prefix, const IntegralLookup& integrals) {
+  static void run_all(const std::string& prefix,
+                      const krims::GenMap& integral_parameters) {
+    const int_lookup_type integrals(integral_parameters);
+
     // Obtain integral objects:
     integral_type S_bb = integrals.lookup_integral(IntegralTypeKeys::overlap);
     integral_type T_bb = integrals.lookup_integral(IntegralTypeKeys::kinetic);
@@ -166,12 +172,19 @@ struct IntegralDummyTests {
     SECTION(prefix + "Test eri_tensor extract_block") {
       auto& eri = integrals.eri_tensor();
 
-      auto full = krims::range(S_bb.n_rows());
-      std::vector<scalar_type> out;
-      eri.extract_block({{full, full, full, full}}, out);
+      std::vector<scalar_type> res(data::Ibbb_extract1_range[0].length() *
+                                   data::Ibbb_extract1_range[1].length() *
+                                   data::Ibbb_extract1_range[2].length() *
+                                   data::Ibbb_extract1_range[3].length());
+      eri.extract_block(data::Ibbb_extract1_range, res);
+      CHECK(data::Ibbb_extract1 == numcomp(res));
 
-      // TODO check properly
-      CHECK(false);
+      res.resize(data::Ibbb_extract2_range[0].length() *
+                 data::Ibbb_extract2_range[1].length() *
+                 data::Ibbb_extract2_range[2].length() *
+                 data::Ibbb_extract2_range[3].length());
+      eri.extract_block(data::Ibbb_extract2_range, res);
+      CHECK(data::Ibbb_extract2 == numcomp(res));
     }
 
     SECTION(prefix + "Test eri tensor contraction") {
@@ -180,12 +193,28 @@ struct IntegralDummyTests {
       const size_t n1 = data::coeffref_bo_1.n_vectors();
       const size_t n2 = data::coeffref_bo_2.n_vectors();
 
-      std::vector<scalar_type> res(n1 * n2 * n2 * n1);
-      eri.contract_with(data::coeffref_bo_1, data::coeffref_bo_2, data::coeffref_bo_2,
+      std::vector<scalar_type> res(n1 * n1 * n1 * n1);
+      eri.contract_with(data::coeffref_bo_1, data::coeffref_bo_1, data::coeffref_bo_1,
                         data::coeffref_bo_1, res);
+      CHECK(data::Iffff_ref_1111 == numcomp(res));
 
-      // TODO check properly
-      CHECK(false);
+      // and now 2222
+      res.resize(n2 * n2 * n2 * n2);
+      eri.contract_with(data::coeffref_bo_2, data::coeffref_bo_2, data::coeffref_bo_2,
+                        data::coeffref_bo_2, res);
+      CHECK(data::Iffff_ref_2222 == numcomp(res));
+
+      // and now 2121
+      res.resize(n2 * n1 * n2 * n1);
+      eri.contract_with(data::coeffref_bo_2, data::coeffref_bo_1, data::coeffref_bo_2,
+                        data::coeffref_bo_1, res);
+      CHECK(data::Iffff_ref_2121 == numcomp(res));
+
+      // and now 2221
+      res.resize(n2 * n2 * n2 * n1);
+      eri.contract_with(data::coeffref_bo_2, data::coeffref_bo_2, data::coeffref_bo_2,
+                        data::coeffref_bo_1, res);
+      CHECK(data::Iffff_ref_2221 == numcomp(res));
     }
   }
 

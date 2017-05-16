@@ -2,16 +2,15 @@
 # The sources for the test executable
 #
 set(GINT_TESTS_SOURCES
-  QuickAtomicCsDummyTest.cc
-  QuickAtomicCsNaiveTest.cc
-  QuickAtomicCsReferencePcTest.cc
-  QuickAtomicCsReferenceTest.cc
-  QuickAtomicStatic14Test.cc
   QuickLibintTests.cc
   CoefficientTest.cc
   ReadBasisSetTest.cc
   BasisSetTests.cc
   BasisTests.cc
+
+  SturmianTestData.cc
+  CoulombSturmianSmallTest.cc
+
   main.cc
 )
 
