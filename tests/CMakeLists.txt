@@ -2,8 +2,6 @@
 # The sources for the test executable
 #
 set(GINT_TESTS_SOURCES
-  QuickLibintTests.cc
-  CoefficientTest.cc
   ReadBasisSetTest.cc
   BasisSetTests.cc
   BasisTests.cc
@@ -11,7 +9,13 @@ set(GINT_TESTS_SOURCES
   SturmianTestData.cc
   CoulombSturmianSmallTest.cc
 
+  GaussianTestData.cc
+  GaussianSmallTest.cc
+
   main.cc
+
+  # TODO Make a proper test out of this
+  CoefficientTest.cc
 )
 
 drb_add_executable(gint_tests

@@ -17,47 +17,43 @@
 // along with gint. If not, see <http://www.gnu.org/licenses/>.
 //
 
-#ifdef GINT_HAVE_LIBINT
-
 #include "GaussianTestData.hh"
-#include "gint/config.hh"
 #include "integral_quick_tests.hh"
-#include <catch.hpp>
 #include <gint/IntegralLookup.hh>
-#include <gint/OrbitalType.hh>
-#include <linalgwrap/SmallVector.hh>
-#include <rapidcheck.h>
+#include <gint/IntegralLookupKeys.hh>
 
 namespace gint {
-
 namespace tests {
-using namespace linalgwrap;
-using namespace krims;
 
-TEST_CASE("Quick atomic libint test", "[quicktest libint]") {
-  typedef IntegralLookup<real_valued::stored_matrix_type> int_lookup_type;
+namespace gaussian_small_test {
+void execute(const std::string& basis_type) {
+  // Use the reference data we have for the atomic coulomb Sturmians
 
-  // The reference data for atomic coulomb sturmians
-  // with parameters k = 1, Z = 4, n_max =  3, l_max = 2
-  typedef GaussianTestData<real_valued::stored_matrix_type> refdata_type;
+  krims::GenMap params{GaussianTestData::integral_parameters};
+  params.update(IntegralLookupKeys::basis_type, basis_type);
+
+  const size_t slash = basis_type.rfind('/');
+  const std::string prefix = basis_type.substr(slash + 1) + ": ";
+
+  IntegralDummyTests<GaussianTestData>::run_all(prefix, params);
+}
+}  // gaussian_small_test
+
+const bool runonce = [] {
+  std::cout << "TODO:  The libint tests are quite inaccurate ... " << std::endl;
+  return true;
+}();
+
+#ifdef GINT_HAVE_LIBINT
+TEST_CASE("Small test gaussian/libint", "[libint][small]") {
 
   // TODO This is bad, but to get going ....
   auto highertol = krims::NumCompConstants::change_temporary(
         1e6 * krims::NumCompConstants::default_tolerance_factor);
 
-  // Setup parameters for the integral library
-  const krims::GenMap params{
-        {"orbital_type", OrbitalType::REAL_MOLECULAR},
-        {"basis_type", "gaussian/libint"},
-        {"basis_set", refdata_type::basis},
-        {"structure", refdata_type::molecule},
-  };
-
-  IntegralDummyTests<int_lookup_type, refdata_type>::run_all("libint2: ",
-                                                             int_lookup_type(params));
+  gaussian_small_test::execute("gaussian/libint");
 }
+#endif  // GINT_HAVE_LIBINT
 
 }  // namespace tests
 }  // namespace gint
-
-#endif  // GINT_HAVE_LIBINT
