@@ -19,10 +19,9 @@ namespace {
 /** Function which registers the default basis types, which are present
  *  in this implementation of gint by default. */
 void register_gint_basis_types() {
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-local-typedefs"
   typedef IntegralLookup<real_valued::stored_matrix_type> real_t;
-  typedef IntegralLookup<complex_valued::stored_matrix_type> complex_t;
+// TODO: enable when needed:
+//       typedef IntegralLookup<complex_valued::stored_matrix_type> complex_t;
 
 // Coulomb-Sturmians
 #ifdef GINT_HAVE_STATIC_INTEGRALS
@@ -37,8 +36,6 @@ void register_gint_basis_types() {
 #ifdef GINT_HAVE_LIBINT
   REGISTER_BASIS_TYPE(real_t, gaussian::libint);
 #endif  // GINT_HAVE_LIBINT
-
-#pragma GCC diagnostic pop  // -Wunused-local-typedef
 }
 #undef REGISTER_BASIS_TYPE
 
