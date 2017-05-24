@@ -19,6 +19,7 @@
 
 #include "qnum.hh"
 #include <algorithm>
+#include <array>
 #include <locale>
 
 namespace gint {

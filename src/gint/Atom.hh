@@ -19,6 +19,7 @@
 
 #pragma once
 #include "gint/config.hh"
+#include <array>
 
 namespace gint {
 
