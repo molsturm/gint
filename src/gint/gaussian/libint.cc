@@ -4,9 +4,9 @@
 #include "IntegralLookupKeys.hh"
 #include "Shell.hh"
 #include "gint/IntegralUpdateKeys.hh"
-#include "krims/FileSystem.hh"
-#include "krims/FileUtils/FindDataFile.hh"
 #include "read_basisset.hh"
+#include <krims/DataFiles/FindDataFile.hh>
+#include <krims/FileSystem.hh>
 
 namespace gint {
 namespace gaussian {

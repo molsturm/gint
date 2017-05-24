@@ -20,7 +20,7 @@
 #include <catch.hpp>
 #include <gint/gaussian/BasisSet.hh>
 #include <gint/gaussian/Shell.hh>
-#include <krims/FileUtils.hh>
+#include <krims/DataFiles.hh>
 
 namespace gint {
 namespace tests {

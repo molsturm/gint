@@ -19,7 +19,7 @@
 
 #pragma once
 #include "gint/config.hh"
-#include <krims/FileUtils/FindDataFile.hh>
+#include <krims/DataFiles/FindDataFile.hh>
 
 namespace gint {
 

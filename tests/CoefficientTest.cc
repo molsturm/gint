@@ -4,7 +4,7 @@
 #include <gint/OrbitalType.hh>
 #include <gint/Structure.hh>
 #include <gint/find_data_file.hh>
-#include <krims/FileUtils.hh>
+#include <krims/DataFiles.hh>
 #include <krims/GenMap.hh>
 #include <linalgwrap/MultiVector.hh>
 #include <linalgwrap/SmallVector.hh>
