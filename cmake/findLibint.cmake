@@ -57,6 +57,9 @@ function(SETUP_LIBINT2_FOR_EXTERNAL_BUILD TARGET LIBINT_MAX_AM)
 		message(FATAL_ERROR "GINT_LIBINT_MAX_AM needs to be at least 4")
 	endif()
 
+	# Get the flag for the C++ standard
+	cxx_standard_flag(${CMAKE_CXX_STANDARD} CXX_STANDARD_FLAG)
+
 	set(CONFIGURE_OPTS
 		# Export compiler selection
 		#
@@ -67,9 +70,7 @@ function(SETUP_LIBINT2_FOR_EXTERNAL_BUILD TARGET LIBINT_MAX_AM)
 		"CXX=${CMAKE_CXX_COMPILER}"
 		#
 		# Optimisation flags for all compilation processes inside libint
-		#     => Specify -Wno-undefined-var-template to ignore some errors libint
-		#        produces on compilation
-		"CXXFLAGS=-std=c++${CMAKE_CXX_STANDARD}"
+		"CXXFLAGS=${CXX_STANDARD_FLAG}"
 		#
 		# Optimisation flags for the inner compiler
 		#      => Forward what we have in the global project.
