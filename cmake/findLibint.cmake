@@ -57,6 +57,12 @@ function(SETUP_LIBINT2_FOR_EXTERNAL_BUILD TARGET LIBINT_MAX_AM)
 		message(FATAL_ERROR "GINT_LIBINT_MAX_AM needs to be at least 4")
 	endif()
 
+	if ("${LIBINT_VERSION}" STREQUAL "")
+		set(LIBINT_TAG "master")
+	else()
+		set(LIBINT_TAG "v${LIBINT_VERSION}")
+	endif()
+
 	# Get the flag for the C++ standard
 	cxx_standard_flag(${CMAKE_CXX_STANDARD} CXX_STANDARD_FLAG)
 
@@ -101,7 +107,7 @@ function(SETUP_LIBINT2_FOR_EXTERNAL_BUILD TARGET LIBINT_MAX_AM)
 	include(DefaultExternalProjects)
 	setup_autotools_project(libint
 		GIT_REPOSITORY "https://github.com/evaleev/libint.git"
-		GIT_TAG "v2.3.1"
+		GIT_TAG "${LIBINT_TAG}"
 		#
 		# TODO Find out how to test libint ... e.g. TEST_COMMAND make check
 
