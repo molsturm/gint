@@ -17,7 +17,7 @@ template <typename StoredMatrix>
 class IntegralCoreBase;
 
 template <typename StoredMatrix>
-class Integral final : public linalgwrap::LazyMatrix_i<StoredMatrix> {
+class Integral : public linalgwrap::LazyMatrix_i<StoredMatrix> {
  public:
   typedef linalgwrap::LazyMatrix_i<StoredMatrix> base_type;
   typedef typename base_type::stored_matrix_type stored_matrix_type;
@@ -55,32 +55,32 @@ class Integral final : public linalgwrap::LazyMatrix_i<StoredMatrix> {
   ///@}
 
   /** \brief Number of rows of the matrix */
-  size_t n_rows() const override {
+  size_t n_rows() const override final {
     assert_internal(m_core_ptr != nullptr);
     return m_core_ptr->n_rows();
   }
 
   /** \brief Number of columns of the matrix  */
-  size_t n_cols() const override {
+  size_t n_cols() const override final {
     assert_internal(m_core_ptr != nullptr);
     return m_core_ptr->n_cols();
   }
 
   /** \brief return an element of the matrix    */
-  scalar_type operator()(size_t row, size_t col) const override {
+  scalar_type operator()(size_t row, size_t col) const override final {
     assert_internal(m_core_ptr != nullptr);
     return m_core_ptr->operator()(row, col);
   }
 
   /** Are operation modes Transposed::Trans and Transposed::ConjTrans
    *  supported for this matrix type. **/
-  bool has_transpose_operation_mode() const override {
+  bool has_transpose_operation_mode() const override final {
     assert_internal(m_core_ptr != nullptr);
     return m_core_ptr->has_transpose_operation_mode();
   }
 
   /** Is inverse_apply available for this matrix type */
-  bool has_apply_inverse() const override {
+  bool has_apply_inverse() const override final {
     assert_internal(m_core_ptr != nullptr);
     return m_core_ptr->has_apply_inverse();
   }
@@ -100,7 +100,7 @@ class Integral final : public linalgwrap::LazyMatrix_i<StoredMatrix> {
               const linalgwrap::MutableMemoryVector_i<scalar_type>>& x_in,
         linalgwrap::MultiVector<linalgwrap::MutableMemoryVector_i<scalar_type>>& y_out,
         const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
-        const scalar_type c_this = 1, const scalar_type c_y = 0) const override;
+        const scalar_type c_this = 1, const scalar_type c_y = 0) const override final;
 
   template <typename VectorIn, typename VectorOut,
             linalgwrap::mat_vec_apply_enabled_t<Integral, VectorIn, VectorOut>...>
@@ -145,7 +145,7 @@ class Integral final : public linalgwrap::LazyMatrix_i<StoredMatrix> {
               const linalgwrap::MutableMemoryVector_i<scalar_type>>& x_in,
         linalgwrap::MultiVector<linalgwrap::MutableMemoryVector_i<scalar_type>>& y_out,
         const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
-        const scalar_type c_this = 1, const scalar_type c_y = 0) const override;
+        const scalar_type c_this = 1, const scalar_type c_y = 0) const override final;
 
   /** Perform a matrix-matrix product.
    *
@@ -156,7 +156,8 @@ class Integral final : public linalgwrap::LazyMatrix_i<StoredMatrix> {
    */
   void mmult(const stored_matrix_type& in, stored_matrix_type& out,
              const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
-             const scalar_type c_this = 1, const scalar_type c_out = 0) const override {
+             const scalar_type c_this = 1,
+             const scalar_type c_out = 0) const override final {
     assert_internal(m_core_ptr != nullptr);
     m_core_ptr->mmult(in, out, mode, c_this, c_out);
   }
@@ -177,7 +178,7 @@ class Integral final : public linalgwrap::LazyMatrix_i<StoredMatrix> {
                      const size_t start_col,
                      const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
                      const scalar_type c_this = 1,
-                     const scalar_type c_M = 0) const override {
+                     const scalar_type c_M = 0) const override final {
     assert_internal(m_core_ptr != nullptr);
     m_core_ptr->extract_block(M, start_row, start_col, mode, c_this, c_M);
   }
@@ -185,13 +186,13 @@ class Integral final : public linalgwrap::LazyMatrix_i<StoredMatrix> {
   /** \brief Update the internal data of all objects in this expression
    *         given the GenMap
    * */
-  void update(const krims::GenMap& p) override {
+  void update(const krims::GenMap& p) override final {
     assert_internal(m_core_ptr != nullptr);
     m_core_ptr->update(p);
   }
 
   /** \brief Clone the expression */
-  lazy_matrix_expression_ptr_type clone() const override {
+  lazy_matrix_expression_ptr_type clone() const override final {
     return lazy_matrix_expression_ptr_type(new Integral<StoredMatrix>(*this));
   }
 
