@@ -20,8 +20,8 @@
 #include "IntegralLookupKeys.hh"
 
 namespace gint {
-const std::string IntegralLookupKeys::basis_type = "basis_type";
+const std::string IntegralLookupKeys::basis_type   = "basis_type";
 const std::string IntegralLookupKeys::orbital_type = "orbital_type";
-const std::string IntegralLookupKeys::structure = "structure";
+const std::string IntegralLookupKeys::structure    = "structure";
 
 }  // namespace gint

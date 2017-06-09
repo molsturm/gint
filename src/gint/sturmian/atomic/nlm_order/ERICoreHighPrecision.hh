@@ -38,7 +38,7 @@ class ERICoreHighPrecision : public ERICore<RepulsionCalculator> {
   using base_type = ERICore<RepulsionCalculator>;
   using base_type::ERICore;
   using working_scalar_type = typename base_type::working_scalar_type;
-  using base_core_type = typename base_type::base_core_type;
+  using base_core_type      = typename base_type::base_core_type;
 
   /** Apply to a multivector, internally use working_scalar_type to do computation */
   void apply(const const_multivector_type& x, multivector_type& y,

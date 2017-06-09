@@ -32,7 +32,7 @@ void execute(const std::string& basis_type) {
   krims::GenMap params{GaussianTestData::integral_parameters};
   params.update(IntegralLookupKeys::basis_type, basis_type);
 
-  const size_t slash = basis_type.rfind('/');
+  const size_t slash       = basis_type.rfind('/');
   const std::string prefix = basis_type.substr(slash + 1) + ": ";
 
   IntegralDummyTests<GaussianTestData>::run_all(prefix, params);

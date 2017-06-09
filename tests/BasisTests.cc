@@ -29,7 +29,7 @@ using namespace gaussian;
 
 TEST_CASE("basis tests", "[Basis]") {
   const BasisSet sto3g = lookup_basisset("sto-3g");
-  const BasisSet g631 = lookup_basisset("6-31G*");
+  const BasisSet g631  = lookup_basisset("6-31G*");
 
   const Structure h2{
         {"H", {{0, 0, 0}}},  //

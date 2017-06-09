@@ -85,7 +85,7 @@ BasisSet lookup_basisset(const std::string& name) {
   find.env_vars.push_back("BASIS_DIR");
 
   BasisSet b = read_basisset(find(datafile), BasisSetFileFormat::Gaussian94);
-  b.name = detail::normalise_basisset_name(name, false);
+  b.name     = detail::normalise_basisset_name(name, false);
 
   const DefaultAngularFunctions func = lookup_default_angular_functions(name);
   if (func == DefaultAngularFunctions::Pure) {

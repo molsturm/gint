@@ -107,8 +107,8 @@ class OneElecIntegralCore final : public gint::IntegralCoreBase<stored_matrix_ty
 
   void apply_inverse(const const_multivector_type& x, multivector_type& y,
                      const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
-                     const scalar_type c_A = 1,
-                     const scalar_type c_y = 0) const override {
+                     const scalar_type c_A             = 1,
+                     const scalar_type c_y             = 0) const override {
     assert_throw(m_inv_mat_ptr,
                  krims::ExcDisabled("The apply_inverse function is in general "
                                     "very expensive and is only implemented in "
@@ -120,11 +120,11 @@ class OneElecIntegralCore final : public gint::IntegralCoreBase<stored_matrix_ty
   /** Extract a block of a matrix and (optionally) add it to
    * a different matrix.
    */
-  void extract_block(
-        stored_matrix_type& M, const size_t start_row, const size_t start_col,
-        const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
-        const scalar_type c_this = linalgwrap::Constants<scalar_type>::one,
-        const scalar_type c_M = linalgwrap::Constants<scalar_type>::zero) const override {
+  void extract_block(stored_matrix_type& M, const size_t start_row,
+                     const size_t start_col,
+                     const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
+                     const scalar_type c_this          = 1,
+                     const scalar_type c_M             = 0) const override {
     m_mat_ptr->extract_block(M, start_row, start_col, mode, m_fac * c_this, c_M);
   }
 

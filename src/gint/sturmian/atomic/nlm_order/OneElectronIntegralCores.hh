@@ -114,8 +114,8 @@ inline void NuclearAttractionIntegralCore::apply(const const_multivector_type& x
   APPLY_PRECONDITIONS();
 
   const scalar_type* x_ptr = x.data().memptr();
-  scalar_type* y_ptr = const_cast<scalar_type*>(y.data().memptr());
-  const int x_cols = static_cast<int>(x.n_cols());
+  scalar_type* y_ptr       = const_cast<scalar_type*>(y.data().memptr());
+  const int x_cols         = static_cast<int>(x.n_cols());
 
   const auto Z = system().Z;
   const auto k = system().k;
@@ -143,10 +143,10 @@ inline void KineticIntegralCore::apply(const const_multivector_type& x,
   APPLY_PRECONDITIONS();
 
   const real_type* x_ptr = const_cast<const real_type*>(x.data().memptr());
-  real_type* y_ptr = const_cast<real_type*>(y.data().memptr());
-  const int x_cols = static_cast<int>(x.n_cols());
+  real_type* y_ptr       = const_cast<real_type*>(y.data().memptr());
+  const int x_cols       = static_cast<int>(x.n_cols());
 
-  const auto k = system().k;
+  const auto k            = system().k;
   const scalar_type c_kkA = static_cast<scalar_type>(-0.5L * k * k * c_A);
 
   using sturmint::atomic::cs::apply_to_full_vectors::overlap;
@@ -158,9 +158,9 @@ inline scalar_type KineticIntegralCore::operator()(size_t row, size_t col) const
   assert_greater(row, n_rows());
   assert_greater(col, n_cols());
 
+  const auto k       = system().k;
   const nlm_type mui = system().basis[row];
   const nlm_type muj = system().basis[col];
-  const auto k = system().k;
   return static_cast<scalar_type>(k * k * sturmint::atomic::cs::kinetic(mui, muj));
 }
 
@@ -174,8 +174,8 @@ inline void OverlapIntegralCore::apply(const const_multivector_type& x,
   APPLY_PRECONDITIONS();
 
   const real_type* x_ptr = const_cast<const real_type*>(x.data().memptr());
-  real_type* y_ptr = const_cast<real_type*>(y.data().memptr());
-  const int x_cols = static_cast<int>(x.n_cols());
+  real_type* y_ptr       = const_cast<real_type*>(y.data().memptr());
+  const int x_cols       = static_cast<int>(x.n_cols());
 
   using sturmint::atomic::cs::apply_to_full_vectors::overlap;
   overlap(system().basis, x_ptr, y_ptr, c_A, c_y, x_cols);
@@ -189,7 +189,7 @@ inline void OverlapIntegralCore::apply_inverse(const const_multivector_type& x,
   APPLY_PRECONDITIONS();
 
   const real_type* x_ptr = const_cast<const real_type*>(x.data().memptr());
-  real_type* y_ptr = const_cast<real_type*>(y.data().memptr());
+  real_type* y_ptr       = const_cast<real_type*>(y.data().memptr());
 
   using sturmint::atomic::cs::apply_to_full_vectors::overlap_inverse;
   overlap_inverse(system().basis, x_ptr, y_ptr, c_A, c_y, static_cast<int>(x.n_cols()));

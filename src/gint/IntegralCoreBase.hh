@@ -14,7 +14,7 @@ template <typename StoredMatrix>
 class IntegralCoreBase {
  public:
   using stored_matrix_type = StoredMatrix;
-  using scalar_type = typename stored_matrix_type::scalar_type;
+  using scalar_type        = typename stored_matrix_type::scalar_type;
 
   static constexpr bool isReal = std::is_same<scalar_type, real_type>::value;
   using multivector_type = krims::conditional_t<isReal, real_valued::multivector_type,
@@ -23,12 +23,12 @@ class IntegralCoreBase {
         krims::conditional_t<isReal, real_valued::const_multivector_type,
                              complex_valued::const_multivector_type>;
 
-  IntegralCoreBase() = default;
+  IntegralCoreBase()                        = default;
+  virtual ~IntegralCoreBase()               = default;
   IntegralCoreBase(const IntegralCoreBase&) = default;
-  IntegralCoreBase(IntegralCoreBase&&) = default;
+  IntegralCoreBase(IntegralCoreBase&&)      = default;
   IntegralCoreBase& operator=(const IntegralCoreBase&) = default;
   IntegralCoreBase& operator=(IntegralCoreBase&&) = default;
-  virtual ~IntegralCoreBase() = default;
 
   /** \brief Number of rows of the matrix */
   virtual size_t n_rows() const = 0;
@@ -96,11 +96,9 @@ class IntegralCoreBase {
    * See the documentation of this function in linalgrwap's
    * LazyMatrixExpression class for details.
    */
-  virtual void mmult(
-        const stored_matrix_type& in, stored_matrix_type& out,
-        const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
-        const scalar_type c_this = linalgwrap::Constants<scalar_type>::one,
-        const scalar_type c_out = linalgwrap::Constants<scalar_type>::zero) const {
+  virtual void mmult(const stored_matrix_type& in, stored_matrix_type& out,
+                     const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
+                     const scalar_type c_this = 1, const scalar_type c_out = 0) const {
     // TODO for simplicity we do not force this method to be implemented
     // at the moment
     assert_implemented(false);

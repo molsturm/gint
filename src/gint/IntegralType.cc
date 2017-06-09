@@ -22,10 +22,10 @@
 
 namespace gint {
 const std::string IntegralTypeKeys::nuclear_attraction = "nuclear_attraction";
-const std::string IntegralTypeKeys::overlap = "overlap";
-const std::string IntegralTypeKeys::kinetic = "kinetic";
-const std::string IntegralTypeKeys::coulomb = "coulomb";
-const std::string IntegralTypeKeys::exchange = "exchange";
+const std::string IntegralTypeKeys::overlap            = "overlap";
+const std::string IntegralTypeKeys::kinetic            = "kinetic";
+const std::string IntegralTypeKeys::coulomb            = "coulomb";
+const std::string IntegralTypeKeys::exchange           = "exchange";
 
 #define STRING_TO_TYPE_CASE(TYPE)        \
   {                                      \

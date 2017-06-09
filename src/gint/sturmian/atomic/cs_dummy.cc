@@ -20,6 +20,7 @@ IntegralCollection::IntegralCollection(const krims::GenMap& parameters)
     const int nmax = parameters.at<int>("n_max");
     const int lmax = parameters.at<int>("l_max");
     const int mmax = parameters.at<int>("m_max");
+
     m_repulsiondata_filename = std::string("repulsiondata-nlm-") + to_string(nmax) + "-" +
                                to_string(lmax) + "-" + to_string(mmax) + ".bin";
   }

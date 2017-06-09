@@ -155,10 +155,10 @@ void ERITensor::compute_kernel(const std::array<krims::Range<size_t>, 4>& block,
   //
   // TODO Code duplication with the ERICores
 
-  const size_t max_nprim = system.max_nprim();  // Maximum number of primitives
-  const int max_l = system.max_l();             // Maximum angular momentum
-  const int derivative_order = 0;               // Calculate no derivatives
-  const real_type tolerance = std::numeric_limits<real_type>::epsilon();
+  const size_t max_nprim     = system.max_nprim();  // Maximum number of primitives
+  const int max_l            = system.max_l();      // Maximum angular momentum
+  const int derivative_order = 0;                   // Calculate no derivatives
+  const real_type tolerance  = std::numeric_limits<real_type>::epsilon();
   libint2::Engine int_engine(libint2::Operator::coulomb, max_nprim, max_l,
                              derivative_order, tolerance);
 
@@ -286,7 +286,7 @@ scalar_type LibintIntegralCoreBase::operator()(size_t row, size_t col) const {
   assert_greater(col, n_cols());
 
   scalar_type ret = 0;
-  auto kernel = [&row, &col, &ret](LibintShell s, LibintShell t,
+  auto kernel     = [&row, &col, &ret](LibintShell s, LibintShell t,
                                    const scalar_type* values) {
     assert_internal(s.first_bfct <= row);
     assert_internal(t.first_bfct <= col);
@@ -296,7 +296,7 @@ scalar_type LibintIntegralCoreBase::operator()(size_t row, size_t col) const {
     // Find the one value we need and extract it.
     const size_t fs = row - s.first_bfct;
     const size_t ft = col - t.first_bfct;
-    ret = values[fs * t.n_bfct + ft];
+    ret             = values[fs * t.n_bfct + ft];
   };
 
   // Compute the one shell pair of the kernel we truly need:
@@ -349,8 +349,8 @@ void LibintIntegralCoreBase::extract_block(stored_matrix_type& M, const size_t s
     for (size_t i = i_beg; i < i_end; ++i) {
       for (size_t j = j_beg; j < j_end; ++j) {
         // Compute offset into values array:
-        const size_t fs = i - s.first_bfct;
-        const size_t ft = j - t.first_bfct;
+        const size_t fs  = i - s.first_bfct;
+        const size_t ft  = j - t.first_bfct;
         const size_t fst = fs * t.n_bfct + ft;
 
         // Shift i and j for placement into M:
@@ -396,8 +396,8 @@ void LibintIntegralCoreBase::apply(const const_multivector_type& x, multivector_
     for (size_t fs = 0; fs < s.n_bfct; ++fs) {
       for (size_t ft = 0; ft < t.n_bfct; ++ft) {
         const size_t fst = fs * t.n_bfct + ft;  // Index of function pair in result
-        const size_t i = s.first_bfct + fs;     // Absolute index in first shell
-        const size_t j = t.first_bfct + ft;     // Absolute index in second shell
+        const size_t i   = s.first_bfct + fs;   // Absolute index in first shell
+        const size_t j   = t.first_bfct + ft;   // Absolute index in second shell
 
         for (size_t vec = 0; vec < x.n_cols(); ++vec) {
           y(i, vec) += c_A * values[fst] * x(j, vec);
@@ -425,10 +425,10 @@ void OneElecIntegralCore::compute(const krims::Range<size_t>& rows,
   // TODO Parallelise here!
 
   const LibintSystem& system = base_type::system();
-  const size_t max_nprim = system.max_nprim();  // Maximum number of primitives
-  const int max_l = system.max_l();             // Maximum angular momentum
-  const int derivative_order = 0;               // Calculate no derivatives
-  const real_type tolerance = std::numeric_limits<real_type>::epsilon();
+  const size_t max_nprim     = system.max_nprim();  // Maximum number of primitives
+  const int max_l            = system.max_l();      // Maximum angular momentum
+  const int derivative_order = 0;                   // Calculate no derivatives
+  const real_type tolerance  = std::numeric_limits<real_type>::epsilon();
   libint2::Engine int_engine(m_operator, max_nprim, max_l, derivative_order, tolerance);
 
   // If this is a nuclear attraction operator, set the point charges:
@@ -466,10 +466,10 @@ void ERICore::compute(const krims::Range<size_t>& rows, const krims::Range<size_
   // TODO Code duplication with the ERITensor
 
   const LibintSystem& system = base_type::system();
-  const size_t max_nprim = system.max_nprim();  // Maximum number of primitives
-  const int max_l = system.max_l();             // Maximum angular momentum
-  const int derivative_order = 0;               // Calculate no derivatives
-  const real_type tolerance = std::numeric_limits<real_type>::epsilon();
+  const size_t max_nprim     = system.max_nprim();  // Maximum number of primitives
+  const int max_l            = system.max_l();      // Maximum angular momentum
+  const int derivative_order = 0;                   // Calculate no derivatives
+  const real_type tolerance  = std::numeric_limits<real_type>::epsilon();
   libint2::Engine int_engine(libint2::Operator::coulomb, max_nprim, max_l,
                              derivative_order, tolerance);
 
@@ -490,9 +490,9 @@ void ERICore::compute(const krims::Range<size_t>& rows, const krims::Range<size_
         for (size_t sd = 0; sd < data.n_shells(); ++sd) {
           // Swap shell indices sa and sc if computing exchange
           const bool exchange = m_type == IntegralType::exchange;
-          size_t sA = exchange ? sc : sa;
-          size_t sC = exchange ? sa : sc;
-          const auto& basis = system.basis();
+          size_t sA           = exchange ? sc : sa;
+          size_t sC           = exchange ? sa : sc;
+          const auto& basis   = system.basis();
 
           // Compute integrals (A b | C d), i.e. as in chemists/Mullikan notation
           // the shells A and b are on the same centre, so are C and d.
@@ -517,7 +517,7 @@ void ERICore::compute(const krims::Range<size_t>& rows, const krims::Range<size_
                 size_t C = exchange ? a : c;
 
                 // Compute partial offsets
-                size_t i_Ab = A * data.n_bfct(sb) + b;
+                size_t i_Ab  = A * data.n_bfct(sb) + b;
                 size_t i_AbC = i_Ab * data.n_bfct(sC) + C;
 
                 for (size_t d = 0; d < data.n_bfct(sd); ++d) {

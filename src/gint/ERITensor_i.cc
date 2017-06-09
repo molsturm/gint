@@ -25,7 +25,7 @@ namespace gint {
 template <size_t N>
 struct MakeAbsolute {
   size_t operator()(std::array<size_t, N> idcs) {
-    auto itidx = idcs.begin();
+    auto itidx   = idcs.begin();
     auto itshape = shape.begin();
 
     size_t accu = 0;

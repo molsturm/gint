@@ -82,10 +82,10 @@ class ERITensor_i {
   virtual void extract_block(const std::array<krims::Range<size_t>, 4>& block,
                              std::vector<Scalar>& out) const;
 
-  virtual ~ERITensor_i() = default;
-  ERITensor_i() = default;
+  virtual ~ERITensor_i()          = default;
+  ERITensor_i()                   = default;
   ERITensor_i(const ERITensor_i&) = default;
-  ERITensor_i(ERITensor_i&&) = default;
+  ERITensor_i(ERITensor_i&&)      = default;
   ERITensor_i& operator=(ERITensor_i&&) = default;
   ERITensor_i& operator=(const ERITensor_i&) = default;
 

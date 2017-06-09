@@ -26,7 +26,7 @@ namespace atomic {
 namespace nlm_order {
 
 const std::string IntegralLookupKeys::k_exponent = "k_exponent";
-const std::string IntegralLookupKeys::nlm_basis = "nlm_basis";
+const std::string IntegralLookupKeys::nlm_basis  = "nlm_basis";
 
 IntegralCollectionBase::IntegralCollectionBase(const krims::GenMap& parameters) {
   const auto k = parameters.at<scalar_type>(IntegralLookupKeys::k_exponent);

@@ -49,9 +49,9 @@ class Integral : public linalgwrap::LazyMatrix_i<StoredMatrix> {
     return *this;
   }
 
+  ~Integral()          = default;
   Integral(Integral&&) = default;
   Integral& operator=(Integral&&) = default;
-  ~Integral() = default;
   ///@}
 
   /** \brief Number of rows of the matrix */
@@ -156,8 +156,8 @@ class Integral : public linalgwrap::LazyMatrix_i<StoredMatrix> {
    */
   void mmult(const stored_matrix_type& in, stored_matrix_type& out,
              const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
-             const scalar_type c_this = 1,
-             const scalar_type c_out = 0) const override final {
+             const scalar_type c_this          = 1,
+             const scalar_type c_out           = 0) const override final {
     assert_internal(m_core_ptr != nullptr);
     m_core_ptr->mmult(in, out, mode, c_this, c_out);
   }
@@ -177,8 +177,8 @@ class Integral : public linalgwrap::LazyMatrix_i<StoredMatrix> {
   void extract_block(stored_matrix_type& M, const size_t start_row,
                      const size_t start_col,
                      const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
-                     const scalar_type c_this = 1,
-                     const scalar_type c_M = 0) const override final {
+                     const scalar_type c_this          = 1,
+                     const scalar_type c_M             = 0) const override final {
     assert_internal(m_core_ptr != nullptr);
     m_core_ptr->extract_block(M, start_row, start_col, mode, c_this, c_M);
   }

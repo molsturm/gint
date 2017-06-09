@@ -92,7 +92,7 @@ void apply_stored_matrix(const stored_matrix_type& A, const const_multivector_ty
 void ERITensor::compute_kernel(const std::array<krims::Range<size_t>, 4>& block,
                                kernel_type kernel) const {
   const auto& i_bbbb = Static14Data::i_bbbb_base;
-  const size_t nbas = Static14Data::nbas;
+  const size_t nbas  = Static14Data::nbas;
 
   // Copy the tensor data into a buffer and call the kernel
   std::vector<scalar_type> buffer(block[0].length() * block[1].length() *
@@ -105,6 +105,7 @@ void ERITensor::compute_kernel(const std::array<krims::Range<size_t>, 4>& block,
         for (auto d : block[3]) {
           const size_t ab = a * nbas + b;
           const size_t cd = c * nbas + d;
+
           *(it++) = k * i_bbbb(ab, cd);
         }  // d
       }    // c
@@ -131,7 +132,7 @@ typename ERICore::scalar_type ERICore::operator()(size_t a, size_t b) const {
 
   // Repulsion integrals indexed in shell-pairs
   const auto& i_bbbb = Static14Data::i_bbbb_base;
-  const size_t nbas = Static14Data::nbas;
+  const size_t nbas  = Static14Data::nbas;
   // Density matrix expression
   const auto density_bb = compute_density_matrix();
   assert_internal(density_bb.n_rows() == nbas && density_bb.n_cols() == nbas);

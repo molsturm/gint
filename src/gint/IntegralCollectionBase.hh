@@ -48,12 +48,12 @@ class IntegralCollectionBase {
   /** Obtain the friendly name of the collection / basis type */
   virtual std::string basis_name() const = 0;
 
-  virtual ~IntegralCollectionBase() = default;
-  IntegralCollectionBase& operator=(const IntegralCollectionBase&) = default;
-  IntegralCollectionBase& operator=(IntegralCollectionBase&&) = default;
+  IntegralCollectionBase()                              = default;
+  virtual ~IntegralCollectionBase()                     = default;
+  IntegralCollectionBase(IntegralCollectionBase&&)      = default;
   IntegralCollectionBase(const IntegralCollectionBase&) = default;
-  IntegralCollectionBase(IntegralCollectionBase&&) = default;
-  IntegralCollectionBase() = default;
+  IntegralCollectionBase& operator=(IntegralCollectionBase&&) = default;
+  IntegralCollectionBase& operator=(const IntegralCollectionBase&) = default;
 };
 
 //! Type of the generator function, which generates a particular IntegralCollection */

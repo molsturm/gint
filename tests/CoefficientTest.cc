@@ -54,9 +54,9 @@ static std::function<void(void)> make_apply_ptr_vector_test(
     vector_type res_ref(vec.size());
     res_ref(2) = 12.;
     vector_type res(vec.size());
-    res(2) = 12.;
+    res(2)           = 12.;
     auto ptr_res_ref = make_as_multivector<pv_type>(res_ref.memptr(), res_ref.size());
-    auto ptr_res = make_as_multivector<pv_type>(res.memptr(), res.size());
+    auto ptr_res     = make_as_multivector<pv_type>(res.memptr(), res.size());
 
     integral.apply(ptrvec, ptr_res, linalgwrap::Transposed::None, 2., 4.);
     ref.apply(ptrvec, ptr_res_ref, linalgwrap::Transposed::None, 2., 4.);
@@ -73,10 +73,11 @@ TEST_CASE("Quick atomic coefficient test", "[quicktest coefficients]") {
   typedef typename stored_matrix_type::vector_type vector_type;
   typedef const linalgwrap::MultiVector<const vector_type> coefficients_type;
 
-  unsigned int n_electrons = 2;
   int nmax = 5;
   int lmax = 0;
   int mmax = 0;
+
+  unsigned int n_electrons = 2;
 
   // Setup parameters for the integral library
   const gint::Atom at(n_electrons, {{0, 0, 0}});  // Have a neutral atom
@@ -98,11 +99,11 @@ TEST_CASE("Quick atomic coefficient test", "[quicktest coefficients]") {
   int_lookup_type integrals(params);
 
   // Obtain integral objects:
-  integral_type S_bb = integrals.lookup_integral("overlap");
-  integral_type T_bb = integrals.lookup_integral("kinetic");
+  integral_type S_bb  = integrals.lookup_integral("overlap");
+  integral_type T_bb  = integrals.lookup_integral("kinetic");
   integral_type V0_bb = integrals.lookup_integral("nuclear_attraction");
-  integral_type J_bb = integrals.lookup_integral("coulomb");
-  integral_type K_bb = integrals.lookup_integral("exchange");
+  integral_type J_bb  = integrals.lookup_integral("coulomb");
+  integral_type K_bb  = integrals.lookup_integral("exchange");
 
   // The update key we need to update the lazy coulomb and exchange matrices
   const std::string update_key = IntegralUpdateKeys::coefficients_occupied;
@@ -126,14 +127,16 @@ TEST_CASE("Quick atomic coefficient test", "[quicktest coefficients]") {
   debug_out.write("mmax", mmax);
 
   SECTION("Test J") {
-    auto Jbbconv = static_cast<stored_matrix_type>(J_bb);
     const NumCompAccuracyLevel apply_tol = NumCompAccuracyLevel::Sloppy;
+
+    auto Jbbconv = static_cast<stored_matrix_type>(J_bb);
     CHECK(rc::check("Test J", make_apply_ptr_vector_test(J_bb, Jbbconv, apply_tol)));
   }
 
   SECTION("Test K") {
-    auto Kbbconv = static_cast<stored_matrix_type>(K_bb);
     const NumCompAccuracyLevel apply_tol = NumCompAccuracyLevel::Sloppy;
+
+    auto Kbbconv = static_cast<stored_matrix_type>(K_bb);
     CHECK(rc::check("Test K", make_apply_ptr_vector_test(K_bb, Kbbconv, apply_tol)));
   }
 }

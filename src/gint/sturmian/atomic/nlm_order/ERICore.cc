@@ -52,8 +52,8 @@ working_scalar_type ERICore<RepulsionCalculator>::compute_jk_element(size_t a,
   for (size_t c = 0; c < n_bas(); c++) {
     // Swap a and c if computing exchange
     const bool exchange = type() == IntegralType::exchange;
-    const size_t A = exchange ? c : a;
-    const size_t C = exchange ? a : c;
+    const size_t A      = exchange ? c : a;
+    const size_t C      = exchange ? a : c;
 
     for (size_t d = 0; d < n_bas(); d++) {
       std::array<int, 4> idcs{{static_cast<int>(A), static_cast<int>(b),

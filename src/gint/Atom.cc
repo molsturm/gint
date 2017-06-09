@@ -24,7 +24,7 @@ namespace gint {
 
 Atom::Atom(const std::string& symbol, std::array<real_type, 3> coords_)
       : Atom(0, std::move(coords_)) {
-  const auto& e = Element::by_symbol(symbol);
+  const auto& e  = Element::by_symbol(symbol);
   nuclear_charge = atomic_number = e.atomic_number;
 }
 
