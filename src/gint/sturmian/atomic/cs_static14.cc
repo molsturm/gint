@@ -9,7 +9,7 @@ namespace sturmian {
 namespace atomic {
 namespace cs_static14 {
 
-const std::string IntegralCollection::id = "atomic/cs_static14";
+const std::string IntegralCollection::id = "sturmian/atomic/cs_static14";
 
 double atom_charge(const krims::GenMap& parameters) {
   const auto structure_ptr =

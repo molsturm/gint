@@ -41,24 +41,24 @@ void execute(const std::string& basis_type) {
 
 #ifdef GINT_HAVE_STATIC_INTEGRALS
 TEST_CASE("Small test atomic/cs_static14", "[cs_static14][small]") {
-  cs_small_test::execute("atomic/cs_static14");
+  cs_small_test::execute("sturmian/atomic/cs_static14");
 }
 #endif  // GINT_HAVE_STATIC_INTEGRALS
 
 TEST_CASE("Small test atomic/cs_dummy", "[cs_dummy][small]") {
-  cs_small_test::execute("atomic/cs_dummy");
+  cs_small_test::execute("sturmian/atomic/cs_dummy");
 }
 
 TEST_CASE("Small test atomic/cs_naive", "[cs_naive][small]") {
-  cs_small_test::execute("atomic/cs_naive");
+  cs_small_test::execute("sturmian/atomic/cs_naive");
 }
 
 TEST_CASE("Small test atomic/cs_reference", "[cs_reference][small]") {
-  cs_small_test::execute("atomic/cs_reference");
+  cs_small_test::execute("sturmian/atomic/cs_reference");
 }
 
 TEST_CASE("Small test atomic/cs_reference_pc", "[cs_reference_pc][small]") {
-  cs_small_test::execute("atomic/cs_reference_pc");
+  cs_small_test::execute("sturmian/atomic/cs_reference_pc");
 }
 
 }  // namespace tests

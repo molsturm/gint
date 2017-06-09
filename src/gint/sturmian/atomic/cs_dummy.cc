@@ -10,7 +10,7 @@ namespace sturmian {
 namespace atomic {
 namespace cs_dummy {
 
-const std::string IntegralCollection::id = "atomic/cs_dummy";
+const std::string IntegralCollection::id = "sturmian/atomic/cs_dummy";
 
 IntegralCollection::IntegralCollection(const krims::GenMap& parameters)
       : IntegralCollectionBase(parameters) {

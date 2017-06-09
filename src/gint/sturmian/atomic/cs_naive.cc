@@ -10,7 +10,7 @@ namespace sturmian {
 namespace atomic {
 namespace cs_naive {
 
-const std::string IntegralCollection::id = "atomic/cs_naive";
+const std::string IntegralCollection::id = "sturmian/atomic/cs_naive";
 
 IntegralCollection::IntegralCollection(const krims::GenMap& parameters)
       : IntegralCollectionBase{parameters}, m_integral_calculator{m_system.basis} {

@@ -86,7 +86,7 @@ TEST_CASE("Quick atomic coefficient test", "[quicktest coefficients]") {
                              {"l_max", lmax},
                              {"m_max", mmax},
                              {"orbital_type", OrbitalType::COMPLEX_ATOMIC},
-                             {"basis_type", "atomic/cs_reference"}};
+                             {"basis_type", "sturmian/atomic/cs_reference"}};
 
   vector<nlm_t> nlmbasis(nlmbasis::basis_from_nlm_order(nmax, lmax, mmax));
 
