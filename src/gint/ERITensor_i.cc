@@ -169,7 +169,7 @@ void ERITensor_i<Scalar>::contract_with(const iface_multivector_type& c_wa,
   }    // w
 
   //
-  // Build intermediate 4
+  // Build output
   //
   out.resize(n_w * n_x * n_y * n_z);
   std::fill(out.begin(), out.end(), 0);
