@@ -23,6 +23,7 @@
  *  which set up the sturmint integral collections
  */
 
+#include "gint/config.hh"
 #include "nlm_order/IntegralCollectionBase.hh"
 #include "nlm_order/SturmintSystem.hh"
 

@@ -1,5 +1,6 @@
-#ifdef GINT_HAVE_STATIC_INTEGRALS
 #include "cs_static14.hh"
+
+#ifdef GINT_HAVE_STATIC_INTEGRALS
 #include "gint/IntegralLookupKeys.hh"
 #include "gint/IntegralUpdateKeys.hh"
 #include "gint/Structure.hh"

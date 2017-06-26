@@ -17,8 +17,8 @@
 // along with gint. If not, see <http://www.gnu.org/licenses/>.
 //
 
-#ifdef GINT_HAVE_STATIC_INTEGRALS
 #include "Static14Data.hh"
+#ifdef GINT_HAVE_STATIC_INTEGRALS
 
 namespace gint {
 namespace sturmian {

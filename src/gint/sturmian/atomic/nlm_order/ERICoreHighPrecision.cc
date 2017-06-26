@@ -18,6 +18,7 @@
 //
 
 #include "ERICoreHighPrecision.hh"
+#ifdef GINT_HAVE_STURMINT
 
 // For explicit instatiations
 #include <sturmint/atomic/cs_naive/cs_atomic.hh>
@@ -82,3 +83,4 @@ INSTANTIATE(sturmint::atomic::cs_naive::Atomic);
 }  // namespace atomic
 }  // namespace sturmian
 }  // namespace gint
+#endif  // GINT_HAVE_STURMINT

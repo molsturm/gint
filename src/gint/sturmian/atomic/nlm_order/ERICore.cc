@@ -18,6 +18,7 @@
 //
 
 #include "ERICore.hh"
+#ifdef GINT_HAVE_STURMINT
 
 // For explicit instatiations of compute_jk_element
 #include <sturmint/atomic/cs_dummy/cs_atomic.hh>
@@ -78,3 +79,4 @@ INSTANTIATE(sturmint::atomic::cs_reference_pc::Atomic);
 }  // namespace atomic
 }  // namespace sturmian
 }  // namespace gint
+#endif  // GINT_HAVE_STURMINT

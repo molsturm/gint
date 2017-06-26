@@ -1,4 +1,5 @@
 #pragma once
+#include "gint/config.hh"
 #ifdef GINT_HAVE_LIBINT
 
 #include <functional>
@@ -11,7 +12,6 @@
 #include "gint/IntegralCollectionBase.hh"
 #include "gint/IntegralCoreBase.hh"
 #include "gint/Structure.hh"
-#include "gint/config.hh"
 
 namespace gint {
 namespace gaussian {

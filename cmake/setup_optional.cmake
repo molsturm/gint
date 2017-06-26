@@ -1,31 +1,53 @@
 # Setup optional dependencies and features
 # alters these things
 #
-# 	GINT_DEPENDENCIES		everyone needs these libraries
-# 	GINT_DEPENDENCIES_DEBUG		debug mode needs these extras
-# 	GINT_DEPENDENCIES_RELEASE	release mode needs these extras
-# 	GINT_DEPENDENCIES_TEST		tests need these extra libraries
+#       GINT_DEPENDENCIES		everyone needs these libraries
+#       GINT_DEPENDENCIES_DEBUG		debug mode needs these extras
+#       GINT_DEPENDENCIES_RELEASE	release mode needs these extras
+#       GINT_DEPENDENCIES_TEST		tests need these extra libraries
 #
 #       GINT_DEFINITIONS		definitions for all compilation
 #       GINT_DEFINITIONS_DEBUG		definitions for debug mode
 #       GINT_DEFINITIONS_RELEASE	definitions for release mode
 #
 
+# Module to help manage optional features
+include_krims_cmake_module(ProjectFeatures)
+
 ####################
 #-- C++ standard --#
 ####################
 if (NOT CMAKE_CXX_STANDARD VERSION_LESS 14)
 	message(STATUS "Detected C++14 support: Setting GINT_HAVE_CXX14")
-	LIST(APPEND GINT_DEFINITIONS "GINT_HAVE_CXX14")
+	set(GINT_HAVE_CXX14 ON)
 endif()
 if (NOT CMAKE_CXX_STANDARD VERSION_LESS 17)
 	message(STATUS "Detected C++17 support: Setting GINT_HAVE_CXX17")
-	LIST(APPEND GINT_DEFINITIONS "GINT_HAVE_CXX17")
+	set(GINT_HAVE_CXX17 ON)
+endif()
+
+################
+#-- sturmint --#
+################
+disable_feature(sturmint)
+option(GINT_ENABLE_STURMINT "Enable the sturmint library to compute Sturmian integrals." OFF)
+
+if (GINT_ENABLE_STURMINT)
+	# Find at least version 0.0.0
+	set(STURMINT_VERSION 0.0.0)
+	include(cmake/findSturmint.cmake)
+
+	foreach (build ${DRB_BUILD_TYPES})
+		set(GINT_DEPENDENCIES_${build} ${GINT_DEPENDENCIES_${build}} ${sturmint_${build}_TARGET})
+	endforeach()
+
+	enable_feature(sturmint)
 endif()
 
 ################
 #--  Libint2 --#
 ################
+disable_feature(libint)
 option(GINT_ENABLE_LIBINT "Enable the libint library to compute Gaussian integrals." OFF)
 option(GINT_LIBINT_USE_SYSTEM "Enable the use of a system-provided libint library" OFF)
 set(GINT_LIBINT_MAX_AM 6 CACHE STRING
@@ -48,17 +70,18 @@ if (GINT_ENABLE_LIBINT)
 	unset(LIBINT_VERSION)
 	unset(LIBINT_SEARCH_SYSTEM)
 
-	LIST(APPEND GINT_DEFINITIONS "GINT_HAVE_LIBINT")
 	set(GINT_DEPENDENCIES ${LIBINT_TARGET})
+	enable_feature(libint)
 endif()
 
 ##########################
 #--  Static integrals  --#
 ##########################
+disable_feature(static_integrals)
 option(GINT_ENABLE_STATIC_INTEGRALS "Enable a basis types which consist entirely of pre-computed integral data. \
 (Increases binary size, but useful for testing)" OFF)
 
 if(GINT_ENABLE_STATIC_INTEGRALS)
 	message(STATUS "Enabled pre-computed static integrals")
-	LIST(APPEND GINT_DEFINITIONS "GINT_HAVE_STATIC_INTEGRALS")
+	enable_feature(static_integrals)
 endif()

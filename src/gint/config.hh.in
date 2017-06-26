@@ -63,14 +63,27 @@ using const_multivector_type = stored_matrix_type;
 //
 namespace detail {
 // Directories:
-constexpr const char* data_install_dir = "@gint_DATA_INSTALL_DIR@";
+constexpr const char* data_install_dir  = "@gint_DATA_INSTALL_DIR@";
 constexpr const char* data_download_dir = "@gint_DATA_DOWNLOAD_DIR@";
 
 // Version:
-constexpr int version_major {@PROJECT_VERSION_MAJOR@};
-constexpr int version_minor {@PROJECT_VERSION_MINOR@};
-constexpr int version_patch {@PROJECT_VERSION_PATCH@};
+constexpr int version_major { @PROJECT_VERSION_MAJOR@ };
+constexpr int version_minor { @PROJECT_VERSION_MINOR@ };
+constexpr int version_patch { @PROJECT_VERSION_PATCH@ };
 }  // namespace detail
+
+//
+// Definitions of features
+//
+#ifndef CXX_STANDARD
+#define CXX_STANDARD @CMAKE_CXX_STANDARD@
+#endif
+#cmakedefine GINT_HAVE_CXX14
+#cmakedefine GINT_HAVE_CXX17
+
+#cmakedefine GINT_HAVE_STURMINT
+#cmakedefine GINT_HAVE_LIBINT
+#cmakedefine GINT_HAVE_STATIC_INTEGRALS
 
   /* clang-format on */
 }  // namespace gint

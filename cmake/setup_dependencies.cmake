@@ -62,14 +62,3 @@ include(cmake/findLinalgwrap.cmake)
 foreach (build ${DRB_BUILD_TYPES})
 	set(GINT_DEPENDENCIES_${build} ${GINT_DEPENDENCIES_${build}} ${linalgwrap_${build}_TARGET})
 endforeach()
-
-################
-#-- sturmint --#
-################
-# Find at least version 0.0.0
-set(STURMINT_VERSION 0.0.0)
-include(cmake/findSturmint.cmake)
-
-foreach (build ${DRB_BUILD_TYPES})
-	set(GINT_DEPENDENCIES_${build} ${GINT_DEPENDENCIES_${build}} ${sturmint_${build}_TARGET})
-endforeach()

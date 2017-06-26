@@ -88,8 +88,7 @@ Either provide the installation prefix of the sturmint library in the environmen
 variable sturmint_DIR or enable autocheckout via -DAUTOCHECKOUT_MISSING_REPOS=ON.")
 endif()
 
-#TODO test and remove (same below in #old#)
-message(WARNING "This part of findLinalgwrap has never been tested.")
+message(WARNING "This part of findSturmint has never been tested.")
 
 # Setup library targets
 set(sturmint_DEBUG_TARGET   "Upstream::sturmint.g"

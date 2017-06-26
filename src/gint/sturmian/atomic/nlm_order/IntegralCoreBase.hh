@@ -18,6 +18,9 @@
 //
 
 #pragma once
+#include "gint/config.hh"
+
+#ifdef GINT_HAVE_STURMINT
 #include "SturmintSystem.hh"
 #include "gint/IntegralCoreBase.hh"
 
@@ -53,3 +56,4 @@ class IntegralCoreBase : public gint::IntegralCoreBase<stored_matrix_type> {
 }  // namespace atomic
 }  // namespace sturmian
 }  // namespace gint
+#endif  // GINT_HAVE_STURMINT

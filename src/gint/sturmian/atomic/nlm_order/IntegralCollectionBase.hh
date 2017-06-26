@@ -18,6 +18,9 @@
 //
 
 #pragma once
+#include "gint/config.hh"
+
+#ifdef GINT_HAVE_STURMINT
 #include "SturmintSystem.hh"
 #include "gint/IntegralCollectionBase.hh"
 #include "gint/IntegralLookupKeys.hh"
@@ -50,3 +53,4 @@ class IntegralCollectionBase : public gint::IntegralCollectionBase<stored_matrix
 }  // namespace atomic
 }  // namespace sturmian
 }  // namespace gint
+#endif  // GINT_HAVE_STURMINT

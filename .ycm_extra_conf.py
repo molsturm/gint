@@ -50,12 +50,8 @@ flags = [
     # Compile extra code blocks:
     '-DLINALGWRAP_HAVE_ARMADILLO',
     # C++14 code blocks:
-    '-DLINALGWRAP_HAVE_CXX14',
     '-DKRIMS_HAVE_CXX14',
     '-DSTURMINT_HAVE_CXX14',
-    '-DGINT_HAVE_CXX14',
-    '-DGINT_HAVE_STATIC_INTEGRALS',
-    '-DGINT_HAVE_LIBINT',
     # Compile as c++14
     '-std=c++14',
     #

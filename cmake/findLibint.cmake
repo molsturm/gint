@@ -66,6 +66,9 @@ function(SETUP_LIBINT2_FOR_EXTERNAL_BUILD TARGET LIBINT_MAX_AM)
 	# Get the flag for the C++ standard
 	cxx_standard_flag(${CMAKE_CXX_STANDARD} CXX_STANDARD_FLAG)
 
+	# Get flags for the standard library to use
+	stdlib_cxx_flags(${DRB_CXX_STANDARD_LIBRARY} CLANG_CXX_FLAGS CLANG_LD_FLAGS)
+
 	set(CONFIGURE_OPTS
 		# Export compiler selection
 		#
@@ -76,7 +79,8 @@ function(SETUP_LIBINT2_FOR_EXTERNAL_BUILD TARGET LIBINT_MAX_AM)
 		"CXX=${CMAKE_CXX_COMPILER}"
 		#
 		# Optimisation flags for all compilation processes inside libint
-		"CXXFLAGS=${CXX_STANDARD_FLAG}"
+		"CXXFLAGS=${CXX_STANDARD_FLAG} ${CLANG_CXX_FLAGS}"
+		"LDFLAGS=${CLANG_LD_FLAGS}"
 		#
 		# Optimisation flags for the inner compiler
 		#      => Forward what we have in the global project.

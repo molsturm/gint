@@ -18,6 +18,9 @@
 //
 
 #pragma once
+#include "gint/config.hh"
+#ifdef GINT_HAVE_STURMINT
+
 #include "IntegralCoreBase.hh"
 #include "gint/CoefficientContainer.hh"
 #include "sturmint/atomic/cs/RepulsionCalculator_i.hh"
@@ -85,3 +88,4 @@ class ERICore : public IntegralCoreBase, public CoefficientContainer<stored_matr
 }  // namespace atomic
 }  // namespace sturmian
 }  // namespace gint
+#endif  // GINT_HAVE_STURMINT

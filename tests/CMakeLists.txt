@@ -15,7 +15,7 @@ set(GINT_TESTS_SOURCES
   main.cc
 
   # TODO Make a proper test out of this
-  CoefficientTest.cc
+  CoulombSturmianCoefficientTests.cc
 )
 
 drb_add_executable(gint_tests

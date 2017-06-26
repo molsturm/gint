@@ -21,6 +21,7 @@
 #include "integral_quick_tests.hh"
 #include <gint/IntegralLookup.hh>
 #include <gint/IntegralLookupKeys.hh>
+#include <gint/config.hh>
 
 namespace gint {
 namespace tests {
@@ -45,6 +46,7 @@ TEST_CASE("Small test atomic/cs_static14", "[cs_static14][small]") {
 }
 #endif  // GINT_HAVE_STATIC_INTEGRALS
 
+#ifdef GINT_HAVE_STURMINT
 TEST_CASE("Small test atomic/cs_dummy", "[cs_dummy][small]") {
   cs_small_test::execute("sturmian/atomic/cs_dummy");
 }
@@ -60,6 +62,7 @@ TEST_CASE("Small test atomic/cs_reference", "[cs_reference][small]") {
 TEST_CASE("Small test atomic/cs_reference_pc", "[cs_reference_pc][small]") {
   cs_small_test::execute("sturmian/atomic/cs_reference_pc");
 }
+#endif  // GINT_HAVE_STURMINT
 
 }  // namespace tests
 }  // namespace gint

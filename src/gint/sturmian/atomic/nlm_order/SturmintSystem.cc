@@ -19,6 +19,7 @@
 
 #include "SturmintSystem.hh"
 #include <complex>
+#ifdef GINT_HAVE_STURMINT
 
 namespace gint {
 namespace sturmian {
@@ -40,3 +41,4 @@ SturmintSystem::SturmintSystem(scalar_type Z, scalar_type k, const NlmBasis& bas
 }  // namespace atomic
 }  // namespace sturmian
 }  // namespace gint
+#endif  // GINT_HAVE_STURMINT

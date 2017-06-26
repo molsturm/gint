@@ -19,6 +19,8 @@
 
 #pragma once
 #include "gint/config.hh"
+
+#ifdef GINT_HAVE_STURMINT
 #include "gint/sturmian/atomic/NlmBasis.hh"
 #include <krims/Subscribable.hh>
 #include <sturmint/atomic/cs/cs_atomic.hh>
@@ -53,3 +55,4 @@ struct SturmintSystem : public krims::Subscribable {
 }  // namespace atomic
 }  // namespace sturmian
 }  // namespace gint
+#endif  // GINT_HAVE_STURMINT

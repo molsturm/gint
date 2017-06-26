@@ -1,4 +1,7 @@
 #pragma once
+#include "gint/config.hh"
+
+#ifdef GINT_HAVE_STURMINT
 #include "nlm_order.hh"
 #include <sturmint/atomic/cs_naive/cs_atomic.hh>
 
@@ -59,3 +62,4 @@ class IntegralCollection final : public IntegralCollectionBase {
 }  // namespace atomic
 }  // namespace sturmian
 }  // namespace gint
+#endif  // GINT_HAVE_STURMINT

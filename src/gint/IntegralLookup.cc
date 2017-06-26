@@ -16,10 +16,11 @@ namespace {
                                 BASIS::IntegralCollection::create); \
   }
 
+typedef IntegralLookup<real_valued::stored_matrix_type> real_t;
+
 /** Function which registers the default basis types, which are present
  *  in this implementation of gint by default. */
 void register_gint_basis_types() {
-  typedef IntegralLookup<real_valued::stored_matrix_type> real_t;
 // TODO: enable when needed:
 //       typedef IntegralLookup<complex_valued::stored_matrix_type> complex_t;
 
@@ -27,10 +28,13 @@ void register_gint_basis_types() {
 #ifdef GINT_HAVE_STATIC_INTEGRALS
   REGISTER_BASIS_TYPE(real_t, sturmian::atomic::cs_static14);
 #endif  // GINT_HAVE_STATIC_INTEGRALS
+
+#ifdef GINT_HAVE_STURMINT
   REGISTER_BASIS_TYPE(real_t, sturmian::atomic::cs_dummy);
   REGISTER_BASIS_TYPE(real_t, sturmian::atomic::cs_naive);
   REGISTER_BASIS_TYPE(real_t, sturmian::atomic::cs_reference);
   REGISTER_BASIS_TYPE(real_t, sturmian::atomic::cs_reference_pc);
+#endif  // GINT_HAVE_STURMINT
 
 // Gaussians
 #ifdef GINT_HAVE_LIBINT

@@ -1,4 +1,6 @@
 #include "cs_naive.hh"
+
+#ifdef GINT_HAVE_STURMINT
 #include "gint/sturmian/atomic/NlmBasis.hh"
 #include "nlm_order/ERICore.hh"
 #include "nlm_order/ERICoreHighPrecision.hh"
@@ -70,3 +72,4 @@ Integral<stored_matrix_type> IntegralCollection::lookup_integral(
 }  // namespace atomic
 }  // namespace sturmian
 }  // namespace gint
+#endif  // GINT_HAVE_STURMINT

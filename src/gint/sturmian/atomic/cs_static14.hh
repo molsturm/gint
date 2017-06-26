@@ -1,4 +1,5 @@
 #pragma once
+#include "gint/config.hh"
 #ifdef GINT_HAVE_STATIC_INTEGRALS
 
 #include "Static14Data.hh"

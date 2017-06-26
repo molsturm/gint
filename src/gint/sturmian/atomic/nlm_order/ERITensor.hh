@@ -18,6 +18,9 @@
 //
 
 #pragma once
+#include "gint/config.hh"
+
+#ifdef GINT_HAVE_STURMINT
 #include "SturmintSystem.hh"
 #include "gint/ERITensor_i.hh"
 #include "sturmint/atomic/cs/RepulsionCalculator_i.hh"
@@ -55,3 +58,4 @@ class ERITensor final : public ERITensor_i<scalar_type> {
 }  // namespace atomic
 }  // namespace sturmian
 }  // namespace gint
+#endif  // GINT_HAVE_STURMINT

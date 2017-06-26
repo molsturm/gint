@@ -19,6 +19,7 @@
 
 #include "IntegralCollectionBase.hh"
 #include "gint/Structure.hh"
+#ifdef GINT_HAVE_STURMINT
 
 namespace gint {
 namespace sturmian {
@@ -72,3 +73,4 @@ IntegralCollectionBase::IntegralCollectionBase(const krims::GenMap& parameters) 
 }  // namespace atomic
 }  // namespace sturmian
 }  // namespace gint
+#endif  // GINT_HAVE_STURMINT

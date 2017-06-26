@@ -1,5 +1,6 @@
-#ifdef GINT_HAVE_LIBINT
 #include "libint.hh"
+
+#ifdef GINT_HAVE_LIBINT
 #include "BasisSet.hh"
 #include "IntegralLookupKeys.hh"
 #include "Shell.hh"

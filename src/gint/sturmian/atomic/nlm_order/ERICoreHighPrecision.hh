@@ -18,6 +18,9 @@
 //
 
 #pragma once
+#include "gint/config.hh"
+#ifdef GINT_HAVE_STURMINT
+
 #include "ERICore.hh"
 
 namespace gint {
@@ -55,3 +58,4 @@ class ERICoreHighPrecision : public ERICore<RepulsionCalculator> {
 }  // namespace atomic
 }  // namespace sturmian
 }  // namespace gint
+#endif  // GINT_HAVE_STURMINT

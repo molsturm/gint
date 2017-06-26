@@ -1,6 +1,7 @@
 #pragma once
-#ifdef GINT_HAVE_STATIC_INTEGRALS
 #include "gint/config.hh"
+
+#ifdef GINT_HAVE_STATIC_INTEGRALS
 
 namespace gint {
 namespace sturmian {
