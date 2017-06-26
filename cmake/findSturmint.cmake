@@ -19,7 +19,7 @@
 ##
 ## ---------------------------------------------------------------------
 
-# Finds and sets up linalgwrap under the target names stored in
+# Finds and sets up sturmint under the target names stored in
 #      sturmint_DEBUG_TARGET     (Debug version)
 #      sturmint_RELEASE_TARGET   (Release version)
 # such that just linking against it as a dependency does everything

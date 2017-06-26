@@ -1,13 +1,34 @@
+## ---------------------------------------------------------------------
+##
+## Copyright (C) 2016 by the gint authors
+##
+## This file is part of gint.
+##
+## gint is free software: you can redistribute it and/or modify
+## it under the terms of the GNU Lesser General Public License as published
+## by the Free Software Foundation, either version 3 of the License, or
+## (at your option) any later version.
+##
+## gint is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU Lesser General Public License for more details.
+##
+## You should have received a copy of the GNU Lesser General Public License
+## along with gint. If not, see <http://www.gnu.org/licenses/>.
+##
+## ---------------------------------------------------------------------
+
 # sets these things
 #
-#	GINT_DEPENDENCIES			everyone needs these libraries
-#	GINT_DEPENDENCIES_DEBUG		debug mode needs these extras
-#	GINT_DEPENDENCIES_RELEASE		release mode needs these extras
-#	GINT_DEPENDENCIES_TEST		tests need these extra libraries
+#       GINT_DEPENDENCIES               everyone needs these libraries
+#       GINT_DEPENDENCIES_DEBUG         debug mode needs these extras
+#       GINT_DEPENDENCIES_RELEASE       release mode needs these extras
+#       GINT_DEPENDENCIES_TEST          tests need these extra libraries
 #
-#       GINT_DEFINITIONS			definitions for all compilation
-#       GINT_DEFINITIONS_DEBUG		definitions for debug mode
-#       GINT_DEFINITIONS_RELEASE		definitions for release mode
+#       GINT_DEFINITIONS                definitions for all compilation
+#       GINT_DEFINITIONS_DEBUG          definitions for debug mode
+#       GINT_DEFINITIONS_RELEASE        definitions for release mode
 #
 
 ####################
