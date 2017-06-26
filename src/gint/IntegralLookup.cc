@@ -53,6 +53,20 @@ std::map<std::string, collection_generator_type<StoredMatrix>>
       IntegralLookup<StoredMatrix>::map_basis_collection_generator{};
 
 template <typename StoredMatrix>
+std::vector<std::string> IntegralLookup<StoredMatrix>::available_basis_types() {
+  std::call_once(once_register_gint_basis_types, register_gint_basis_types);
+
+  std::vector<std::string> res(map_basis_collection_generator.size());
+  std::transform(
+        map_basis_collection_generator.begin(), map_basis_collection_generator.end(),
+        res.begin(),
+        [](const std::pair<std::string, collection_generator_type<StoredMatrix>>& kv) {
+          return kv.first;
+        });
+  return res;
+}
+
+template <typename StoredMatrix>
 IntegralLookup<StoredMatrix>::IntegralLookup(const krims::GenMap& parameters) {
   std::call_once(once_register_gint_basis_types, register_gint_basis_types);
 

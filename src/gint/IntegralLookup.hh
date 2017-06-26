@@ -71,6 +71,14 @@ class IntegralLookup {
     map_basis_collection_generator[basis_type] = collection_generator;
   }
 
+  /** Return the list of basis types which are registered at the very moment
+   *
+   * \note  This function is not thread safe
+   */
+  static std::vector<std::string> available_basis_types();
+  // TODO The above function should also exist in a way which does not distinguish
+  //      between real and complex.
+
  private:
   /** The map from the basis id to the generator function for the collection
    *  of integrals */

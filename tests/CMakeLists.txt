@@ -5,6 +5,7 @@ set(GINT_TESTS_SOURCES
   ReadBasisSetTest.cc
   BasisSetTests.cc
   BasisTests.cc
+  IntegralLookupTests.cc
 
   SturmianTestData.cc
   CoulombSturmianSmallTest.cc
