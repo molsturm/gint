@@ -26,10 +26,22 @@ import os
 # available on github:
 # https://github.com/Valloric/ycmd/blob/master/cpp/ycm/.ycm_extra_conf.py
 
+def FindStdInclude():
+  # Find the standard library include directory
 
-# These are the compilation flags that will be used in case there's no
-# compilation database set (by default, one is not set).
-flags = [
+  for include in [ "/usr/include/c++" ]:
+    for dir in ["v1"] + [ str(ver) for ver in range(4,10,1) ]:
+      if os.path.exists(os.path.join(dir,"cstdlib")):
+        return dir
+
+  # libc++ include directory:
+  return "/usr/include/c++/v1"
+
+
+def BuildBaseFlags():
+  # These are the compilation flags that will be used in case there's no
+  # compilation database set (by default, one is not set).
+  return [
     # Warnings: For a very detailed discussion about this
     # see the following stackexchange post:
     # https://programmers.stackexchange.com/questions/122608#124574
@@ -46,37 +58,38 @@ flags = [
     # Generate unwind information
     '-fexceptions',
     # Compile debug code as well
-    '-DDEBUG',
+    '-DDEBUG=DEBUG',
     # Compile extra code blocks:
-    '-DLINALGWRAP_HAVE_ARMADILLO',
-    # C++14 code blocks:
     '-DKRIMS_HAVE_CXX14',
     '-DSTURMINT_HAVE_CXX14',
     # Compile as c++14
     '-std=c++14',
-    #
     # Treat .h header files as c++:
     '-x', 'c++',
-    # Include other libraries and show errors and 
+    # Include other libraries and show errors and
     # warnings within them
-    # To suppress errors shown here, use "-isystem" 
+    # To suppress errors shown here, use "-isystem"
     # instead of "-I"
     '-I', 'src',
     '-I', 'build/src',
+    '-isystem', 'external/sturmint/src',
     '-isystem', 'external/krims/src',
     '-isystem', 'external/linalgwrap/src',
-    '-isystem', 'external/sturmint/src',
-    '-isystem', 'build/external/sturmint/src',
     '-isystem', 'external/rapidcheck/include',
     '-isystem', 'external/rapidcheck/ext/catch/include',
+    '-isystem', 'build/external/krims/src',
+    '-isystem', 'build/external/linalgwrap/src',
+    '-isystem', 'build/external/sturmint/src',
+    '-isystem', 'build/external/libint/include',
     '-isystem', '../krims/src',
     '-isystem', '../linalgwrap/src',
     '-isystem', '../sturmint/src',
     '-isystem', '../rapidcheck/include',
     '-isystem', '../rapidcheck/ext/catch/include',
-    '-isystem', 'build/external/libint/include',
     '-isystem', '/usr/include/eigen3',
-]
+    '-isystem', FindStdInclude(),
+  ]
+
 
 def DirectoryOfThisScript():
   return os.path.dirname( os.path.abspath( __file__ ) )
@@ -118,7 +131,7 @@ def IsHeaderFile( filename ):
 
 def FlagsForFile( filename, **kwargs ):
   relative_to = DirectoryOfThisScript()
-  final_flags = MakeRelativePathsInFlagsAbsolute( flags, relative_to )
+  final_flags = MakeRelativePathsInFlagsAbsolute( BuildBaseFlags(), relative_to )
 
   return {
     'flags': final_flags,
