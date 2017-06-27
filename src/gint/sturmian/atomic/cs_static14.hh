@@ -50,6 +50,7 @@ class ERITensor final : public ERITensor_i<scalar_type> {
   size_t n_bas() const override { return Static14Data::nbas; }
 
  protected:
+  using ERITensor_i<scalar_type>::compute_kernel;
   void compute_kernel(const std::array<krims::Range<size_t>, 4>& block,
                       kernel_type kernel) const override;
 };

@@ -121,8 +121,9 @@ class ERITensor_i {
   /** Compute a kernel for the full range of the ERI tensor */
   virtual void compute_kernel(kernel_type kernel) const {
     using krims::range;
-    compute_kernel({{range(n_bas()), range(n_bas()), range(n_bas()), range(n_bas())}},
-                   std::move(kernel));
+    this->compute_kernel(
+          {{range(n_bas()), range(n_bas()), range(n_bas()), range(n_bas())}},
+          std::move(kernel));
   }
 };
 
