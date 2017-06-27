@@ -32,6 +32,7 @@ TEST_CASE("IntegralLookup tests", "[integral_lookup]") {
     auto find_value = [&avail](const std::string& value) {
       return std::find(avail.begin(), avail.end(), value) != avail.end();
     };
+    CHECK_FALSE(find_value("atomic/cs_naive"));
 
 #ifdef GINT_HAVE_STATIC_INTEGRALS
     CHECK(find_value("sturmian/atomic/cs_static14"));

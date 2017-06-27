@@ -73,10 +73,10 @@ void ERITensor_i<Scalar>::contract_with(const iface_multivector_type& c_wa,
   const size_t n_z = c_zd.n_vectors();
 
   // Index transformation helpers
-  MakeAbsolute<4> absidx_wbcd({{n_w, n_bas(), n_bas(), n_bas()}});
-  MakeAbsolute<4> absidx_wxcd({{n_w, n_x, n_bas(), n_bas()}});
-  MakeAbsolute<4> absidx_wxyd({{n_w, n_x, n_y, n_bas()}});
-  MakeAbsolute<4> absidx_wxyz({{n_w, n_x, n_y, n_z}});
+  MakeAbsolute<4> absidx_wbcd{{{n_w, n_bas(), n_bas(), n_bas()}}};
+  MakeAbsolute<4> absidx_wxcd{{{n_w, n_x, n_bas(), n_bas()}}};
+  MakeAbsolute<4> absidx_wxyd{{{n_w, n_x, n_y, n_bas()}}};
+  MakeAbsolute<4> absidx_wxyz{{{n_w, n_x, n_y, n_z}}};
 
   //
   // Build intermediate 1
@@ -223,10 +223,10 @@ void ERITensor_i<Scalar>::extract_block(const std::array<krims::Range<size_t>, 4
 
     // Get absolute indices for indexing into the current batch
     // or into the block of interest
-    MakeAbsolute<4> absidx_blk(
-          {{block[0].length(), block[1].length(), block[2].length(), block[3].length()}});
-    MakeAbsolute<4> absidx_bch(
-          {{batch[0].length(), batch[1].length(), batch[2].length(), batch[3].length()}});
+    MakeAbsolute<4> absidx_blk{
+          {{block[0].length(), block[1].length(), block[2].length(), block[3].length()}}};
+    MakeAbsolute<4> absidx_bch{
+          {{batch[0].length(), batch[1].length(), batch[2].length(), batch[3].length()}}};
 
     const Scalar* it = values;
     for (auto a : a_range) {
