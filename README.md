@@ -1,5 +1,5 @@
 # gint
-[![Build Status](https://travis-ci.org/molsturm/gint.svg?branch=master)](https://travis-ci.org/molsturm/gscf)
+[![Build Status](https://travis-ci.org/molsturm/gint.svg?branch=master)](https://travis-ci.org/molsturm/gint)
 [![Coverage Status](https://coveralls.io/repos/github/molsturm/gint/badge.svg?branch=master)](https://coveralls.io/github/molsturm/gint)
 [![Licence](https://img.shields.io/github/license/molsturm/gint.svg)](LICENCE)
 
