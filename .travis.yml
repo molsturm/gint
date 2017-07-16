@@ -113,6 +113,11 @@ matrix:
 script:
   - cmake --version
   - ninja --version
+  - if [ -e $HOME/cache_libint/lib/libint2.a ]; then
+        CACHED_LIBINT_OPTS="-DGINT_LIBINT_USE_SYSTEM=ON
+           -DLIBINT_INCLUDE_DIR=$HOME/cache_libint/include
+           -DLIBINT_LIBRARY=$HOME/cache_libint/lib/libint2.a"
+    ;fi
   - mkdir ${TRAVIS_BUILD_DIR}/build && cd ${TRAVIS_BUILD_DIR}/build
   - cmake -DCMAKE_CXX_COMPILER=${CXX_COMP} -DCMAKE_C_COMPILER=${CC_COMP}
            -DCMAKE_BUILD_TYPE=DebugRelease ${EXTRA_OPTS}
@@ -122,9 +127,7 @@ script:
            -DKRIMS_ENABLE_TESTS=OFF -DKRIMS_ENABLE_EXAMPLES=OFF
            -DLINALGWRAP_ENABLE_TESTS=OFF -DLINALGWRAP_ENABLE_EXAMPLES=OFF
            -DGINT_ENABLE_STATIC_INTEGRALS=ON
-           -DGINT_ENABLE_LIBINT=ON -DGINT_LIBINT_USE_SYSTEM=ON
-           -DLIBINT_INCLUDE_DIR=$HOME/cache_libint/include
-           -DLIBINT_LIBRARY=$HOME/cache_libint/lib/libint2.a
+           -DGINT_ENABLE_LIBINT=ON ${CACHED_LIBINT_OPTS}
            -GNinja ..
   - cmake --build  . --target ${BUILD_TARGET:-all} -- -j ${CORES}
   - if [ "${TESTS}" != "0" ]; then

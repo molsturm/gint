@@ -55,7 +55,7 @@ function(setup_autotools_project NAME)
 	cmake_parse_arguments(SAP "${options}" "${oneValueArgs}" "${multiValueArgs}"  ${ARGN})
 
 	# Set byproducts if not already specified
-	if ("${SAP_BUILD_BYPRODUCTS}" STREQUAL "")
+	if ("${SAP_BUILD_BYPRODUCTS}" STREQUAL "" AND NOT "${SAP_CHECKPOINT_TO}" STREQUAL "")
 		set(SAP_BUILD_BYPRODUCTS "${SAP_CHECKPOINT_TO}")
 	endif()
 
