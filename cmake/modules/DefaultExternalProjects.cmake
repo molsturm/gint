@@ -126,6 +126,7 @@ fi
 
 # The configure script needs an update or does not exist:
 if [ ! -f \"$SOURCE_DIR/configure\" -o \"$SOURCE_DIR/configure.ac\" -nt \"$SOURCE_DIR/configure\" ]; then
+	echo \"Running autogen.sh to generate configure script.\"
 	OLDDIR=`pwd`
 	cd \"$SOURCE_DIR\"
 	./autogen.sh
