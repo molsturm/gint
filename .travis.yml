@@ -35,10 +35,18 @@ env:
     - CORES=2
     #
     # Use a known-to-work rapidcheck seed
-    #- RC_PARAMS="seed=16920708173099178154 verbose_progress=1 noshrink=1"
+    - RC_PARAMS="seed=16920708173099178154 verbose_progress=1 noshrink=1"
     #
     # The regex for tests to run (disable running tests by TESTS=0)
     - TESTS=1  TESTS_REGEX="gint_tests_"
+
+# Cache the directory cache_libint, such that libint does not need
+# to be rebuild each time.
+cache:
+  directories:
+    $HOME/cache_libint
+before_cache:
+  - .travis/update_cached_libint.sh
 
 before_install:
     - travis_retry pip install --user cpp-coveralls
@@ -111,6 +119,9 @@ script:
            -DKRIMS_ENABLE_TESTS=OFF -DKRIMS_ENABLE_EXAMPLES=OFF
            -DLINALGWRAP_ENABLE_TESTS=OFF -DLINALGWRAP_ENABLE_EXAMPLES=OFF
            -DGINT_ENABLE_STATIC_INTEGRALS=ON
+           -DGINT_ENABLE_LIBINT=ON -DGINT_LIBINT_USE_SYSTEM=ON
+           -DLIBINT_INCLUDE_DIR=$HOME/cache_libint/include
+           -DLIBINT_LIBRARY=$HOME/cache_libint/lib/libint2.a
            -GNinja ..
   - cmake --build  . --target ${BUILD_TARGET:-all} -- -j ${CORES}
   - if [ "${TESTS}" != "0" ]; then
