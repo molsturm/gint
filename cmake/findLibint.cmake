@@ -53,8 +53,9 @@ function(SETUP_LIBINT2_FOR_EXTERNAL_BUILD TARGET LIBINT_MAX_AM)
 		${CMAKE_CXX_FLAGS_RELEASE} ${CMAKE_CXX_FLAGS})
 	string(REGEX REPLACE "  *"  " "  INNER_COMPILE_OPTS ${TMP})
 
+	set(LIBINT_OPT_AM 4)
 	if (LIBINT_MAX_AM LESS 4)
-		message(FATAL_ERROR "GINT_LIBINT_MAX_AM needs to be at least 4")
+		set(LIBINT_OPT_AM ${LIBINT_MAX_AM})
 	endif()
 
 	if ("${LIBINT_VERSION}" STREQUAL "")
@@ -90,7 +91,7 @@ function(SETUP_LIBINT2_FOR_EXTERNAL_BUILD TARGET LIBINT_MAX_AM)
 		"--with-max-am=${LIBINT_MAX_AM}"
 		#
 		# Optimise maximally up to angular momentum 4
-		"--with-opt-am=4"
+		"--with-opt-am=${LIBINT_OPT_AM}"
 		#
 		# Disable unrolling shell sets into integrals
 		"--disable-unrolling"
