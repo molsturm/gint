@@ -115,8 +115,8 @@ script:
   - cmake --version
   - ninja --version
   - mkdir ${TRAVIS_BUILD_DIR}/build && cd ${TRAVIS_BUILD_DIR}/build
-  - if [ -e $HOME/cache_libint/lib/libint2.a ]; then
-        LIBINT_BUILD_OPTS="-DGINT_LIBINT_USE_SYSTEM=ON
+  - if [ -e "$HOME/cache_libint/lib/libint2.a" ]; then
+        LIBINT_OPTS="-DGINT_LIBINT_USE_SYSTEM=ON
            -DLIBINT_INCLUDE_DIR=$HOME/cache_libint/include
            -DLIBINT_LIBRARY=$HOME/cache_libint/lib/libint2.a"
     ;else
