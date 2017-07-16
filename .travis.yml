@@ -64,6 +64,9 @@ addons:
       - libboost-dev
       - liblapack-dev
       - libblas-dev
+      #
+      # Packages for libint
+      - libeigen3-dev
 
 matrix:
   include:
