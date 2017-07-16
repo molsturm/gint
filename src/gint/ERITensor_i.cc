@@ -30,6 +30,7 @@ struct MakeAbsolute {
 
     size_t accu = 0;
     for (; itidx < idcs.end(); ++itidx, ++itshape) {
+      assert_greater(*itidx, *itshape);
       accu = accu * (*itshape) + (*itidx);
     }
     return accu;
@@ -51,11 +52,11 @@ void ERITensor_i<Scalar>::contract_with(const iface_multivector_type& c_wa,
   // So essentially we do
   //  \f[    I1_{wbcd} = \sum_a (ab|cd) C_{wa}  \f]
   // then
-  //  \f[    I2_{wxcd} = \sum_a I1_{wbcd} C_{xb}  \f]
+  //  \f[    I2_{wxcd} = \sum_b I1_{wbcd} C_{xb}  \f]
   // and
-  //  \f[    I3_{wxyd} = \sum_a I2_{wxcd} C_{yc}  \f]
+  //  \f[    I3_{wxyd} = \sum_c I2_{wxcd} C_{yc}  \f]
   // and finally
-  //  \f[    out_{wxyz} = \sum_a I3_{wxyd} C_{zd}  \f]
+  //  \f[    out_{wxyz} = \sum_d I3_{wxyd} C_{zd}  \f]
 
   assert_size(c_wa.n_vectors() * c_xb.n_vectors() * c_yc.n_vectors() * c_zd.n_vectors(),
               out.size());

@@ -19,6 +19,7 @@
 
 #pragma once
 #include <array>
+#include <functional>
 #include <linalgwrap/MultiVector.hh>
 
 namespace gint {
