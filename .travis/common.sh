@@ -1,4 +1,3 @@
-#!/bin/sh -e
 ## ---------------------------------------------------------------------
 ##
 ## Copyright (C) 2017 by the gint authors
@@ -20,34 +19,9 @@
 ##
 ## ---------------------------------------------------------------------
 
-# Replaces the libint cache folder by the version build
-# in this built.
+# The directory where the libint cached files should live
+LIBINT_CACHE_DIR="$HOME/cache_libint"
 
-# ----------------------------------------------------------------------
-. ${TRAVIS_BUILD_DIR}/.travis/common.sh
+# Place where the libint files are installed by ExternalProject_add
+LIBINT_INSTALL_DIR="${TRAVIS_BUILD_DIR}/build/external/libint"
 
-# The subdirectories of the LIBINT_INSTALL_DIR directory into which
-# the readily built libint files are placed.
-SUBDIRS="include lib share"
-
-# ----------------------------------------------------------------------
-
-# Go to the top build directory
-cd ${TRAVIS_BUILD_DIR}
-
-# Check all folders exist
-[ ! -d "$LIBINT_INSTALL_DIR" ] && exit 0
-for subdir in $SUBDIRS; do
-	[ ! -d "$subdir" ] && exit 0
-done
-
-echo "Updating libint cache at $LIBINT_CACHE_DIR"
-rm -rf "$LIBINT_CACHE_DIR"
-mkdir "$LIBINT_CACHE_DIR"
-
-for subdir in $SUBDIRS; do
-	[ ! -d "$LIBINT_INSTALL_DIR/$subdir" ] && continue
-	cp -a $LIBINT_INSTALL_DIR/$subdir $LIBINT_CACHE_DIR
-done
-
-exit 0
