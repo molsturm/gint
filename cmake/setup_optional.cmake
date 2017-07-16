@@ -78,8 +78,8 @@ Choose a smaller value to get a faster build."
 
 if (GINT_ENABLE_LIBINT)
 	# Check options:
-	if (GINT_LIBINT_MAX_AM LESS 4)
-		message(FATAL_ERROR "GINT_LIBINT_MAX_AM needs to be at least 4")
+	if (GINT_LIBINT_MAX_AM LESS 2)
+		message(FATAL_ERROR "GINT_LIBINT_MAX_AM needs to be at least 2")
 	endif()
 
 	# Forward parameters to included module
