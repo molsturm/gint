@@ -1,4 +1,4 @@
-#!/bin/sh -e
+#!/bin/sh
 ## ---------------------------------------------------------------------
 ##
 ## Copyright (C) 2017 by the gint authors
@@ -42,12 +42,12 @@ for subdir in $SUBDIRS; do
 done
 
 echo "Updating libint cache at $LIBINT_CACHE_DIR"
-rm -rf "$LIBINT_CACHE_DIR"
-mkdir "$LIBINT_CACHE_DIR"
+rm -rf "$LIBINT_CACHE_DIR" || exit 1
+mkdir "$LIBINT_CACHE_DIR" || exit 1
 
 for subdir in $SUBDIRS; do
 	[ ! -d "$LIBINT_INSTALL_DIR/$subdir" ] && continue
-	cp -a $LIBINT_INSTALL_DIR/$subdir $LIBINT_CACHE_DIR
+	cp -a $LIBINT_INSTALL_DIR/$subdir $LIBINT_CACHE_DIR || exit 1
 done
 
 exit 0
