@@ -70,6 +70,14 @@ drb_set_target_properties(
 	VERSION "${PROJECT_VERSION}"
 )
 
+if (NOT BUILD_SHARED_LIBS)
+	message(WARNING "TODO Make sure this only happens if we need the python interface")
+
+	# Since the python interface goes via a shared library we need to enable -fPIC
+	# even if we are actually building the libraries statically.
+	drb_set_target_properties(ALL gint PROPERTIES POSITION_INDEPENDENT_CODE ON)
+endif()
+
 drb_target_compile_definitions(ALL     gint PUBLIC ${GINT_DEFINITIONS})
 drb_target_compile_definitions(DEBUG   gint PUBLIC ${GINT_DEFINITIONS_DEBUG})
 drb_target_compile_definitions(RELEASE gint PUBLIC ${GINT_DEFINITIONS_RELEASE})

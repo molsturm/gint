@@ -64,6 +64,13 @@ if (CMAKE_VERSION VERSION_GREATER 3.5.0)
 	set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 endif()
 
+if (NOT BUILD_SHARED_LIBS)
+	message(WARNING "TODO Make sure this is also set in krims automatically")
+
+	# TODO Ugly hack to make sure that krims gets build with -fPIC, too
+	set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+endif()
+
 # setup hard dependencies
 include(cmake/setup_dependencies.cmake)
 

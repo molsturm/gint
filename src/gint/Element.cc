@@ -22,6 +22,7 @@
 
 namespace gint {
 
+// TODO Autogenerate from shared data with the python side
 const std::array<Element, n_elements>& elements() {
   static std::array<Element, n_elements> elements{{
         {1, "H", "hydrogen"},       {2, "He", "helium"},

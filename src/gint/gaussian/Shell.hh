@@ -22,6 +22,14 @@
 #include <gint/config.hh>
 #include <vector>
 
+#ifdef SWIG
+/* clang-format off */
+%apply(int* DIM1, double** ARGOUTVIEW_ARRAY1){(int* n_coeff, double** coeff)};
+%apply(int* DIM1, double** ARGOUTVIEW_ARRAY1){(int* n_exp,   double** exp  )};
+%apply(int* DIM1, double** ARGOUTVIEW_ARRAY1){(int* n_coord, double** coord)};
+/* clang-format on */
+#endif  // SWIG
+
 namespace gint {
 namespace gaussian {
 
@@ -44,6 +52,7 @@ struct Shell {
    **/
   bool pure;
 
+#ifndef SWIG
   /** Contraction coefficients */
   std::vector<real_type> coefficients;
 
@@ -52,7 +61,32 @@ struct Shell {
 
   /** Origin of the shell basis functions */
   std::array<real_type, 3> origin;
+#endif  // SWIG
 };
+
+#if SWIG
+/* clang-format off */
+%extend Shell {
+  static_assert(std::is_same<double, real_type>::value,
+                "Currenltly for swig real_type needs to be double");
+
+  void coefficients(int* n_coeff, double** coeff) {
+    *n_coeff = $self->coefficients.size();
+    *coeff   = $self->coefficients.data();
+  }
+
+  void exponents(int* n_exp, double** exp) {
+    *n_exp = $self->exponents.size();
+    *exp   = $self->exponents.data();
+  }
+
+  void origin(int* n_coord, double** coord) {
+    *n_coord = 3;
+    *coord   = $self->origin.data();
+  }
+}
+/* clang-format on */
+#endif  // SWIG
 
 }  // namespace gaussian
 }  // namespace gint
