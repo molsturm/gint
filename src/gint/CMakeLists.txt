@@ -26,6 +26,7 @@ set(GINT_SOURCES
   Atom.cc
   CoefficientContainer.cc
   Element.cc
+  elements.cc
   ERITensor_i.cc
   Integral.cc
   IntegralCoreBase.cc
