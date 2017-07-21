@@ -20,4 +20,7 @@
 ## ---------------------------------------------------------------------
 
 add_subdirectory(gint)
-add_subdirectory(gint_iface)
+
+if(GINT_ENABLE_PYTHON_MODULE)
+	add_subdirectory(gint_iface)
+endif()
