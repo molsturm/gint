@@ -25,22 +25,29 @@ from . import element
 import collections
 import numpy as np
 from . import _iface
+from .interface import Structure
 
 Shell = collections.namedtuple("Shell", [ "l", "pure", "contraction_coefficients",
                                           "contraction_exponents", "centre" ])
 
 
 class Basis:
-  def __init__(self, atoms, coords, basis_set):
-    if len(atoms) != len(coords):
-      raise ValueError("Number of atoms and number of coordinates does not agree.")
+  def __init__(self, structure, basis_set, ordering="libint"):
+    """
+    structure    Either a gint.Structure object or a tuple (atoms, coords)
+                 or just a single atom.
+                 which gives the list of atoms and the list of their coordinates
+    basis_set    String describing the gaussian basis set to use
+    ordering     The ordering of the basis functions to use
+    """
+    if not isinstance(structure, Structure):
+      if isinstance(structure, (str,int)):
+        structure = Structure(atoms=structure)
+      else:
+        structure = Structure(*structure)
 
-    atom_numbers = np.array(element.to_atom_numbers(atoms))
-    coords = np.array(coords)
-    if coords.shape[1] != 3:
-      raise ValueError("The coords list needs to have exactly 3 items per coordinate.")
-
-    basis_raw = _iface.construct_gaussian_basis(atom_numbers, coords, basis_set)
+    basis_raw = _iface.construct_gaussian_basis(structure.atom_numbers, structure.coords,
+                                                basis_set)
     shells_raw = ( basis_raw.shell(i) for i in range(basis_raw.n_shells()) )
 
     # Setup the shells.
