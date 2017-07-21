@@ -36,6 +36,7 @@ set(PackageModuleLocation share/cmake)
 
 # setup global options (needs to be done before call to project())
 option(GINT_ENABLE_TESTS "Build gint tests" ON)
+option(GINT_ENABLE_PYTHON_MODULE "Enable the python module shipped with gint" OFF)
 
 ##########################################################################
 # Project setup
@@ -62,6 +63,13 @@ drb_setup_compiler_flags(11)
 # Export compile commands if cmake supports it.
 if (CMAKE_VERSION VERSION_GREATER 3.5.0)
 	set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+endif()
+
+if (NOT BUILD_SHARED_LIBS AND GINT_ENABLE_PYTHON_MODULE)
+	message(WARNING "TODO Make sure this is also set in krims automatically")
+
+	# TODO Ugly hack to make sure that krims gets build with -fPIC, too
+	set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 endif()
 
 # setup hard dependencies

@@ -19,24 +19,43 @@
 
 #pragma once
 #include "BasisSet.hh"
+#include "Shell.hh"
 #include <krims/Subscribable.hh>
 #include <vector>
 
 namespace gint {
 
+#ifndef SWIG
 // Forward-declare Structure class
 class Structure;
+#endif  // SWIG
 
 namespace gaussian {
 
 /** Structure for a Gaussian basis.
  * Pretty much a slightly amended std::vector<Shell> */
 struct Basis : public std::vector<Shell>, public krims::Subscribable {
+#ifndef SWIG
   using std::vector<Shell>::vector;
 
   /** Construct using a molecular structure and the definition of a basis set */
   Basis(const Structure& s, const BasisSet& set);
+#endif  // SWIG
+
+  /** Return the number of shells in the basis */
+  size_t n_shells() const { return size(); }
+
+  /** Default constructor */
+  Basis() {}
 };
+
+#if SWIG
+/* clang-format off */
+%extend Basis {
+  const gint::gaussian::Shell& shell(size_t i) const { return $self->operator[](i); }
+}
+/* clang-format on */
+#endif  // SWIG
 
 }  // namespace gaussian
 }  // namespace gint

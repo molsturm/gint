@@ -18,7 +18,6 @@
 //
 
 #pragma once
-#include <array>
 #include <krims/ExceptionSystem.hh>
 #include <string>
 
@@ -40,16 +39,6 @@ struct Element {
    * \throws ExcUnknownElement if the atomic number is not known */
   static const Element& by_atomic_number(unsigned int atomic_number);
 };
-
-/** The number of elements known to gint. */
-static constexpr size_t n_elements = 118;
-
-/** Get the list of all elements known to gint
- * No particular order should be assumed here.
- * \note Use Element::by_symbol or Element::by_atomic_number
- * to lookup an element.
- */
-const std::array<Element, n_elements>& elements();
 
 /** Check whether the provided number is a valid atomic number */
 bool is_atomic_number(unsigned int atomic_number);

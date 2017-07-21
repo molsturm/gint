@@ -34,10 +34,11 @@ update_file "gscf"        "cmake/findLinalgwrap.cmake" || exit 1
 update_file "linalgwrap"  "cmake/IncludeKrimsCmakeModule.cmake" || exit 1
 update_file "sturmint"    "cmake/static_data.cmake" || exit 1
 
-update_file "krims" "templates/cc.template" "keep_header" || exit 1
-update_file "krims" "templates/cmake.template" "keep_header" || exit 1
-update_file "krims" "templates/hh.template" "keep_header" || exit 1
-update_file "krims" "templates/README.md" || exit 1
+update_file "linalgwrap" "templates/cc.template" "keep_header" || exit 1
+update_file "linalgwrap" "templates/py.template" "keep_header" || exit 1
+update_file "linalgwrap" "templates/cmake.template" "keep_header" || exit 1
+update_file "linalgwrap" "templates/hh.template" "keep_header" || exit 1
+update_file "linalgwrap" "templates/README.md" || exit 1
 
 update_file "krims" ".clang-format" || exit 1
 update_file "krims" ".clang-tidy" || exit 1
