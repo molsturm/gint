@@ -144,7 +144,8 @@ def find(val):
   if isinstance(val, int):
     return by_atomic_number(val)
   elif isinstance(val, str):
-    if len(val) > 3:
+    if len(val) > 3 or val == "tin":
+      # Tin is the only element where the name has only 3 letters
       return by_name(val)
     else:
       return by_symbol(val)
