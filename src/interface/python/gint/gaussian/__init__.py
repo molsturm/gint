@@ -21,24 +21,38 @@
 ## ---------------------------------------------------------------------
 ## vi: tabstop=2 shiftwidth=2 softtabstop=2 expandtab
 
-from . import element
+from .. import element
 import collections
 import numpy as np
-from . import _iface
-from .interface import Structure
+from .. import _iface
+from ..interface import Structure
+from . import gaussian_expressions as expr
 
-Shell = collections.namedtuple("Shell", [ "l", "pure", "contraction_coefficients",
-                                          "contraction_exponents", "centre" ])
+class Shell(collections.namedtuple("Shell", [ "l", "pure", "contraction_coefficients",
+                                              "contraction_exponents", "centre" ])):
+  @property
+  def n_bas(self):
+    return 2 * self.l + 1 if self.pure else (self.l + 1)*(self.l + 2) // 2
+  def __len__(self):
+    return self.n_bas()
 
 
 class Basis:
-  def __init__(self, structure, basis_set, ordering="libint"):
+  def __init__(self, structure, basis_set, cartesian_ordering="standard"):
     """
     structure    Either a gint.Structure object or a tuple (atoms, coords)
                  or just a single atom.
                  which gives the list of atoms and the list of their coordinates
     basis_set    String describing the gaussian basis set to use
-    ordering     The ordering of the basis functions to use
+    ordering     The ordering of the basis functions to use if cartesian
+                 angular functions are used.
+                 For pure shells (i.e. with cartesian spherical harmonics)
+                 the ordering is from m=-2 (The terms with more sines) to
+                 m=+2 (The terms with more coses)
+
+                 The currently implemented orderings are
+                   - standard:  The ordering of the Common Component Architecture.
+                                This is just (xxx, xxy, xxz, xyy, xyz, xzz, yyy, ...)
     """
     if not isinstance(structure, Structure):
       if isinstance(structure, (str,int)):
@@ -58,6 +72,24 @@ class Basis:
                           sh.exponents().copy(), sh.origin().copy())
                     for sh in shells_raw ]
 
+    self.cartesian_ordering = cartesian_ordering
+    if cartesian_ordering != "standard":
+      raise ValueError("Currently only standard cartesian_ordering is implemented.")
+
   def evaluate_at(self, x, y, z, mask=None):
-    pass
+    if mask:
+      raise NotImplementedError("Basis mask is not yet implemented.")
+
+    evaluated=[]
+    for sh in self.shells:
+      if sh.pure:
+        res = expr.pure_shell(x, y, z, sh.l, sh.centre,
+                              sh.contraction_coefficients, sh.contraction_exponents)
+      else:
+        res = expr.cartesian_shell(x, y, z, sh.l, sh.centre,
+                                   sh.contraction_coefficients,
+                                   sh.contraction_exponents,
+                                   self.cartesian_ordering)
+      evaluated.append(res)
+    return np.concatenate(evaluated)
 

@@ -25,22 +25,6 @@ set(SRC
 )
 
 #
-# Parse build type
-#
-set(GINT_IFACE_BUILD_TYPE "Release" CACHE STRING
-"The build type to use for the gint python bindings. \
-Valid are Debug and Release.")
-
-set(module_BUILD_TYPE "DEBUG")
-if (GINT_IFACE_BUILD_TYPE STREQUAL "Release")
-	set(module_BUILD_TYPE "RELEASE")
-elseif(GINT_IFACE_BUILD_TYPE  STREQUAL "Debug")
-	set(module_BUILD_TYPE "DEBUG")
-else()
-	message(FATAL_ERROR "The value of GINT_IFACE_BUILD_TYPE needs to be either \"Debug\" or \"Release\".")
-endif()
-
-#
 # Find swig and python
 #
 find_package(SWIG REQUIRED)
@@ -63,7 +47,7 @@ file(DOWNLOAD https://raw.githubusercontent.com/numpy/numpy/v1.13.1/tools/swig/n
 # Setup cpp flags and includes for swig
 # (Note, that swig makes heavy use of old-style casts)
 #
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${module_BUILD_TYPE}}")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${interfaces_BUILD_TYPE}}")
 enable_if_compiles(CMAKE_CXX_FLAGS -Wno-missing-field-initializers)
 enable_if_compiles(CMAKE_CXX_FLAGS -Wno-pedantic)
 enable_if_compiles(CMAKE_CXX_FLAGS -Wno-old-style-cast)
@@ -83,9 +67,8 @@ swig_add_module(gint_iface python gint_iface.i ${SRC})
 
 swig_link_libraries(gint_iface
 	${PYTHON_LIBRARIES}
-	${gint_${module_BUILD_TYPE}_TARGET}
+	${gint_${interfaces_BUILD_TYPE}_TARGET}
 )
 target_compile_definitions(${SWIG_MODULE_gint_iface_REAL_NAME} PRIVATE
-	${module_BUILD_TYPE}=${module_BUILD_TYPE}
+	${interfaces_BUILD_TYPE}=${interfaces_BUILD_TYPE}
 )
-

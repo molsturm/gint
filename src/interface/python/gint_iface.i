@@ -45,15 +45,15 @@
 
 %include "numpy.i"
 %include "std_string.i"
-%include "flat_structure.i"
+%include "structure_flat.i"
 
 // Setup import of numpy array:
 %init %{
 import_array();
 %}
 
-%include "../gint/gaussian/Shell.hh"
-%include "../gint/gaussian/Basis.hh"
+%include "../../gint/gaussian/Shell.hh"
+%include "../../gint/gaussian/Basis.hh"
 %include "construct_gaussian_basis.hh"
 
 // vi: syntax=c

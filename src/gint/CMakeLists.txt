@@ -71,7 +71,7 @@ drb_set_target_properties(
 	VERSION "${PROJECT_VERSION}"
 )
 
-if (NOT BUILD_SHARED_LIBS AND GINT_ENABLE_PYTHON_MODULE)
+if (NOT BUILD_SHARED_LIBS AND GINT_INTERFACE_PYTHON)
 	message(WARNING "TODO Make sure this only happens if we need the python interface")
 
 	# Since the python interface goes via a shared library we need to enable -fPIC

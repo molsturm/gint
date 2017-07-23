@@ -18,6 +18,7 @@
 //
 
 #include "construct_structure.hh"
+#include <gint/config.hh>
 
 namespace gint {
 namespace iface {

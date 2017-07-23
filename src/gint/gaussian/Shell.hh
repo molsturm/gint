@@ -53,6 +53,12 @@ struct Shell {
   bool pure;
 
 #ifndef SWIG
+  /** Return the number of basis functions in this shell */
+  int size() const { return pure ? (2 * l + 1) : (l + 1) * (l + 2) / 2; }
+
+  /** Return the number of basis functions in this shell */
+  int n_bas() const { return size(); }
+
   /** Contraction coefficients */
   std::vector<real_type> coefficients;
 
