@@ -28,8 +28,13 @@ from .. import _iface
 from ..interface import Structure
 from . import gaussian_expressions as expr
 
-Shell = collections.namedtuple("Shell", [ "l", "pure", "contraction_coefficients",
-                                          "contraction_exponents", "centre" ])
+class Shell(collections.namedtuple("Shell", [ "l", "pure", "contraction_coefficients",
+                                              "contraction_exponents", "centre" ])):
+  @property
+  def n_bas(self):
+    return 2 * self.l + 1 if self.pure else (self.l + 1)*(self.l + 2) // 2
+  def __len__(self):
+    return self.n_bas()
 
 
 class Basis:
