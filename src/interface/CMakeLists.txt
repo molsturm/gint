@@ -19,5 +19,26 @@
 ##
 ## ---------------------------------------------------------------------
 
-add_subdirectory(gint)
-add_subdirectory(interface)
+#
+# Parse build type
+#
+set(GINT_INTERFACE_BUILD_TYPE "Release" CACHE STRING
+"The build type to use for the gint bindings to python and other languages. \
+Valid are Debug and Release.")
+
+set(module_BUILD_TYPE "DEBUG")
+if (GINT_INTERFACE_BUILD_TYPE STREQUAL "Release")
+	set(interfaces_BUILD_TYPE "RELEASE")
+elseif(GINT_INTERFACE_BUILD_TYPE  STREQUAL "Debug")
+	set(interfaces_BUILD_TYPE "DEBUG")
+else()
+	message(FATAL_ERROR
+		"The value of GINT_INTERFACE_BUILD_TYPE needs to be either \"Debug\" or \"Release\".")
+endif()
+
+#
+# Pass onto subdirectories
+#
+if(GINT_INTERFACE_PYTHON)
+	add_subdirectory(python)
+endif()

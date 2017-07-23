@@ -59,5 +59,6 @@ class Basis:
                     for sh in shells_raw ]
 
   def evaluate_at(self, x, y, z, mask=None):
+    raise NotImplementedError("To be implemented")
     pass
 
