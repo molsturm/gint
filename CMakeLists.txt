@@ -29,16 +29,6 @@ include_krims_cmake_module(DebugReleaseBuild)
 drb_init()
 
 ##########################################################################
-# Global options
-
-# Path where cmake wants the modules and config packages:
-set(PackageModuleLocation share/cmake)
-
-# setup global options (needs to be done before call to project())
-option(GINT_ENABLE_TESTS "Build gint tests" ON)
-option(GINT_INTERFACE_PYTHON "Enable the python module shipped with gint" OFF)
-
-##########################################################################
 # Project setup
 
 project(gint VERSION 0.0.0)
@@ -53,6 +43,19 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_LIST_DIR}/cmake/modu
 
 # enable testing of this project
 enable_testing()
+
+##########################################################################
+# Global options
+
+# Path where cmake wants the modules and config packages:
+set(PackageModuleLocation share/cmake)
+
+# setup global options
+include_krims_cmake_module(GlobalOption)
+global_option(ENABLE_DOCUMENTATION "Build documentation"         OFF )
+#global_option(ENABLE_EXAMPLES      "Build example exectables"    ON  )
+global_option(ENABLE_TESTS         "Build unit test executables" ON  )
+option(GINT_INTERFACE_PYTHON "Enable the python module shipped with gint" OFF)
 
 ##########################################################################
 # Setup hard and optional dependencies and find components
@@ -93,6 +96,10 @@ set(GINT_SUBDIRS src)
 if(GINT_ENABLE_TESTS)
 	add_subdirectory(tests)
 	set(GINT_SUBDIRS ${GINT_SUBDIRS} tests)
+endif()
+
+if (GINT_ENABLE_DOCUMENTATION)
+	add_subdirectory(doc)
 endif()
 
 ##########################################################################

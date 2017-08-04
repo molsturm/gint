@@ -30,7 +30,11 @@ set(SRC
 find_package(SWIG REQUIRED)
 include(${SWIG_USE_FILE})
 
+# Only go for python3. Our code won't work under 2.7
+# Search for both interpreter and libraries, since both need to be consistent
+# with another
 set(Python_ADDITIONAL_VERSIONS 3)
+find_package(PythonInterp REQUIRED)
 find_package(PythonLibs REQUIRED)
 include_directories(${PYTHON_INCLUDE_PATH})
 
@@ -63,7 +67,12 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 #
 set(CMAKE_SWIG_FLAGS "")
 set_source_files_properties(gint_iface.i PROPERTIES CPLUSPLUS ON)
-swig_add_module(gint_iface python gint_iface.i ${SRC})
+if (CMAKE_VERSION VERSION_GREATER 3.8)
+	swig_add_library(gint_iface LANGUAGE python SOURCES gint_iface.i ${SRC})
+else()
+	# Older version of the call, deprecated from cmake 3.9
+	swig_add_module(gint_iface python gint_iface.i ${SRC})
+endif()
 
 swig_link_libraries(gint_iface
 	${PYTHON_LIBRARIES}
@@ -72,3 +81,23 @@ swig_link_libraries(gint_iface
 target_compile_definitions(${SWIG_MODULE_gint_iface_REAL_NAME} PRIVATE
 	${interfaces_BUILD_TYPE}=${interfaces_BUILD_TYPE}
 )
+
+#
+# Installing
+#
+set(SITE_PACKAGES "lib/python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}/site-packages")
+install(DIRECTORY gint
+	COMPONENT python-module
+	DESTINATION ${SITE_PACKAGES}
+	PATTERN gint/_iface.py EXCLUDE
+)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/gint_iface.py
+	COMPONENT python-module
+	RENAME _iface.py
+	DESTINATION ${SITE_PACKAGES}/gint
+)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/_gint_iface.so
+	COMPONENT python-module
+	DESTINATION ${SITE_PACKAGES}/gint
+)
+
