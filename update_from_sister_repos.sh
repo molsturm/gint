@@ -34,6 +34,8 @@ update_file "gscf"        "cmake/findLinalgwrap.cmake" || exit 1
 update_file "linalgwrap"  "cmake/IncludeKrimsCmakeModule.cmake" || exit 1
 update_file "sturmint"    "cmake/static_data.cmake" || exit 1
 
+update_file "krims"       "doc/Doxyfile.in" || exit 1
+
 update_file "linalgwrap" "templates/cc.template" "keep_header" || exit 1
 update_file "linalgwrap" "templates/py.template" "keep_header" || exit 1
 update_file "linalgwrap" "templates/cmake.template" "keep_header" || exit 1
