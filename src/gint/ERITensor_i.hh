@@ -46,7 +46,7 @@ class ERITensor_i {
    *
    * Essentially it carries out the tensor contraction
    * \f[
-   *   J_{wx,yz} = \sum_{b1,b2,b3,b4} c^T_{w,b1} c_{w,b2}, c^T_{w,b3}, c_z,b4}
+   *   J_{wx,yz} = \sum_{b1,b2,b3,b4} c^T_{w,b1} c_{w,b2}, c^T_{w,b3}, c_{z,b4}
    * J_{b1b2,b3b4}
    * \f]
    * where \f$ J_{b1b2,b3b4} = (b1 b2| b3 b4) \f$, i.e. the first two and the last
