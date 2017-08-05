@@ -20,4 +20,10 @@
 ## ---------------------------------------------------------------------
 
 add_subdirectory(gint)
-add_subdirectory(interface)
+
+#
+# Interfacing with python and co
+#
+if(GINT_INTERFACE_PYTHON)
+	add_subdirectory(interface/python)
+endif()

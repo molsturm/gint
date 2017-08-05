@@ -51,11 +51,14 @@ enable_testing()
 set(PackageModuleLocation share/cmake)
 
 # setup global options
+# TODO until the python interface of gint is ready, disable by default:
+option(GINT_INTERFACE_PYTHON "Build and install python interface module (gint)" OFF)
+
 include_krims_cmake_module(GlobalOption)
-global_option(ENABLE_DOCUMENTATION "Build documentation"         OFF )
-#global_option(ENABLE_EXAMPLES      "Build example exectables"    ON  )
-global_option(ENABLE_TESTS         "Build unit test executables" ON  )
-option(GINT_INTERFACE_PYTHON "Enable the python module shipped with gint" OFF)
+global_option(ENABLE_DOCUMENTATION "Build documentation"                       OFF )
+global_option(ENABLE_EXAMPLES      "Build example executables"                 ON  )
+global_option(ENABLE_TESTS         "Build unit test executables"               ON  )
+global_option(INTERFACE_PYTHON     "Build and install python interface module" ON  )
 
 ##########################################################################
 # Setup hard and optional dependencies and find components
@@ -68,11 +71,12 @@ if (CMAKE_VERSION VERSION_GREATER 3.5.0)
 	set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 endif()
 
-if (NOT BUILD_SHARED_LIBS AND GINT_INTERFACE_PYTHON)
-	message(WARNING "TODO Make sure this is also set in krims automatically")
-
-	# TODO Ugly hack to make sure that krims gets build with -fPIC, too
-	set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+# If a user wants a python module, setup the interface helper class
+# This might alter the compiler flags in order for the compiled
+# code to be compatible with the interfacing, hence this call is
+# needed right here.
+if (GINT_INTERFACE_PYTHON)
+	include_krims_cmake_module(CppInterface)
 endif()
 
 # setup hard dependencies

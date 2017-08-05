@@ -24,80 +24,36 @@ set(SRC
         construct_gaussian_basis.cc
 )
 
-#
-# Find swig and python
-#
-find_package(SWIG REQUIRED)
-include(${SWIG_USE_FILE})
-
-# Only go for python3. Our code won't work under 2.7
-# Search for both interpreter and libraries, since both need to be consistent
-# with another
-set(Python_ADDITIONAL_VERSIONS 3)
-find_package(PythonInterp REQUIRED)
-find_package(PythonLibs REQUIRED)
-include_directories(${PYTHON_INCLUDE_PATH})
-
-#
 # Download the numpy.i module we require from github
-#
 file(DOWNLOAD https://raw.githubusercontent.com/numpy/numpy/v1.13.1/tools/swig/numpy.i
 	${CMAKE_CURRENT_BINARY_DIR}/numpy.i
 	EXPECTED_HASH
 	SHA256=bc658c3e9f4ecc5343041339c0697314398fd7cd0e442aa2d424b71086e305ec
 )
 
-#
-# Setup cpp flags and includes for swig
-# (Note, that swig makes heavy use of old-style casts)
-#
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${interfaces_BUILD_TYPE}}")
-enable_if_compiles(CMAKE_CXX_FLAGS -Wno-missing-field-initializers)
-enable_if_compiles(CMAKE_CXX_FLAGS -Wno-pedantic)
-enable_if_compiles(CMAKE_CXX_FLAGS -Wno-old-style-cast)
-enable_if_compiles(CMAKE_CXX_FLAGS -Wno-sign-compare)
-enable_if_compiles(CMAKE_CXX_FLAGS -Wno-maybe-uninitialized)
-enable_if_compiles(CMAKE_CXX_FLAGS -Wno-deprecated)
-enable_if_compiles(CMAKE_CXX_FLAGS -Wno-error)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
-
-#
-# gint swig module
-#
-set(CMAKE_SWIG_FLAGS "")
-set_source_files_properties(gint_iface.i PROPERTIES CPLUSPLUS ON)
-if (CMAKE_VERSION VERSION_GREATER 3.8)
-	swig_add_library(gint_iface LANGUAGE python SOURCES gint_iface.i ${SRC})
-else()
-	# Older version of the call, deprecated from cmake 3.9
-	swig_add_module(gint_iface python gint_iface.i ${SRC})
-endif()
-
-swig_link_libraries(gint_iface
-	${PYTHON_LIBRARIES}
-	${gint_${interfaces_BUILD_TYPE}_TARGET}
-)
-target_compile_definitions(${SWIG_MODULE_gint_iface_REAL_NAME} PRIVATE
-	${interfaces_BUILD_TYPE}=${interfaces_BUILD_TYPE}
-)
+# Setup gint_iface module
+set(MODULE_NAME gint_iface)
+cpp_interface_python3(${MODULE_NAME} LINK_TARGETS gint SOURCES gint_iface.i ${SRC})
 
 #
 # Installing
 #
-set(SITE_PACKAGES "lib/python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}/site-packages")
+# The site packages folder of the python version we use
+find_package(PythonInterp REQUIRED)
+set(PYSITE_PACKAGES "lib/python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}/site-packages")
+
+# Install the python module files (except _iface, which we override)
 install(DIRECTORY gint
 	COMPONENT python-module
-	DESTINATION ${SITE_PACKAGES}
+	DESTINATION ${PYSITE_PACKAGES}
 	PATTERN gint/_iface.py EXCLUDE
 )
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/gint_iface.py
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${MODULE_NAME}.py
 	COMPONENT python-module
 	RENAME _iface.py
-	DESTINATION ${SITE_PACKAGES}/gint
+	DESTINATION ${PYSITE_PACKAGES}/gint
 )
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/_gint_iface.so
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/_${MODULE_NAME}.so
 	COMPONENT python-module
-	DESTINATION ${SITE_PACKAGES}/gint
+	DESTINATION ${PYSITE_PACKAGES}/gint
 )
-
