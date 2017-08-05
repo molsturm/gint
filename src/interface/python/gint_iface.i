@@ -24,7 +24,7 @@
 
 #include <gint/gaussian/Shell.hh>
 #include <gint/gaussian/Basis.hh>
-#include "construct_gaussian_basis.hh"
+#include "interface/python/construct_gaussian_basis.hh"
 
 // Run the %init block (to setup numpy)
 #define SWIG_FILE_WITH_INIT
