@@ -65,21 +65,19 @@ endif()
 #############
 #-- krims --#
 #############
-# Find at least version 0.0.0
-set(KRIMS_VERSION 0.0.0)
+set(KRIMS_VERSION 0.1.0)
 include(cmake/findKrims.cmake)
 
 foreach (build ${DRB_BUILD_TYPES})
 	set(GINT_DEPENDENCIES_${build} ${GINT_DEPENDENCIES_${build}} ${krims_${build}_TARGET})
 endforeach()
 
-##################
-#-- linalgwrap --#
-##################
-# Find at least version 0.2.0
-set(LINALGWRAP_VERSION 0.2.0)
-include(cmake/findLinalgwrap.cmake)
+###############
+#-- lazyten --#
+###############
+set(LAZYTEN_VERSION 0.3.0)
+include(cmake/findLazyten.cmake)
 
 foreach (build ${DRB_BUILD_TYPES})
-	set(GINT_DEPENDENCIES_${build} ${GINT_DEPENDENCIES_${build}} ${linalgwrap_${build}_TARGET})
+	set(GINT_DEPENDENCIES_${build} ${GINT_DEPENDENCIES_${build}} ${lazyten_${build}_TARGET})
 endforeach()

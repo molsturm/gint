@@ -195,11 +195,11 @@ class LibintIntegralCoreBase : public IntegralCoreBase<stored_matrix_type> {
 
   void extract_block(stored_matrix_type& M, const size_t start_row,
                      const size_t start_col,
-                     const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
+                     const lazyten::Transposed mode = lazyten::Transposed::None,
                      const scalar_type c_A = 1, const scalar_type c_M = 0) const override;
 
   void apply(const const_multivector_type& x, multivector_type& y,
-             const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
+             const lazyten::Transposed mode = lazyten::Transposed::None,
              const scalar_type c_A = 1, const scalar_type c_y = 0) const override;
 
  protected:

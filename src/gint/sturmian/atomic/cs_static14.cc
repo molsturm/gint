@@ -32,9 +32,16 @@ namespace cs_static14 {
 const std::string IntegralCollection::id = "sturmian/atomic/cs_static14";
 
 double atom_charge(const krims::GenMap& parameters) {
+  if (!parameters.exists(IntegralLookupKeys::structure)) {
+    // TODO Is this a sensible way to deal with this?
+    // No structure provided, i.e. no atom, i.e. charge is zero
+    return 0;
+  }
   const auto structure_ptr =
         parameters.at_ptr<const Structure>(IntegralLookupKeys::structure);
-  assert_throw(structure_ptr->n_atoms(),
+
+  if (structure_ptr->n_atoms() == 0) return 0;
+  assert_throw(structure_ptr->n_atoms() == 1,
                ExcInvalidIntegralParameters("The structure provided to cs_static14 is "
                                             "not an atom, but a molecule consisting of " +
                                             std::to_string(structure_ptr->n_atoms()) +
@@ -90,7 +97,7 @@ OneElecIntegralCore::OneElecIntegralCore(IntegralType type, const scalar_type Z,
 }
 
 void apply_stored_matrix(const stored_matrix_type& A, const const_multivector_type& x,
-                         multivector_type& y, const linalgwrap::Transposed mode,
+                         multivector_type& y, const lazyten::Transposed mode,
                          const scalar_type c_A, const scalar_type c_y) {
   // scale y by c_y or set to zero
   for (size_t i = 0; i < x.n_rows(); i++)

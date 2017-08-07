@@ -31,15 +31,28 @@ const std::string IntegralLookupKeys::nlm_basis  = "nlm_basis";
 
 IntegralCollectionBase::IntegralCollectionBase(const krims::GenMap& parameters) {
   const auto k = parameters.at<scalar_type>(IntegralLookupKeys::k_exponent);
-  const auto structure_ptr =
-        parameters.at_ptr<const Structure>(IntegralLookupKeys::structure);
-  assert_throw(structure_ptr->n_atoms(),
-               ExcInvalidIntegralParameters(
-                     "The structure provided to the coulomb-sturmian integral library is "
-                     "not an atom, but a molecule consisting of " +
-                     std::to_string(structure_ptr->n_atoms()) + " atoms."));
 
-  const double Z = (*structure_ptr)[0].nuclear_charge;
+  const double Z = [&parameters] {
+    // TODO Is this a sensible default?
+    // If no structure or no atom, the nuclear charge is zero
+    if (!parameters.exists(IntegralLookupKeys::structure)) return 0.0;
+
+    const auto structure_ptr =
+          parameters.at_ptr<const Structure>(IntegralLookupKeys::structure);
+
+    // If no atom in the structure, the nuclear charge is zero
+    if (structure_ptr->n_atoms() == 0) return 0.0;
+
+    assert_throw(
+          structure_ptr->n_atoms() == 1,
+          ExcInvalidIntegralParameters(
+                "The structure provided to the coulomb-sturmian integral library is "
+                "not an atom, but a molecule consisting of " +
+                std::to_string(structure_ptr->n_atoms()) + " atoms."));
+
+    return (*structure_ptr)[0].nuclear_charge;
+  }();
+
   if (parameters.exists(IntegralLookupKeys::nlm_basis)) {
     const auto& nlmbasis = parameters.at<const NlmBasis>(IntegralLookupKeys::nlm_basis);
 

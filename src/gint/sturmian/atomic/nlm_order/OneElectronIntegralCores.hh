@@ -32,7 +32,7 @@ class NuclearAttractionIntegralCore final : public IntegralCoreBase {
  public:
   // Compute alpha*A*x + beta*y into y
   void apply(const const_multivector_type& x, multivector_type& y,
-             const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
+             const lazyten::Transposed mode = lazyten::Transposed::None,
              const scalar_type c_A = 1, const scalar_type c_y = 0) const override;
 
   /** \brief return an element of the matrix \f$ {V_0}_{\mu',\mu} = -Zk/n
@@ -51,7 +51,7 @@ class NuclearAttractionIntegralCore final : public IntegralCoreBase {
 class KineticIntegralCore final : public IntegralCoreBase {
  public:
   void apply(const const_multivector_type& x, multivector_type& y,
-             const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
+             const lazyten::Transposed mode = lazyten::Transposed::None,
              const scalar_type c_A = 1, const scalar_type c_y = 0) const override;
 
   /** \brief return an element of the matrix    */
@@ -71,11 +71,11 @@ class OverlapIntegralCore final : public IntegralCoreBase {
   bool has_apply_inverse() const final override { return true; }
 
   void apply(const const_multivector_type& x, multivector_type& y,
-             const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
+             const lazyten::Transposed mode = lazyten::Transposed::None,
              const scalar_type c_A = 1, const scalar_type c_y = 0) const override;
 
   void apply_inverse(const const_multivector_type& x, multivector_type& y,
-                     const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
+                     const lazyten::Transposed mode = lazyten::Transposed::None,
                      const scalar_type c_A = 1, const scalar_type c_y = 0) const override;
 
   /** \brief return an element of the matrix    */
@@ -96,19 +96,19 @@ class OverlapIntegralCore final : public IntegralCoreBase {
 
 // Preamble for apply calls. Not that all modes are the same since we are symmetric
 // and real, so we do not switch over mode
-#define APPLY_PRECONDITIONS()                                              \
-  {                                                                        \
-    assert_finite(c_A);                                                    \
-    assert_finite(c_y);                                                    \
-    assert_size(x.n_cols(), y.n_cols());                                   \
-    assert_size(x.n_rows(), n_cols());                                     \
-    assert_size(y.n_rows(), n_rows());                                     \
-    assert_sufficiently_tested(mode != linalgwrap::Transposed::ConjTrans); \
+#define APPLY_PRECONDITIONS()                                           \
+  {                                                                     \
+    assert_finite(c_A);                                                 \
+    assert_finite(c_y);                                                 \
+    assert_size(x.n_cols(), y.n_cols());                                \
+    assert_size(x.n_rows(), n_cols());                                  \
+    assert_size(y.n_rows(), n_rows());                                  \
+    assert_sufficiently_tested(mode != lazyten::Transposed::ConjTrans); \
   }
 
 inline void NuclearAttractionIntegralCore::apply(const const_multivector_type& x,
                                                  multivector_type& y,
-                                                 const linalgwrap::Transposed mode,
+                                                 const lazyten::Transposed mode,
                                                  const scalar_type c_A,
                                                  const scalar_type c_y) const {
   APPLY_PRECONDITIONS();
@@ -137,7 +137,7 @@ inline scalar_type NuclearAttractionIntegralCore::operator()(size_t row,
 
 inline void KineticIntegralCore::apply(const const_multivector_type& x,
                                        multivector_type& y,
-                                       const linalgwrap::Transposed mode,
+                                       const lazyten::Transposed mode,
                                        const scalar_type c_A,
                                        const scalar_type c_y) const {
   APPLY_PRECONDITIONS();
@@ -168,7 +168,7 @@ inline scalar_type KineticIntegralCore::operator()(size_t row, size_t col) const
 
 inline void OverlapIntegralCore::apply(const const_multivector_type& x,
                                        multivector_type& y,
-                                       const linalgwrap::Transposed mode,
+                                       const lazyten::Transposed mode,
                                        const scalar_type c_A,
                                        const scalar_type c_y) const {
   APPLY_PRECONDITIONS();
@@ -183,7 +183,7 @@ inline void OverlapIntegralCore::apply(const const_multivector_type& x,
 
 inline void OverlapIntegralCore::apply_inverse(const const_multivector_type& x,
                                                multivector_type& y,
-                                               const linalgwrap::Transposed mode,
+                                               const lazyten::Transposed mode,
                                                const scalar_type c_A,
                                                const scalar_type c_y) const {
   APPLY_PRECONDITIONS();

@@ -326,14 +326,14 @@ scalar_type LibintIntegralCoreBase::operator()(size_t row, size_t col) const {
 
 void LibintIntegralCoreBase::extract_block(stored_matrix_type& M, const size_t start_row,
                                            const size_t start_col,
-                                           const linalgwrap::Transposed mode,
+                                           const lazyten::Transposed mode,
                                            const scalar_type c_A,
                                            const scalar_type c_M) const {
   assert_finite(c_A);
   assert_finite(c_M);
   assert_greater_equal(start_row + M.n_rows(), n_rows());
   assert_greater_equal(start_col + M.n_cols(), n_cols());
-  assert_sufficiently_tested(mode != linalgwrap::Transposed::ConjTrans);
+  assert_sufficiently_tested(mode != lazyten::Transposed::ConjTrans);
 
   // For empty matrices there is nothing to do
   if (M.n_rows() == 0 || M.n_cols() == 0) return;
@@ -386,14 +386,14 @@ void LibintIntegralCoreBase::extract_block(stored_matrix_type& M, const size_t s
 }
 
 void LibintIntegralCoreBase::apply(const const_multivector_type& x, multivector_type& y,
-                                   const linalgwrap::Transposed mode,
-                                   const scalar_type c_A, const scalar_type c_y) const {
+                                   const lazyten::Transposed mode, const scalar_type c_A,
+                                   const scalar_type c_y) const {
   assert_finite(c_A);
   assert_finite(c_y);
   assert_size(x.n_cols(), y.n_cols());
   assert_size(x.n_rows(), n_cols());
   assert_size(y.n_rows(), n_rows());
-  assert_sufficiently_tested(mode != linalgwrap::Transposed::ConjTrans);
+  assert_sufficiently_tested(mode != lazyten::Transposed::ConjTrans);
   // All modes are same since we are symmetric and real, so no
   // switching over mode.
 

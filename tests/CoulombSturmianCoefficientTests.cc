@@ -27,15 +27,15 @@
 #include <gint/find_data_file.hh>
 #include <krims/DataFiles.hh>
 #include <krims/GenMap.hh>
-#include <linalgwrap/MultiVector.hh>
-#include <linalgwrap/SmallVector.hh>
-#include <linalgwrap/TestingUtils.hh>
-#include <linalgwrap/io.hh>
+#include <lazyten/MultiVector.hh>
+#include <lazyten/SmallVector.hh>
+#include <lazyten/TestingUtils.hh>
+#include <lazyten/io.hh>
 #include <sturmint/harmonic/OrbitalIndex.hh>
 
 namespace gint {
 namespace tests {
-using namespace linalgwrap;
+using namespace lazyten;
 using namespace krims;
 using namespace std;
 using namespace sturmint::orbital_index;
@@ -65,7 +65,7 @@ static std::function<void(void)> make_apply_ptr_vector_test(
     typedef typename Integral::stored_matrix_type stored_matrix_type;
     typedef typename stored_matrix_type::scalar_type scalar_type;
     typedef typename stored_matrix_type::vector_type vector_type;
-    typedef linalgwrap::PtrVector<scalar_type> pv_type;
+    typedef lazyten::PtrVector<scalar_type> pv_type;
 
     auto nrow_vecgen = gen::numeric_tensor<vector_type>(integral.n_rows());
     auto vec =
@@ -79,8 +79,8 @@ static std::function<void(void)> make_apply_ptr_vector_test(
     auto ptr_res_ref = make_as_multivector<pv_type>(res_ref.memptr(), res_ref.size());
     auto ptr_res     = make_as_multivector<pv_type>(res.memptr(), res.size());
 
-    integral.apply(ptrvec, ptr_res, linalgwrap::Transposed::None, 2., 4.);
-    ref.apply(ptrvec, ptr_res_ref, linalgwrap::Transposed::None, 2., 4.);
+    integral.apply(ptrvec, ptr_res, lazyten::Transposed::None, 2., 4.);
+    ref.apply(ptrvec, ptr_res_ref, lazyten::Transposed::None, 2., 4.);
 
     RC_ASSERT((res == numcomp(res_ref).tolerance(tolerance)));
   };
@@ -92,7 +92,7 @@ TEST_CASE("Quick atomic coefficient test", "[quicktest coefficients]") {
   typedef IntegralLookup<stored_matrix_type> int_lookup_type;
   typedef Integral<stored_matrix_type> integral_type;
   typedef typename stored_matrix_type::vector_type vector_type;
-  typedef const linalgwrap::MultiVector<const vector_type> coefficients_type;
+  typedef const lazyten::MultiVector<const vector_type> coefficients_type;
 
   int nmax = 5;
   int lmax = 0;

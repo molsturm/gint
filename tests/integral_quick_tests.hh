@@ -23,14 +23,14 @@
 #include <gint/IntegralType.hh>
 #include <gint/IntegralUpdateKeys.hh>
 #include <krims/GenMap.hh>
-#include <linalgwrap/TestingUtils.hh>
-#include <linalgwrap/io.hh>
+#include <lazyten/TestingUtils.hh>
+#include <lazyten/io.hh>
 
 // Make this nicer => integral small tests
 
 namespace gint {
 namespace tests {
-using namespace linalgwrap;
+using namespace lazyten;
 using namespace krims;
 
 template <typename RefData>
@@ -39,7 +39,7 @@ struct IntegralDummyTests {
   typedef typename data::stored_matrix_type stored_matrix_type;
   typedef typename data::vector_type vector_type;
   typedef typename data::scalar_type scalar_type;
-  typedef const linalgwrap::MultiVector<const vector_type> coefficients_type;
+  typedef const lazyten::MultiVector<const vector_type> coefficients_type;
   typedef IntegralLookup<stored_matrix_type> int_lookup_type;
   typedef typename int_lookup_type::integral_type integral_type;
   static_assert(std::is_same<typename integral_type::stored_matrix_type,
@@ -278,7 +278,7 @@ struct IntegralDummyTests {
         const integral_type& integral, const stored_matrix_type& ref,
         const NumCompAccuracyLevel tolerance) {
     auto test = [&integral, &ref, tolerance] {
-      typedef linalgwrap::PtrVector<scalar_type> pv_type;
+      typedef lazyten::PtrVector<scalar_type> pv_type;
       auto vec    = *gen_normed_vector(integral.n_rows()).as("test vector");
       auto ptrvec = make_as_multivector<pv_type>(vec.memptr(), vec.size());
 
@@ -289,8 +289,8 @@ struct IntegralDummyTests {
       auto ptr_res_ref = make_as_multivector<pv_type>(res_ref.memptr(), res_ref.size());
       auto ptr_res     = make_as_multivector<pv_type>(res.memptr(), res.size());
 
-      integral.apply(ptrvec, ptr_res, linalgwrap::Transposed::None, 2., 4.);
-      ref.apply(ptrvec, ptr_res_ref, linalgwrap::Transposed::None, 2., 4.);
+      integral.apply(ptrvec, ptr_res, lazyten::Transposed::None, 2., 4.);
+      ref.apply(ptrvec, ptr_res_ref, lazyten::Transposed::None, 2., 4.);
 
       RC_ASSERT((res == numcomp(res_ref).tolerance(tolerance)));
     };
@@ -301,7 +301,7 @@ struct IntegralDummyTests {
                                       const stored_matrix_type& ref,
                                       const NumCompAccuracyLevel tolerance) {
     INFO("Application of operator to identity:");
-    auto Id = linalgwrap::MultiVector<vector_type>(integral.n_cols(), integral.n_cols());
+    auto Id = lazyten::MultiVector<vector_type>(integral.n_cols(), integral.n_cols());
     for (size_t i = 0; i < integral.n_cols(); i++) Id[i][i] = 1;
 
     auto AxI   = integral * Id;

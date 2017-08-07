@@ -102,6 +102,13 @@ if(GINT_ENABLE_TESTS)
 	set(GINT_SUBDIRS ${GINT_SUBDIRS} tests)
 endif()
 
+# Add subdirectories for the examples.
+if(GINT_ENABLE_EXAMPLES)
+	add_subdirectory(examples)
+	set(GINT_SUBDIRS ${GINT_SUBDIRS} examples)
+endif()
+
+
 if (GINT_ENABLE_DOCUMENTATION)
 	add_subdirectory(doc)
 endif()

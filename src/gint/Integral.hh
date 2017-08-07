@@ -21,7 +21,7 @@
 #include "IntegralIdentifier.hh"
 #include <krims/SubscriptionPointer.hh>
 #include <krims/make_unique.hh>
-#include <linalgwrap/LazyMatrix_i.hh>
+#include <lazyten/LazyMatrix_i.hh>
 
 // TODO: This next header causes the IntegralCoreBase.hh to be part of
 //       the public gint interface. Would be good to get rid of that
@@ -36,9 +36,9 @@ template <typename StoredMatrix>
 class IntegralCoreBase;
 
 template <typename StoredMatrix>
-class Integral : public linalgwrap::LazyMatrix_i<StoredMatrix> {
+class Integral : public lazyten::LazyMatrix_i<StoredMatrix> {
  public:
-  typedef linalgwrap::LazyMatrix_i<StoredMatrix> base_type;
+  typedef lazyten::LazyMatrix_i<StoredMatrix> base_type;
   typedef typename base_type::stored_matrix_type stored_matrix_type;
   typedef typename base_type::scalar_type scalar_type;
   typedef typename base_type::lazy_matrix_expression_ptr_type
@@ -115,19 +115,18 @@ class Integral : public linalgwrap::LazyMatrix_i<StoredMatrix> {
    * LazyMatrixExpression class for details.
    */
   void apply(
-        const linalgwrap::MultiVector<
-              const linalgwrap::MutableMemoryVector_i<scalar_type>>& x_in,
-        linalgwrap::MultiVector<linalgwrap::MutableMemoryVector_i<scalar_type>>& y_out,
-        const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
+        const lazyten::MultiVector<const lazyten::MutableMemoryVector_i<scalar_type>>&
+              x_in,
+        lazyten::MultiVector<lazyten::MutableMemoryVector_i<scalar_type>>& y_out,
+        const lazyten::Transposed mode = lazyten::Transposed::None,
         const scalar_type c_this = 1, const scalar_type c_y = 0) const override final;
 
   template <typename VectorIn, typename VectorOut,
-            linalgwrap::mat_vec_apply_enabled_t<Integral, VectorIn, VectorOut>...>
-  void apply(const linalgwrap::MultiVector<VectorIn>& x,
-             linalgwrap::MultiVector<VectorOut>& y,
-             const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
+            lazyten::mat_vec_apply_enabled_t<Integral, VectorIn, VectorOut>...>
+  void apply(const lazyten::MultiVector<VectorIn>& x, lazyten::MultiVector<VectorOut>& y,
+             const lazyten::Transposed mode = lazyten::Transposed::None,
              const scalar_type c_this = 1, const scalar_type c_y = 0) const {
-    using namespace linalgwrap;
+    using namespace lazyten;
     MultiVector<const MutableMemoryVector_i<scalar_type>> x_wrapped(x);
     MultiVector<MutableMemoryVector_i<scalar_type>> y_wrapped(y);
     apply(x_wrapped, y_wrapped, mode, c_this, c_y);
@@ -141,12 +140,12 @@ class Integral : public linalgwrap::LazyMatrix_i<StoredMatrix> {
    * See LazyMatrixExpression for more details
    */
   template <typename VectorIn, typename VectorOut,
-            linalgwrap::mat_vec_apply_enabled_t<Integral, VectorIn, VectorOut>...>
-  void apply_inverse(const linalgwrap::MultiVector<VectorIn>& x,
-                     linalgwrap::MultiVector<VectorOut>& y,
-                     const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
+            lazyten::mat_vec_apply_enabled_t<Integral, VectorIn, VectorOut>...>
+  void apply_inverse(const lazyten::MultiVector<VectorIn>& x,
+                     lazyten::MultiVector<VectorOut>& y,
+                     const lazyten::Transposed mode = lazyten::Transposed::None,
                      const scalar_type c_this = 1, const scalar_type c_y = 0) const {
-    using namespace linalgwrap;
+    using namespace lazyten;
     MultiVector<const MutableMemoryVector_i<scalar_type>> x_wrapped(x);
     MultiVector<MutableMemoryVector_i<scalar_type>> y_wrapped(y);
     apply_inverse(x_wrapped, y_wrapped, mode, c_this, c_y);
@@ -160,10 +159,10 @@ class Integral : public linalgwrap::LazyMatrix_i<StoredMatrix> {
    * See LazyMatrixExpression for more details
    */
   void apply_inverse(
-        const linalgwrap::MultiVector<
-              const linalgwrap::MutableMemoryVector_i<scalar_type>>& x_in,
-        linalgwrap::MultiVector<linalgwrap::MutableMemoryVector_i<scalar_type>>& y_out,
-        const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
+        const lazyten::MultiVector<const lazyten::MutableMemoryVector_i<scalar_type>>&
+              x_in,
+        lazyten::MultiVector<lazyten::MutableMemoryVector_i<scalar_type>>& y_out,
+        const lazyten::Transposed mode = lazyten::Transposed::None,
         const scalar_type c_this = 1, const scalar_type c_y = 0) const override final;
 
   /** Perform a matrix-matrix product.
@@ -174,9 +173,9 @@ class Integral : public linalgwrap::LazyMatrix_i<StoredMatrix> {
    * applied (normal, transposed, conjugate transposed)
    */
   void mmult(const stored_matrix_type& in, stored_matrix_type& out,
-             const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
-             const scalar_type c_this          = 1,
-             const scalar_type c_out           = 0) const override final {
+             const lazyten::Transposed mode = lazyten::Transposed::None,
+             const scalar_type c_this       = 1,
+             const scalar_type c_out        = 0) const override final {
     assert_internal(m_core_ptr != nullptr);
     m_core_ptr->mmult(in, out, mode, c_this, c_out);
   }
@@ -195,9 +194,9 @@ class Integral : public linalgwrap::LazyMatrix_i<StoredMatrix> {
    */
   void extract_block(stored_matrix_type& M, const size_t start_row,
                      const size_t start_col,
-                     const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
-                     const scalar_type c_this          = 1,
-                     const scalar_type c_M             = 0) const override final {
+                     const lazyten::Transposed mode = lazyten::Transposed::None,
+                     const scalar_type c_this       = 1,
+                     const scalar_type c_M          = 0) const override final {
     assert_internal(m_core_ptr != nullptr);
     m_core_ptr->extract_block(M, start_row, start_col, mode, c_this, c_M);
   }

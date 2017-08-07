@@ -20,7 +20,7 @@
 #pragma once
 #include <array>
 #include <functional>
-#include <linalgwrap/MultiVector.hh>
+#include <lazyten/MultiVector.hh>
 
 namespace gint {
 
@@ -37,8 +37,8 @@ namespace gint {
 template <typename Scalar>
 class ERITensor_i {
  public:
-  typedef const linalgwrap::MutableMemoryVector_i<Scalar> iface_vector_type;
-  typedef linalgwrap::MultiVector<iface_vector_type> iface_multivector_type;
+  typedef const lazyten::MutableMemoryVector_i<Scalar> iface_vector_type;
+  typedef lazyten::MultiVector<iface_vector_type> iface_multivector_type;
 
   //@{
   /** Contract the electron repulsion tensor, which is implicitly represented
@@ -56,12 +56,12 @@ class ERITensor_i {
    * vector, such that later indices run faster (C-like convention).
    */
   template <typename Vector>
-  void contract_with(const linalgwrap::MultiVector<Vector>& c_wb1,
-                     const linalgwrap::MultiVector<Vector>& c_xb2,
-                     const linalgwrap::MultiVector<Vector>& c_yb3,
-                     const linalgwrap::MultiVector<Vector>& c_zb4,
+  void contract_with(const lazyten::MultiVector<Vector>& c_wb1,
+                     const lazyten::MultiVector<Vector>& c_xb2,
+                     const lazyten::MultiVector<Vector>& c_yb3,
+                     const lazyten::MultiVector<Vector>& c_zb4,
                      std::vector<Scalar>& out) const {
-    using namespace linalgwrap;
+    using namespace lazyten;
     iface_multivector_type c_wb1_wrap(c_wb1);
     iface_multivector_type c_xb2_wrap(c_xb2);
     iface_multivector_type c_yb3_wrap(c_yb3);
