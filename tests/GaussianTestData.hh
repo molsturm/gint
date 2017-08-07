@@ -21,7 +21,7 @@
 #include <gint/config.hh>
 #include <krims/GenMap.hh>
 #include <krims/Range.hh>
-#include <linalgwrap/MultiVector.hh>
+#include <lazyten/MultiVector.hh>
 
 namespace gint {
 namespace tests {
@@ -32,7 +32,7 @@ struct GaussianTestData {
   typedef real_valued::stored_matrix_type stored_matrix_type;
   typedef typename stored_matrix_type::vector_type vector_type;
   typedef real_valued::scalar_type scalar_type;
-  typedef linalgwrap::MultiVector<vector_type> mulvector_type;
+  typedef lazyten::MultiVector<vector_type> mulvector_type;
 
   //! The parameters to setup the integral library
   static const krims::GenMap integral_parameters;

@@ -60,7 +60,7 @@ addons:
     packages:
       - ninja-build
       #
-      # Packages for linalgwrap
+      # Packages for lazyten
       - libarmadillo-dev
       - libboost-dev
       - liblapack-dev
@@ -132,7 +132,7 @@ script:
            -DAUTOCHECKOUT_MISSING_REPOS=ON
            -DRC_ENABLE_TESTS=OFF
            -DKRIMS_ENABLE_TESTS=OFF -DKRIMS_ENABLE_EXAMPLES=OFF
-           -DLINALGWRAP_ENABLE_TESTS=OFF -DLINALGWRAP_ENABLE_EXAMPLES=OFF
+           -DLAZYTEN_ENABLE_TESTS=OFF -DLAZYTEN_ENABLE_EXAMPLES=OFF
            -DGINT_ENABLE_STATIC_INTEGRALS=ON
            -DGINT_ENABLE_LIBINT=ON ${LIBINT_OPTS}
            -GNinja ..

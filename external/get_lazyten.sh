@@ -1,21 +1,21 @@
 #!/bin/sh
 ## ---------------------------------------------------------------------
 ##
-## Copyright (C) 2016 by the gint authors
+## Copyright (C) 2017 by the gint authors
 ##
 ## This file is part of gint.
 ##
 ## gint is free software: you can redistribute it and/or modify
-## it under the terms of the GNU Lesser General Public License as published
+## it under the terms of the GNU General Public License as published
 ## by the Free Software Foundation, either version 3 of the License, or
 ## (at your option) any later version.
 ##
 ## gint is distributed in the hope that it will be useful,
 ## but WITHOUT ANY WARRANTY; without even the implied warranty of
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Lesser General Public License for more details.
+## GNU General Public License for more details.
 ##
-## You should have received a copy of the GNU Lesser General Public License
+## You should have received a copy of the GNU General Public License
 ## along with gint. If not, see <http://www.gnu.org/licenses/>.
 ##
 ## ---------------------------------------------------------------------
@@ -27,13 +27,13 @@
 # Settings
 #
 # The git repo to checkout
-FROM="https://github.com/linalgwrap/linalgwrap.git"
+FROM="https://github.com/lazyten/lazyten.git"
 
 # Branch to checkout (empty for default)
 BRANCH=""
 
 # Folder to check it out to
-WHAT="linalgwrap"
+WHAT="lazyten"
 
 # Interval: How often to update (in seconds)
 INTERVAL="3600" # == 1 hour

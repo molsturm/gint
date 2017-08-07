@@ -20,8 +20,8 @@
 #pragma once
 /* clang-format off */
 @SCALAR_TYPES_HEADERS@
-#include <linalgwrap/Armadillo/ArmadilloMatrix.hh>
-#include <linalgwrap/Base/Interfaces/MutableMemoryVector_i.hh>
+#include <lazyten/Armadillo/ArmadilloMatrix.hh>
+#include <lazyten/Base/Interfaces/MutableMemoryVector_i.hh>
 
 namespace gint {
 //
@@ -43,7 +43,7 @@ namespace real_valued {
 using scalar_type = real_type;
 
 /** The stored matrix type for real-valued operators */
-using stored_matrix_type = linalgwrap::ArmadilloMatrix<real_type>;
+using stored_matrix_type = lazyten::ArmadilloMatrix<real_type>;
 
 /** The multivector type for real-valued operators */
 using multivector_type = stored_matrix_type;
@@ -65,7 +65,7 @@ namespace complex_valued {
 using scalar_type = complex_type;
 
 /** The stored matrix type for real-valued operators */
-using stored_matrix_type = linalgwrap::ArmadilloMatrix<complex_type>;
+using stored_matrix_type = lazyten::ArmadilloMatrix<complex_type>;
 
 /** The multivector type for real-valued operators */
 using multivector_type = stored_matrix_type;

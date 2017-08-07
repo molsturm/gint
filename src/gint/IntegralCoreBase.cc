@@ -24,7 +24,7 @@ namespace gint {
 template <typename StoredMatrix>
 void IntegralCoreBase<StoredMatrix>::apply(const const_multivector_type& x,
                                            multivector_type& y,
-                                           const linalgwrap::Transposed mode,
+                                           const lazyten::Transposed mode,
                                            const scalar_type c_A,
                                            const scalar_type c_y) const {
   const auto& A(*this);
@@ -34,7 +34,7 @@ void IntegralCoreBase<StoredMatrix>::apply(const const_multivector_type& x,
   assert_size(x.n_cols(), y.n_cols());
   assert_size(x.n_rows(), n_cols());
   assert_size(y.n_rows(), n_rows());
-  assert_sufficiently_tested(mode != linalgwrap::Transposed::ConjTrans);
+  assert_sufficiently_tested(mode != lazyten::Transposed::ConjTrans);
 
   // All modes are same case since we assume symmetric and real, so no
   // switching over mode.
@@ -49,7 +49,7 @@ void IntegralCoreBase<StoredMatrix>::apply(const const_multivector_type& x,
     for (size_t b = 0; b < A.n_cols(); ++b) {
       for (size_t q = 0; q < x.n_cols(); q++) {
         // Only implemented for symmetric matrices:
-        assert_implemented(mode == linalgwrap::Transposed::None ||
+        assert_implemented(mode == lazyten::Transposed::None ||
                            std::abs(A(a, b) - A(b, a)) < 1e-14);
 
         y(a, q) += c_A * A(a, b) * x(b, q);
@@ -61,10 +61,10 @@ template <typename StoredMatrix>
 void IntegralCoreBase<StoredMatrix>::extract_block(stored_matrix_type& M,
                                                    const size_t start_row,
                                                    const size_t start_col,
-                                                   const linalgwrap::Transposed mode,
+                                                   const lazyten::Transposed mode,
                                                    const scalar_type c_A,
                                                    const scalar_type c_M) const {
-  using namespace linalgwrap;
+  using namespace lazyten;
 
   const auto& A(*this);
 
@@ -91,7 +91,7 @@ void IntegralCoreBase<StoredMatrix>::extract_block(stored_matrix_type& M,
   for (size_t i = start_row, i0 = 0; i < start_row + M.n_rows(); i++, i0++) {
     for (size_t j = start_col, j0 = 0; j < start_col + M.n_cols(); j++, j0++) {
       // Only implemented for symmetric matrices:
-      assert_implemented(mode == linalgwrap::Transposed::None ||
+      assert_implemented(mode == lazyten::Transposed::None ||
                          std::abs(A(i, j) - A(j, i)) < 1e-14);
 
       M(i0, j0) += c_A * A(i, j);

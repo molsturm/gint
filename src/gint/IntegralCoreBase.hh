@@ -23,7 +23,7 @@
 #include <krims/GenMap.hh>
 #include <krims/Subscribable.hh>
 #include <krims/TypeUtils.hh>
-#include <linalgwrap/Base/Interfaces.hh>
+#include <lazyten/Base/Interfaces.hh>
 
 namespace gint {
 
@@ -85,7 +85,7 @@ class IntegralCoreBase {
   virtual void apply(
         // NB: This will change when the new multivector interface is implemented.
         const const_multivector_type& x, multivector_type& y,
-        const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
+        const lazyten::Transposed mode = lazyten::Transposed::None,
         const scalar_type c_this = 1, const scalar_type c_y = 0) const;
 
   /** \brief Compute the Inverse-Multivector application
@@ -97,7 +97,7 @@ class IntegralCoreBase {
    */
   virtual void apply_inverse(
         const const_multivector_type& /*x*/, multivector_type& /*y*/,
-        const linalgwrap::Transposed /*mode*/ = linalgwrap::Transposed::None,
+        const lazyten::Transposed /*mode*/ = lazyten::Transposed::None,
         const scalar_type /*c_this*/ = 1, const scalar_type /*c_y*/ = 0) const {
     assert_throw(false, krims::ExcDisabled("The apply_inverse function is in general "
                                            "very expensive and is only implemented in "
@@ -116,7 +116,7 @@ class IntegralCoreBase {
    * LazyMatrixExpression class for details.
    */
   virtual void mmult(const stored_matrix_type& in, stored_matrix_type& out,
-                     const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
+                     const lazyten::Transposed mode = lazyten::Transposed::None,
                      const scalar_type c_this = 1, const scalar_type c_out = 0) const {
     // TODO for simplicity we do not force this method to be implemented
     // at the moment
@@ -140,10 +140,10 @@ class IntegralCoreBase {
    * See the documentation of this function in linalgrwap's
    * LazyMatrixExpression class for details.
    */
-  virtual void extract_block(
-        stored_matrix_type& M, const size_t start_row, const size_t start_col,
-        const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
-        const scalar_type c_A = 1, const scalar_type c_M = 0) const;
+  virtual void extract_block(stored_matrix_type& M, const size_t start_row,
+                             const size_t start_col,
+                             const lazyten::Transposed mode = lazyten::Transposed::None,
+                             const scalar_type c_A = 1, const scalar_type c_M = 0) const;
 
   /** \brief Clone the expression */
   virtual std::unique_ptr<IntegralCoreBase> clone() const = 0;

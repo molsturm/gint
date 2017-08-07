@@ -24,10 +24,9 @@ namespace gint {
 
 template <typename StoredMatrix>
 void Integral<StoredMatrix>::apply(
-      const linalgwrap::MultiVector<const linalgwrap::MutableMemoryVector_i<scalar_type>>&
-            x_in,
-      linalgwrap::MultiVector<linalgwrap::MutableMemoryVector_i<scalar_type>>& y_out,
-      const linalgwrap::Transposed mode, const scalar_type c_this,
+      const lazyten::MultiVector<const lazyten::MutableMemoryVector_i<scalar_type>>& x_in,
+      lazyten::MultiVector<lazyten::MutableMemoryVector_i<scalar_type>>& y_out,
+      const lazyten::Transposed mode, const scalar_type c_this,
       const scalar_type c_y) const {
   assert_internal(m_core_ptr != nullptr);
   assert_size(x_in.n_elem(), y_out.n_elem());
@@ -50,10 +49,9 @@ void Integral<StoredMatrix>::apply(
 
 template <typename StoredMatrix>
 void Integral<StoredMatrix>::apply_inverse(
-      const linalgwrap::MultiVector<const linalgwrap::MutableMemoryVector_i<scalar_type>>&
-            x_in,
-      linalgwrap::MultiVector<linalgwrap::MutableMemoryVector_i<scalar_type>>& y_out,
-      const linalgwrap::Transposed mode, const scalar_type c_this,
+      const lazyten::MultiVector<const lazyten::MutableMemoryVector_i<scalar_type>>& x_in,
+      lazyten::MultiVector<lazyten::MutableMemoryVector_i<scalar_type>>& y_out,
+      const lazyten::Transposed mode, const scalar_type c_this,
       const scalar_type c_y) const {
   assert_internal(m_core_ptr != nullptr);
   assert_size(x_in.n_elem(), y_out.n_elem());

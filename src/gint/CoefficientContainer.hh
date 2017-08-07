@@ -21,7 +21,7 @@
 #include <gint/IntegralCoreBase.hh>
 #include <gint/config.hh>
 #include <krims/GenMap.hh>
-#include <linalgwrap/MultiVector.hh>
+#include <lazyten/MultiVector.hh>
 
 namespace gint {
 
@@ -29,7 +29,7 @@ template <typename StoredMatrix>
 class CoefficientContainer {
  public:
   typedef typename StoredMatrix::vector_type vector_type;
-  typedef const linalgwrap::MultiVector<const vector_type> coefficients_type;
+  typedef const lazyten::MultiVector<const vector_type> coefficients_type;
   typedef std::shared_ptr<coefficients_type> coefficients_ptr_type;
 
   /** \brief Update the internal data
@@ -50,7 +50,7 @@ class CoefficientContainer {
  protected:
   // TODO The better solution for this would be a lazy matrix for the density object.
   real_valued::stored_matrix_type compute_density_matrix() const {
-    auto dens = linalgwrap::outer_prod_sum(coeff_bo(), coeff_bo());
+    auto dens = lazyten::outer_prod_sum(coeff_bo(), coeff_bo());
     assert_internal(dens.is_symmetric());
     return dens;
   }

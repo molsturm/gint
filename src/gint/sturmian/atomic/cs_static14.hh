@@ -38,7 +38,7 @@ using namespace gint::real_valued;
 
 void apply_stored_matrix(const stored_matrix_type& A, const const_multivector_type& x,
                          multivector_type& y,
-                         const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
+                         const lazyten::Transposed mode = lazyten::Transposed::None,
                          const scalar_type c_A = 1, const scalar_type c_y = 0);
 
 class ERITensor final : public ERITensor_i<scalar_type> {
@@ -121,15 +121,15 @@ class OneElecIntegralCore final : public gint::IntegralCoreBase<stored_matrix_ty
   bool has_apply_inverse() const override { return m_inv_mat_ptr != nullptr; }
 
   void apply(const const_multivector_type& x, multivector_type& y,
-             const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
+             const lazyten::Transposed mode = lazyten::Transposed::None,
              const scalar_type c_A = 1, const scalar_type c_y = 0) const override {
     apply_stored_matrix(*m_mat_ptr, x, y, mode, m_fac * c_A, c_y);
   }
 
   void apply_inverse(const const_multivector_type& x, multivector_type& y,
-                     const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
-                     const scalar_type c_A             = 1,
-                     const scalar_type c_y             = 0) const override {
+                     const lazyten::Transposed mode = lazyten::Transposed::None,
+                     const scalar_type c_A          = 1,
+                     const scalar_type c_y          = 0) const override {
     assert_throw(m_inv_mat_ptr,
                  krims::ExcDisabled("The apply_inverse function is in general "
                                     "very expensive and is only implemented in "
@@ -143,9 +143,9 @@ class OneElecIntegralCore final : public gint::IntegralCoreBase<stored_matrix_ty
    */
   void extract_block(stored_matrix_type& M, const size_t start_row,
                      const size_t start_col,
-                     const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
-                     const scalar_type c_this          = 1,
-                     const scalar_type c_M             = 0) const override {
+                     const lazyten::Transposed mode = lazyten::Transposed::None,
+                     const scalar_type c_this       = 1,
+                     const scalar_type c_M          = 0) const override {
     m_mat_ptr->extract_block(M, start_row, start_col, mode, m_fac * c_this, c_M);
   }
 

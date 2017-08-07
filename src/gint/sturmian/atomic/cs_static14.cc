@@ -90,7 +90,7 @@ OneElecIntegralCore::OneElecIntegralCore(IntegralType type, const scalar_type Z,
 }
 
 void apply_stored_matrix(const stored_matrix_type& A, const const_multivector_type& x,
-                         multivector_type& y, const linalgwrap::Transposed mode,
+                         multivector_type& y, const lazyten::Transposed mode,
                          const scalar_type c_A, const scalar_type c_y) {
   // scale y by c_y or set to zero
   for (size_t i = 0; i < x.n_rows(); i++)

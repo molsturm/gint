@@ -31,7 +31,7 @@ namespace nlm_order {
 template <typename RepulsionCalculator>
 void ERICoreHighPrecision<RepulsionCalculator>::apply(const const_multivector_type& x,
                                                       multivector_type& y,
-                                                      const linalgwrap::Transposed mode,
+                                                      const lazyten::Transposed mode,
                                                       const scalar_type c_A,
                                                       const scalar_type c_y) const {
   // TODO Conceptionally this is code duplication with the apply function
@@ -45,7 +45,7 @@ void ERICoreHighPrecision<RepulsionCalculator>::apply(const const_multivector_ty
   assert_size(x.n_cols(), y.n_cols());
   assert_size(x.n_rows(), base_type::n_cols());
   assert_size(y.n_rows(), base_type::n_rows());
-  assert_sufficiently_tested(mode != linalgwrap::Transposed::ConjTrans);
+  assert_sufficiently_tested(mode != lazyten::Transposed::ConjTrans);
   // All modes are same case since we are symmetric and real, so no
   // switching over mode.
 
@@ -70,9 +70,9 @@ void ERICoreHighPrecision<RepulsionCalculator>::apply(const const_multivector_ty
   }
 }
 
-#define INSTANTIATE(CLASS)                                                        \
-  template void ERICoreHighPrecision<CLASS>::apply(                               \
-        const const_multivector_type&, multivector_type&, linalgwrap::Transposed, \
+#define INSTANTIATE(CLASS)                                                     \
+  template void ERICoreHighPrecision<CLASS>::apply(                            \
+        const const_multivector_type&, multivector_type&, lazyten::Transposed, \
         const scalar_type, const scalar_type) const
 
 INSTANTIATE(sturmint::atomic::cs_naive::Atomic);

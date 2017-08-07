@@ -45,7 +45,7 @@ class ERICoreHighPrecision : public ERICore<RepulsionCalculator> {
 
   /** Apply to a multivector, internally use working_scalar_type to do computation */
   void apply(const const_multivector_type& x, multivector_type& y,
-             const linalgwrap::Transposed mode = linalgwrap::Transposed::None,
+             const lazyten::Transposed mode = lazyten::Transposed::None,
              const scalar_type c_A = 1, const scalar_type c_y = 0) const override;
 
   /** Clone the matrix expression */
