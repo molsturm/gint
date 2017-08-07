@@ -43,13 +43,6 @@ drb_add_executable(gint_tests
 	FILES ${GINT_TESTS_SOURCES}
 )
 
-drb_target_compile_definitions(ALL     gint_tests
-	PRIVATE ${GINT_DEFINITIONS})
-drb_target_compile_definitions(DEBUG   gint_tests
-	PRIVATE ${GINT_DEFINITIONS_DEBUG})
-drb_target_compile_definitions(RELEASE gint_tests
-	PRIVATE ${GINT_DEFINITIONS_RELEASE})
-
 drb_target_link_libraries(ALL     gint_tests
 	${GINT_DEPENDENCIES} ${GINT_DEPENDENCIES_TEST})
 drb_target_link_libraries(DEBUG   gint_tests

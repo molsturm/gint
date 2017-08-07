@@ -27,10 +27,6 @@
 #       GINT_DEPENDENCIES_RELEASE	release mode needs these extras
 #       GINT_DEPENDENCIES_TEST		tests need these extra libraries
 #
-#       GINT_DEFINITIONS		definitions for all compilation
-#       GINT_DEFINITIONS_DEBUG		definitions for debug mode
-#       GINT_DEFINITIONS_RELEASE	definitions for release mode
-#
 
 # Module to help manage optional features
 include_krims_cmake_module(ProjectFeatures)

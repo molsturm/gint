@@ -26,10 +26,6 @@
 #       GINT_DEPENDENCIES_RELEASE       release mode needs these extras
 #       GINT_DEPENDENCIES_TEST          tests need these extra libraries
 #
-#       GINT_DEFINITIONS                definitions for all compilation
-#       GINT_DEFINITIONS_DEBUG          definitions for debug mode
-#       GINT_DEFINITIONS_RELEASE        definitions for release mode
-#
 
 ####################
 #-- Empty it all --#
@@ -38,9 +34,6 @@ set(GINT_DEPENDENCIES "")
 set(GINT_DEPENDENCIES_DEBUG "")
 set(GINT_DEPENDENCIES_RELEASE "")
 set(GINT_DEPENDENCIES_TEST "")
-set(GINT_DEFINITIONS "")
-set(GINT_DEFINITIONS_DEBUG "")
-set(GINT_DEFINITIONS_RELEASE "")
 
 ###############
 #--  Types  --#
