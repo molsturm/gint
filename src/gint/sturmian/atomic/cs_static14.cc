@@ -32,9 +32,16 @@ namespace cs_static14 {
 const std::string IntegralCollection::id = "sturmian/atomic/cs_static14";
 
 double atom_charge(const krims::GenMap& parameters) {
+  if (!parameters.exists(IntegralLookupKeys::structure)) {
+    // TODO Is this a sensible way to deal with this?
+    // No structure provided, i.e. no atom, i.e. charge is zero
+    return 0;
+  }
   const auto structure_ptr =
         parameters.at_ptr<const Structure>(IntegralLookupKeys::structure);
-  assert_throw(structure_ptr->n_atoms(),
+
+  if (structure_ptr->n_atoms() == 0) return 0;
+  assert_throw(structure_ptr->n_atoms() == 1,
                ExcInvalidIntegralParameters("The structure provided to cs_static14 is "
                                             "not an atom, but a molecule consisting of " +
                                             std::to_string(structure_ptr->n_atoms()) +
