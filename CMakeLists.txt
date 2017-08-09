@@ -47,9 +47,6 @@ enable_testing()
 ##########################################################################
 # Global options
 
-# Path where cmake wants the modules and config packages:
-set(PackageModuleLocation share/cmake)
-
 # setup global options
 # TODO until the python interface of gint is ready, disable by default:
 option(GINT_INTERFACE_PYTHON "Build and install python interface module (gint)" OFF)

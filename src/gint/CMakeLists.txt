@@ -103,6 +103,6 @@ export(EXPORT GintTargets
 install(EXPORT GintTargets
 	FILE "gintTargets.cmake"
 	NAMESPACE Upstream::
-	DESTINATION "${PackageModuleLocation}/gint"
+	DESTINATION "share/cmake/gint"
 )
 
