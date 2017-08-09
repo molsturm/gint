@@ -71,10 +71,6 @@ drb_set_target_properties(
 	VERSION "${PROJECT_VERSION}"
 )
 
-drb_target_compile_definitions(ALL     gint PUBLIC ${GINT_DEFINITIONS})
-drb_target_compile_definitions(DEBUG   gint PUBLIC ${GINT_DEFINITIONS_DEBUG})
-drb_target_compile_definitions(RELEASE gint PUBLIC ${GINT_DEFINITIONS_RELEASE})
-
 drb_target_link_libraries(ALL     gint ${GINT_DEPENDENCIES})
 drb_target_link_libraries(DEBUG   gint ${GINT_DEPENDENCIES_DEBUG})
 drb_target_link_libraries(RELEASE gint ${GINT_DEPENDENCIES_RELEASE})
@@ -107,6 +103,6 @@ export(EXPORT GintTargets
 install(EXPORT GintTargets
 	FILE "gintTargets.cmake"
 	NAMESPACE Upstream::
-	DESTINATION "${PackageModuleLocation}/gint"
+	DESTINATION "share/cmake/gint"
 )
 

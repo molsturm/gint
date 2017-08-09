@@ -27,10 +27,6 @@
 #       GINT_DEPENDENCIES_RELEASE	release mode needs these extras
 #       GINT_DEPENDENCIES_TEST		tests need these extra libraries
 #
-#       GINT_DEFINITIONS		definitions for all compilation
-#       GINT_DEFINITIONS_DEBUG		definitions for debug mode
-#       GINT_DEFINITIONS_RELEASE	definitions for release mode
-#
 
 # Module to help manage optional features
 include_krims_cmake_module(ProjectFeatures)
@@ -54,9 +50,8 @@ disable_feature(sturmint)
 option(GINT_ENABLE_STURMINT "Enable the sturmint library to compute Sturmian integrals." OFF)
 
 if (GINT_ENABLE_STURMINT)
-	# Find at least version 0.0.0
-	set(STURMINT_VERSION 0.0.0)
-	include(cmake/findSturmint.cmake)
+	include_krims_cmake_module(FindPackageAutocheckoutFallback)
+	find_package_autocheckout_fallback(sturmint 0.0.0)
 
 	foreach (build ${DRB_BUILD_TYPES})
 		set(GINT_DEPENDENCIES_${build} ${GINT_DEPENDENCIES_${build}} ${sturmint_${build}_TARGET})

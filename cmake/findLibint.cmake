@@ -41,6 +41,7 @@
 # Options and cache variables
 #
 option(AUTOCHECKOUT_MISSING_REPOS "Automatically checkout missing repositories" OFF)
+message(WARNING "AUTOCHECKOUT_FORCED should be worked into this.")
 
 #
 # -------
@@ -209,7 +210,7 @@ if(AUTOCHECKOUT_MISSING_REPOS)
 	return()
 endif()
 
-message(FATAL_ERROR "Could not find libint library.
-Either enable the use of a system-provided libint (using LIBINT_SEARCH_SYSTEM,
-provide hints to the installation using the cmake variables LIBINT_INCLUDE_DIR
+message(FATAL_ERROR "Could not find libint library. \
+Either enable the use of a system-provided libint (using LIBINT_SEARCH_SYSTEM, \
+provide hints to the installation using the cmake variables LIBINT_INCLUDE_DIR \
 and LIBINT_LIBRARY or enable autocheckout via '-DAUTOCHECKOUT_MISSING_REPOS=ON'.")

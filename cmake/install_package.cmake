@@ -20,8 +20,6 @@
 ## ---------------------------------------------------------------------
 
 # Installs the cmake apckage information this project provides
-#
-# Requires the variable PackageModuleLocation to be set.
 
 # Write a basic version file for gint
 include(CMakePackageConfigHelpers)
@@ -40,7 +38,7 @@ configure_file(cmake/gintConfig.cmake.in
 install(FILES
 	"${gint_BINARY_DIR}/gintConfig.cmake"
 	"${gint_BINARY_DIR}/gintConfigVersion.cmake"
-	DESTINATION "${PackageModuleLocation}/gint"
+	DESTINATION "share/cmake/gint"
 	COMPONENT devel
 )
 

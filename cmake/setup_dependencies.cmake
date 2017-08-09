@@ -26,10 +26,6 @@
 #       GINT_DEPENDENCIES_RELEASE       release mode needs these extras
 #       GINT_DEPENDENCIES_TEST          tests need these extra libraries
 #
-#       GINT_DEFINITIONS                definitions for all compilation
-#       GINT_DEFINITIONS_DEBUG          definitions for debug mode
-#       GINT_DEFINITIONS_RELEASE        definitions for release mode
-#
 
 ####################
 #-- Empty it all --#
@@ -38,9 +34,6 @@ set(GINT_DEPENDENCIES "")
 set(GINT_DEPENDENCIES_DEBUG "")
 set(GINT_DEPENDENCIES_RELEASE "")
 set(GINT_DEPENDENCIES_TEST "")
-set(GINT_DEFINITIONS "")
-set(GINT_DEFINITIONS_DEBUG "")
-set(GINT_DEFINITIONS_RELEASE "")
 
 ###############
 #--  Types  --#
@@ -65,9 +58,8 @@ endif()
 #############
 #-- krims --#
 #############
-set(KRIMS_VERSION 0.1.0)
-include(cmake/findKrims.cmake)
-
+include_krims_cmake_module(FindPackageAutocheckoutFallback)
+find_package_autocheckout_fallback(krims 0.1.0)
 foreach (build ${DRB_BUILD_TYPES})
 	set(GINT_DEPENDENCIES_${build} ${GINT_DEPENDENCIES_${build}} ${krims_${build}_TARGET})
 endforeach()
@@ -75,9 +67,7 @@ endforeach()
 ###############
 #-- lazyten --#
 ###############
-set(LAZYTEN_VERSION 0.3.0)
-include(cmake/findLazyten.cmake)
-
+find_package_autocheckout_fallback(lazyten 0.3.0)
 foreach (build ${DRB_BUILD_TYPES})
 	set(GINT_DEPENDENCIES_${build} ${GINT_DEPENDENCIES_${build}} ${lazyten_${build}_TARGET})
 endforeach()
