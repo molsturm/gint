@@ -58,9 +58,8 @@ endif()
 #############
 #-- krims --#
 #############
-set(KRIMS_VERSION 0.1.0)
-include(cmake/findKrims.cmake)
-
+include_krims_cmake_module(FindPackageAutocheckoutFallback)
+find_package_autocheckout_fallback(krims 0.1.0)
 foreach (build ${DRB_BUILD_TYPES})
 	set(GINT_DEPENDENCIES_${build} ${GINT_DEPENDENCIES_${build}} ${krims_${build}_TARGET})
 endforeach()
@@ -68,9 +67,7 @@ endforeach()
 ###############
 #-- lazyten --#
 ###############
-set(LAZYTEN_VERSION 0.3.0)
-include(cmake/findLazyten.cmake)
-
+find_package_autocheckout_fallback(lazyten 0.3.0)
 foreach (build ${DRB_BUILD_TYPES})
 	set(GINT_DEPENDENCIES_${build} ${GINT_DEPENDENCIES_${build}} ${lazyten_${build}_TARGET})
 endforeach()
