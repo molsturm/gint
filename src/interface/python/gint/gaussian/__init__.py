@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+## vi: tabstop=2 shiftwidth=2 softtabstop=2 expandtab
 ## ---------------------------------------------------------------------
 ##
 ## Copyright (C) 2017 by the molsturm authors
@@ -19,14 +20,13 @@
 ## along with molsturm. If not, see <http://www.gnu.org/licenses/>.
 ##
 ## ---------------------------------------------------------------------
-## vi: tabstop=2 shiftwidth=2 softtabstop=2 expandtab
 
 from .. import element
-import collections
-import numpy as np
+from . import _gaussian_shells as _expr
 from .. import _iface
 from ..interface import Structure
-from . import gaussian_expressions as expr
+import collections
+import numpy as np
 
 class Shell(collections.namedtuple("Shell", [ "l", "pure", "contraction_coefficients",
                                               "contraction_exponents", "centre" ])):
@@ -38,7 +38,8 @@ class Shell(collections.namedtuple("Shell", [ "l", "pure", "contraction_coeffici
 
 
 class Basis:
-  def __init__(self, structure, basis_set, cartesian_ordering="standard"):
+  def __init__(self, structure, basis_set, basis_type=None,
+               cartesian_ordering="standard"):
     """
     structure    Either a gint.Structure object or a tuple (atoms, coords)
                  or just a single atom.
@@ -53,6 +54,7 @@ class Basis:
                  The currently implemented orderings are
                    - standard:  The ordering of the Common Component Architecture.
                                 This is just (xxx, xxy, xxz, xyy, xyz, xzz, yyy, ...)
+    basis_type   Specify a basis type as well (optional)
     """
     if not isinstance(structure, Structure):
       if isinstance(structure, (str,int)):
@@ -76,6 +78,8 @@ class Basis:
     if cartesian_ordering != "standard":
       raise ValueError("Currently only standard cartesian_ordering is implemented.")
 
+    self.basis_type = basis_type
+
   def evaluate_at(self, x, y, z, mask=None):
     if mask:
       raise NotImplementedError("Basis mask is not yet implemented.")
@@ -83,13 +87,13 @@ class Basis:
     evaluated=[]
     for sh in self.shells:
       if sh.pure:
-        res = expr.pure_shell(x, y, z, sh.l, sh.centre,
-                              sh.contraction_coefficients, sh.contraction_exponents)
+        res = _expr.pure_shell(x, y, z, sh.l, sh.centre,
+                               sh.contraction_coefficients, sh.contraction_exponents)
       else:
-        res = expr.cartesian_shell(x, y, z, sh.l, sh.centre,
-                                   sh.contraction_coefficients,
-                                   sh.contraction_exponents,
-                                   self.cartesian_ordering)
+        res = _expr.cartesian_shell(x, y, z, sh.l, sh.centre,
+                                    sh.contraction_coefficients,
+                                    sh.contraction_exponents,
+                                    self.cartesian_ordering)
       evaluated.append(res)
     return np.concatenate(evaluated)
 

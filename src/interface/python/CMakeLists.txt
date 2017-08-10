@@ -47,6 +47,8 @@ install(DIRECTORY gint
 	COMPONENT python-module
 	DESTINATION ${PYSITE_PACKAGES}
 	PATTERN gint/_iface.py EXCLUDE
+	PATTERN gint/*/_generate_*.py EXCLUDE
+	PATTERN */__pycache__/* EXCLUDE
 )
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${MODULE_NAME}.py
 	COMPONENT python-module
