@@ -22,11 +22,11 @@
 #include <gint/gaussian/Basis.hh>
 
 namespace gint {
-namespace iface {
+namespace interface {
 
 gint::gaussian::Basis construct_gaussian_basis(long* atom_numbers, int n_atoms_an,
                                                double* coords, int n_atoms_c, int three_c,
                                                const std::string& basis_name);
 
-}  // namespace iface
+}  // namespace interface
 }  // namespace gint

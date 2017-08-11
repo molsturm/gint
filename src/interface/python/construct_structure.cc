@@ -21,7 +21,7 @@
 #include <gint/config.hh>
 
 namespace gint {
-namespace iface {
+namespace interface {
 
 Structure construct_structure(long* atom_numbers, int n_atoms_an, double* coords,
                               int n_atoms_c, int three_c) {
@@ -43,5 +43,5 @@ Structure construct_structure(long* atom_numbers, int n_atoms_an, double* coords
   return molecule;
 }
 
-}  // namespace iface
+}  // namespace interface
 }  // namespace gint

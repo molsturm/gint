@@ -25,6 +25,7 @@
 #include <gint/gaussian/Shell.hh>
 #include <gint/gaussian/Basis.hh>
 #include "interface/python/construct_gaussian_basis.hh"
+#include "interface/python/available_basis_types.hh"
 
 // Run the %init block (to setup numpy)
 #define SWIG_FILE_WITH_INIT
@@ -55,5 +56,6 @@ import_array();
 %include "../../gint/gaussian/Shell.hh"
 %include "../../gint/gaussian/Basis.hh"
 %include "construct_gaussian_basis.hh"
+%include "available_basis_types.hh"
 
 // vi: syntax=c

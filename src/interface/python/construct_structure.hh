@@ -21,11 +21,11 @@
 #include <gint/Structure.hh>
 
 namespace gint {
-namespace iface {
+namespace interface {
 
 /** Helper function to construct a gint::Structure from a set of flat arrays. */
 gint::Structure construct_structure(long* atom_numbers, int n_atoms_an, double* coords,
                                     int n_atoms_c, int three_c);
 
-}  // namespace iface
+}  // namespace interface
 }  // namespace gint
