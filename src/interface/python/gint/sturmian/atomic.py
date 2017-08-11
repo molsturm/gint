@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+## vi: tabstop=4 shiftwidth=4 softtabstop=4 expandtab
 ## ---------------------------------------------------------------------
 ##
 ## Copyright (C) 2017 by the molsturm authors
@@ -19,11 +20,14 @@
 ## along with molsturm. If not, see <http://www.gnu.org/licenses/>.
 ##
 ## ---------------------------------------------------------------------
-## vi: tabstop=2 shiftwidth=2 softtabstop=2 expandtab
 
-try:
-  from sturmint import atomic as atomic
-  have_sturmian = True
-except ImportError:
-  have_sturmian = False
+# Try to find sturmint module first
+import importlib
+sturmint_spec = importlib.util.find_spec("sturmint")
 
+if sturmint_spec is not None:
+    from ._atomic_sturmint import *
+else:
+    from ._atomic_without_sturmint import *
+
+del sturmint_spec

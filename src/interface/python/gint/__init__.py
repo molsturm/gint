@@ -23,3 +23,4 @@
 
 from . import element
 from .interface import Structure
+from ._available_basis_types import available_basis_types

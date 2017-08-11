@@ -21,7 +21,7 @@
 ##
 ## ---------------------------------------------------------------------
 
-from .. import element
+from .._available_basis_types import available_basis_types
 from . import _gaussian_shells as _expr
 from .. import _iface
 from ..interface import Structure
@@ -33,12 +33,17 @@ class Shell(collections.namedtuple("Shell", [ "l", "pure", "contraction_coeffici
   @property
   def n_bas(self):
     return 2 * self.l + 1 if self.pure else (self.l + 1)*(self.l + 2) // 2
+
   def __len__(self):
     return self.n_bas()
 
 
+"""The list of available gaussian backends"""
+available_backends = [t[9:] for t in available_basis_types if t.startswith("gaussian/")]
+
+
 class Basis:
-  def __init__(self, structure, basis_set, basis_type=None,
+  def __init__(self, structure, basis_set, backend="auto",
                cartesian_ordering="standard"):
     """
     structure    Either a gint.Structure object or a tuple (atoms, coords)
@@ -54,8 +59,13 @@ class Basis:
                  The currently implemented orderings are
                    - standard:  The ordering of the Common Component Architecture.
                                 This is just (xxx, xxy, xxz, xyy, xyz, xzz, yyy, ...)
-    basis_type   Specify a basis type as well (optional)
+    backend      Specify the precise backend to use.
+                 Should be available. Otherwise an error is produced.
     """
+    if len(available_backends) == 0:
+      raise RuntimeError("No gaussian backend is available in gint. The list of "
+                         "available basis types is: " + ",".join(available_basis_types))
+
     if not isinstance(structure, Structure):
       if isinstance(structure, (str,int)):
         structure = Structure(atoms=structure)
@@ -78,7 +88,24 @@ class Basis:
     if cartesian_ordering != "standard":
       raise ValueError("Currently only standard cartesian_ordering is implemented.")
 
-    self.basis_type = basis_type
+    if backend == "auto":
+      # List the priority of the backends
+      __backend_priority = ["libint"]
+
+      for b in __backend_priority + available_backends:
+        if b in available_backends:
+          self.backend = b
+          break
+    else:
+      if not backend in available_backends:
+        raise ValueError("The gaussian inegral backend " + backend + " is not available. "
+                         "The following basis types are implemented: " +
+                         ",".join(available_basis_types))
+      self.backend = backend
+
+  @property
+  def basis_type(self):
+    return "gaussian/" + self.backend
 
   def evaluate_at(self, x, y, z, mask=None):
     if mask:

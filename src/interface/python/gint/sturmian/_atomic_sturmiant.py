@@ -21,7 +21,15 @@
 ##
 ## ---------------------------------------------------------------------
 
-from . import _iface
+from .._available_basis_types import available_basis_types
+import sturmint
 
-""" The list of available basis types """
-available_basis_types = tuple(_iface.available_basis_types())
+"""The list of available sturmian backends"""
+available_backends = [t[9:] for t in available_basis_types if t.startswith("sturmian/")]
+
+
+print("WARNING:  sturmian Basis structure is not yet properly implemented.")
+
+
+class Basis(sturmint.Basis):
+    pass

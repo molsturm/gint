@@ -47,6 +47,12 @@
 %include "numpy.i"
 %include "std_string.i"
 %include "structure_flat.i"
+%include "std_vector.i"
+
+// Instantiate what is needed
+namespace std {
+  %template(StringVector)  vector<string>;
+}
 
 // Setup import of numpy array:
 %init %{
