@@ -53,11 +53,18 @@ struct Shell {
   bool pure;
 
 #ifndef SWIG
+  //@{
   /** Return the number of basis functions in this shell */
   int size() const { return pure ? (2 * l + 1) : (l + 1) * (l + 2) / 2; }
-
-  /** Return the number of basis functions in this shell */
   int n_bas() const { return size(); }
+  //@}
+
+  //@{
+  /** Return the number of primitives, i.e. the number of basis functions which are
+   * contracted together */
+  size_t n_primitives() const { return coefficients.size(); }
+  size_t n_contracted() const { return n_primitives(); }
+  //@}
 
   /** Contraction coefficients */
   std::vector<real_type> coefficients;
