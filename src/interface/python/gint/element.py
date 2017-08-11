@@ -26,7 +26,7 @@ import collections.abc
 
 Element = collections.namedtuple("Element", [ "atom_number", "symbol", "name" ])
 
-# TODO Autogenerate from shared data with the C++ side
+# Note: This list is also used to generate the element data on the C++ side.
 elements = (
   Element(  1, "H" , "hydrogen"),       Element(  2, "He", "helium"),
   Element(  3, "Li", "lithium"),        Element(  4, "Be", "beryllium"),

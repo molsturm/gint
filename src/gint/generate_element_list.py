@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+## vi: tabstop=2 shiftwidth=2 softtabstop=2 expandtab
 ## ---------------------------------------------------------------------
 ##
 ## Copyright (C) 2017 by the molsturm authors
@@ -19,10 +20,9 @@
 ## along with molsturm. If not, see <http://www.gnu.org/licenses/>.
 ##
 ## ---------------------------------------------------------------------
-## vi: tabstop=2 shiftwidth=2 softtabstop=2 expandtab
 
 import sys
-sys.path.append("../gint_iface/")
+sys.path = ["../gint_iface/"] + sys.path
 
 
 from datetime import date
