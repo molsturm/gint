@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+## vi: tabstop=4 shiftwidth=4 softtabstop=4 expandtab
 ## ---------------------------------------------------------------------
 ##
 ## Copyright (C) 2017 by the molsturm authors
@@ -19,8 +20,10 @@
 ## along with molsturm. If not, see <http://www.gnu.org/licenses/>.
 ##
 ## ---------------------------------------------------------------------
-## vi: tabstop=2 shiftwidth=2 softtabstop=2 expandtab
 
 from . import element
 from .interface import Structure
 from ._available_basis_types import available_basis_types
+
+import gint.gaussian
+import gint.sturmian.atomic

@@ -43,22 +43,12 @@ available_backends = [t[9:] for t in available_basis_types if t.startswith("gaus
 
 
 class Basis:
-  def __init__(self, structure, basis_set, backend="auto",
-               cartesian_ordering="standard"):
+  def __init__(self, structure, basis_set_name, backend="auto"):
     """
     structure    Either a gint.Structure object or a tuple (atoms, coords)
                  or just a single atom.
                  which gives the list of atoms and the list of their coordinates
-    basis_set    String describing the gaussian basis set to use
-    ordering     The ordering of the basis functions to use if cartesian
-                 angular functions are used.
-                 For pure shells (i.e. with cartesian spherical harmonics)
-                 the ordering is from m=-2 (The terms with more sines) to
-                 m=+2 (The terms with more coses)
-
-                 The currently implemented orderings are
-                   - standard:  The ordering of the Common Component Architecture.
-                                This is just (xxx, xxy, xxz, xyy, xyz, xzz, yyy, ...)
+    basis_set_name   String describing the gaussian basis set to use
     backend      Specify the precise backend to use.
                  Should be available. Otherwise an error is produced.
     """
@@ -73,8 +63,9 @@ class Basis:
         structure = Structure(*structure)
 
     basis_raw = _iface.construct_gaussian_basis(structure.atom_numbers, structure.coords,
-                                                basis_set)
-    shells_raw = ( basis_raw.shell(i) for i in range(basis_raw.n_shells()) )
+                                                basis_set_name)
+    shells_raw = (basis_raw.shell(i) for i in range(basis_raw.n_shells()))
+    self.basis_set_name = basis_set_name
 
     # Setup the shells.
     # Note the explicit copy! This is needed, since the basis_raw.shell
@@ -83,10 +74,6 @@ class Basis:
     self.shells = [ Shell(sh.l, sh.pure, sh.coefficients().copy(),
                           sh.exponents().copy(), sh.origin().copy())
                     for sh in shells_raw ]
-
-    self.cartesian_ordering = cartesian_ordering
-    if cartesian_ordering != "standard":
-      raise ValueError("Currently only standard cartesian_ordering is implemented.")
 
     if backend == "auto":
       # List the priority of the backends
@@ -103,9 +90,32 @@ class Basis:
                          ",".join(available_basis_types))
       self.backend = backend
 
+    if self.backend == "libint":
+      # Libint as we configure it uses standard ordering,
+      # i.e. the ordering of the Common Component Architecture.
+      # (xxx, xxy, xxz, xyy, xyz, xzz, yyy, ...)
+      self.cartesian_ordering = "standard"
+
   @property
   def basis_type(self):
     return "gaussian/" + self.backend
+
+  def __len__(self):
+    return sum(s.n_bas for s in self.shells)
+
+  @property
+  def size(self):
+    """Return the number of basis functions in this basis"""
+    return self.__len__()
+
+  @property
+  def has_real_harmonics():
+    """
+    Does this basis have real functions to describe the angular part. This impies that
+    the repulsion integrals satisfy the extra symmetry (ab|cd) = (ba|cd) in shell
+    pair notation, which would not be true otherwise
+    """
+    return True
 
   def evaluate_at(self, x, y, z, mask=None):
     if mask:
