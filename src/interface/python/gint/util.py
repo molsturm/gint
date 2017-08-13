@@ -22,6 +22,9 @@
 ## vi: tabstop=2 shiftwidth=2 softtabstop=2 expandtab
 
 import numpy as np
+import gint.gaussian
+import gint.sturmian.atomic
+
 
 def cartesian_to_spherical(x, y, z):
     """
@@ -42,3 +45,19 @@ def cartesian_to_spherical(x, y, z):
     #       of function used.
     return r, theta, phi
 
+
+def basis_class_from_name(name):
+    """
+    Return the basis object corresponding to this
+    basis function name or basis type.
+
+    E.g. "gaussian" would return gint.gaussian.Basis
+    and "sturmian/atomic/cs_dummy" would return
+    sturmian.atomic.Basis
+    """
+    if name.startswith("gaussian"):
+        return gint.gaussian.Basis
+    if name.startswith("sturmian/atomic"):
+        return gint.sturmian.atomic.Basis
+    else:
+        raise ValueError("Unknown basis function name: " + name)
