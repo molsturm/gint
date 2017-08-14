@@ -28,9 +28,6 @@ import sturmint.atomic.cs
 available_backends = [t[9:] for t in available_basis_types if t.startswith("sturmian/")]
 
 
-print("WARNING:  sturmian Basis structure is not yet properly implemented.")
-
-
 class Basis(sturmint.atomic.cs.Basis):
     def __init__(self, structure, k_exp, n_max, l_max=None, m_max=None, backend="auto"):
         if backend == "auto":
@@ -66,10 +63,6 @@ class Basis(sturmint.atomic.cs.Basis):
         """Return the number of basis functions in this basis"""
         return self.__len__()
 
-
-
-
     @property
     def basis_type(self):
         return "sturmian/atomic/" + self.backend
-
