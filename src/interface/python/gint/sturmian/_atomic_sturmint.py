@@ -25,7 +25,8 @@ from .._available_basis_types import available_basis_types
 import sturmint.atomic.cs
 
 """The list of available sturmian backends"""
-available_backends = [t[9:] for t in available_basis_types if t.startswith("sturmian/")]
+available_backends = [t[16:] for t in available_basis_types
+                      if t.startswith("sturmian/atomic")]
 
 
 class Basis(sturmint.atomic.cs.Basis):
