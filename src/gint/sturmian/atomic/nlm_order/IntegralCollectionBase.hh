@@ -44,6 +44,9 @@ class IntegralCollectionBase : public gint::IntegralCollectionBase<stored_matrix
   /** Parse the parameters and setup the SturmintSystem object. */
   IntegralCollectionBase(const krims::GenMap& parameters);
 
+  /** Return the number of basis functions */
+  size_t n_bas() const override { return m_system.n_bas(); }
+
  protected:
   /** The system information in a way usable by sturmint integrals */
   SturmintSystem m_system;

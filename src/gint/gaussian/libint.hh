@@ -154,6 +154,9 @@ class IntegralCollection final : public IntegralCollectionBase<stored_matrix_typ
   /** Obtain the id string of the collection / basis type */
   const std::string& basis_id() const override { return id; }
 
+  /** Return the number of basis functions */
+  size_t n_bas() const override { return m_system.n_bas(); }
+
   /** Obtain the friendly name of the collection / basis type */
   std::string basis_name() const override { return "Gaussian integrals from libint2"; }
 
