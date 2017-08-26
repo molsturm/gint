@@ -49,6 +49,7 @@ set(GINT_SOURCES
   sturmian/atomic/NlmBasis.cc
   sturmian/atomic/Static14Data.cc
 
+  gaussian/libcint.cc
   gaussian/libint.cc
   gaussian/Basis.cc
   gaussian/BasisSet.cc

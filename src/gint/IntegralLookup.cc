@@ -23,6 +23,7 @@
 #include <mutex>
 #include <sstream>
 
+#include "gaussian/libcint.hh"
 #include "gaussian/libint.hh"
 #include "sturmian/atomic.hh"
 
@@ -59,6 +60,9 @@ void register_gint_basis_types() {
 #ifdef GINT_HAVE_LIBINT
   REGISTER_BASIS_TYPE(real_t, gaussian::libint);
 #endif  // GINT_HAVE_LIBINT
+#ifdef GINT_HAVE_LIBCINT
+  REGISTER_BASIS_TYPE(real_t, gaussian::libcint);
+#endif  // GINT_HAVE_LIBCINT
 }
 #undef REGISTER_BASIS_TYPE
 
