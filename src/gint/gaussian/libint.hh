@@ -111,6 +111,7 @@ class ERITensor final : public ERITensor_i<scalar_type> {
         : m_system_ptr("LibIntERITensor", system),
           m_global_ptr("LibIntERITensor", global) {}
 
+  /** Number of basis functions in this basis */
   size_t n_bas() const override { return m_system_ptr->n_bas(); }
 
  protected:

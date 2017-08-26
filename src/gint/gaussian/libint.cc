@@ -32,6 +32,10 @@ namespace gint {
 namespace gaussian {
 namespace libint {
 
+// TODO This code has some similarities with the code for linking to libcint.
+//      Perhaps some more stuff could be generalised and some repeated code could be
+//      removed with some work.
+
 namespace detail {
 std::vector<std::pair<double, std::array<double, 3>>> inline make_libint_point_charges(
       const Structure& structure) {
@@ -61,10 +65,12 @@ std::vector<libint2::Shell> make_libint_basis(Basis basis) {
 // LibintBasisShellData
 //
 
-// TODO The next data structure feels somewhat over the top and obsolete.
-
-/** When initialised with a LibintSystem it computes and makes available some data which
- * is needed to work with libint shell pairs */
+/** When initialised with a LibintSystem it computes and makes available some data
+ *  which is needed to work with libint shell pairs
+ *
+ *  TODO This exists in a similar way in libcint. Perhaps one could create a
+ *       generalisation which applies to both.
+ */
 struct LibintBasisShellData {
   /** Return the index of the first basis function of a particular shell */
   size_t first_bfct(size_t shell) const { return shell2bf[shell]; }
@@ -220,7 +226,6 @@ void ERITensor::compute_kernel(const std::array<krims::Range<size_t>, 4>& block,
 //
 // LibintCollection
 //
-
 const std::string IntegralCollection::id = "gaussian/libint";
 
 Basis construct_basis(const krims::GenMap& parameters) {
