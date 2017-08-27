@@ -97,6 +97,8 @@ disable_feature(libcint)
 option(GINT_ENABLE_LIBCINT "Enable the libcint library to compute Gaussian integrals." OFF)
 
 if (GINT_ENABLE_LIBCINT)
+	message(WARNING "##\n#--   libcint support is experimental. There are known bugs.\n#")
+
 	# Forward parameters to included module
 	#set(LIBCINT_VERSION 2.8.16) # We need at least this version
 	message(WARNING "Due to an upstream bug, we need to track libcint master")

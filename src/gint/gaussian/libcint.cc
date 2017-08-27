@@ -190,6 +190,10 @@ System::System(krims::SubscriptionPointer<const Structure> structure_ptr, Basis 
         m_n_bas(0),
         m_n_shells(basis.n_shells()),
         m_n_atoms(structure_ptr->n_atoms()) {
+  std::cerr << "libcint support is experimental. Some cases (like cc-pvdz on water) are "
+               "known to produce the wrong results."
+            << std::endl;
+
   // Libcint reserves the first entries of the env array for internal usage:
   env_back = env_back + PTR_ENV_START;
 
