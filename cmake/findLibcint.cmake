@@ -82,6 +82,7 @@ function(SETUP_LIBCINT_FOR_EXTERNAL_BUILD TARGET)
 			# with all the code from the dependent libraries, too.
 			-DENABLE_STATIC=ON -DBUILD_SHARED_LIBS=OFF
 			-DCMAKE_POSITION_INDEPENDENT_CODE=ON
+			-DENABLE_TESTS=ON
 	)
 	# TODO Right now libcint insists on building itself under the CMAKE_BUILD_TYPE
 	#      RELWITHDEBINFO. Even with an explicit -DCMAKE_BUILD_TYPE=RELEASE this

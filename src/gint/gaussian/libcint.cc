@@ -27,9 +27,36 @@
 #include <krims/DataFiles/FindDataFile.hh>
 #include <krims/FileSystem.hh>
 
+// The interface of libcint is plain C, so the next section should be compiled with extern
+// "C" linkage
+extern "C" {
+#include <cint.h>
+
+//
+// Unfortunately the cint.h header does not define all functions needed,
+// so we need to add a few manually here.
+//
+
+/** The function which computes <i|j> inside libcint */
+FINT cint1e_ovlp_sph(double* opij, const FINT* shls, const FINT* atm, const FINT natm,
+                     const FINT* bas, const FINT nbas, const double* env);
+
+/** The function which computes <i|V_nuc|j> inside libcint */
+FINT cint1e_nuc_sph(double* opij, const FINT* shls, const FINT* atm, const FINT natm,
+                    const FINT* bas, const FINT nbas, const double* env);
+
+/** The function which computes <i| \delta j> inside libcint */
+FINT cint1e_kin_sph(double* opij, const FINT* shls, const FINT* atm, const FINT natm,
+                    const FINT* bas, const FINT nbas, const double* env);
+}  // extern "C"
+
 namespace gint {
 namespace gaussian {
 namespace libcint {
+
+static_assert(std::is_same<FINT, int_type>::value,
+              "The type used as int_type and the actual FINT integer type used by "
+              "libcint need to agree.");
 
 /** When initialised with a libcint::system it computes and makes available
  *  some data, which is needed to work with libcint shell pairs
@@ -100,6 +127,23 @@ struct BasisShellData {
   size_t m_max_n_bfct;
 };
 
+BasisShellData::BasisShellData(const System& system)
+      : m_system_ptr("BasisShellData", system),
+        m_bfct_range_idcs(system.n_shells() + 1),
+        m_max_n_bfct(0) {
+  // Only this function is special to libcint!
+  // If we abstract this we have the BasisShellData object be more general.
+  size_t accu = 0;
+  for (size_t i = 0; i <= system.n_shells(); ++i) {
+    m_bfct_range_idcs[i] = accu;
+    int_type n_bfct =
+          CINTcgtos_spheric(static_cast<int_type>(i), system.shell_data.data());
+    m_max_n_bfct = std::max(m_max_n_bfct, static_cast<size_t>(n_bfct));
+    accu += static_cast<size_t>(n_bfct);
+  }
+  assert_internal(m_bfct_range_idcs[system.n_shells()] == system.n_bas());
+}
+
 krims::Range<size_t> BasisShellData::containing_shell_range(
       krims::Range<size_t> bfct_indices) const {
   // We assume here that shell2bf is sorted:
@@ -137,28 +181,18 @@ krims::Range<size_t> BasisShellData::containing_shell_range(
   return {begin_shell, end_shell};
 }
 
-BasisShellData::BasisShellData(const System& system)
-      : m_system_ptr("BasisShellData", system),
-        m_bfct_range_idcs(system.n_bas() + 1),
-        m_max_n_bfct(0) {
-  // Only this function is special to libcint!
-  // If we abstract this we have the BasisShellData object be more general.
-  size_t accu = 0;
-  for (size_t i = 0; i <= system.n_shells(); ++i) {
-    m_bfct_range_idcs[i] = accu;
-    FINT n_shell         = CINTcgtos_spheric(static_cast<FINT>(i), system.shells.data());
-    m_max_n_bfct         = std::max(m_max_n_bfct, static_cast<size_t>(n_shell));
-    accu += static_cast<size_t>(n_shell);
-  }
-  assert_internal(m_bfct_range_idcs[system.n_shells()] == system.n_bas());
-}
-
 //
 // System
 //
 System::System(krims::SubscriptionPointer<const Structure> structure_ptr, Basis basis)
-      : shells(basis.n_shells() * BAS_SLOTS),
-        atoms(structure_ptr->n_atoms() * ATM_SLOTS) {
+      : shell_data(basis.n_shells() * BAS_SLOTS),
+        atom_data(structure_ptr->n_atoms() * ATM_SLOTS),
+        m_n_bas(0),
+        m_n_shells(basis.n_shells()),
+        m_n_atoms(structure_ptr->n_atoms()) {
+  // Libcint reserves the first entries of the env array for internal usage:
+  env_back = env_back + PTR_ENV_START;
+
   assert_throw(env_back_off() + structure_ptr->n_atoms() * 3 < env.size(),
                ExcInvalidIntegralParameters(
                      "Cannot use libcint with this many atoms. You supplied us with a "
@@ -175,11 +209,14 @@ System::System(krims::SubscriptionPointer<const Structure> structure_ptr, Basis 
                        std::to_string(atom.atomic_number) + " but charge " +
                        std::to_string(atom.nuclear_charge)));
 
-    atoms[CHARGE_OF + ATM_SLOTS * i] = static_cast<FINT>(atom.atomic_number);
+    atom_data[CHARGE_OF + ATM_SLOTS * i] = static_cast<int_type>(atom.atomic_number);
+
+    // Copy atom coordinates and note where they are.
+    atom_data[PTR_COORD + ATM_SLOTS * i] = static_cast<int_type>(env_back_off());
     env_back = std::copy(atom.coords.begin(), atom.coords.end(), env_back);
 
     // Force the use of point charges by default
-    atoms[NUC_MOD_OF + ATM_SLOTS * i] = POINT_NUC;
+    atom_data[NUC_MOD_OF + ATM_SLOTS * i] = POINT_NUC;
   }
   assert_internal(env_back_off() < env.size());
 
@@ -197,34 +234,34 @@ System::System(krims::SubscriptionPointer<const Structure> structure_ptr, Basis 
 
   // Copy the basis set.
   for (size_t i = 0; i < basis.n_shells(); ++i) {
-    auto& bsh = basis[i];
-    assert_throw(env_back_off() + bsh.n_primitives() * 2 < env.size(),
+    auto& shell = basis[i];
+    assert_throw(env_back_off() + shell.n_primitives() * 2 < env.size(),
                  ExcInvalidIntegralParameters("Cannot use libcint with this many basis "
                                               "functions since space in the env array is "
                                               "not sufficient."));
 
-    assert_throw(bsh.pure || bsh.l < 2,
+    assert_throw(shell.pure || shell.l < 2,
                  ExcInvalidIntegralParameters(
                        "libcint can only handle pure Gaussian shells at the moment"));
 
     size_t atom = 0;
     for (; atom < structure_ptr->n_atoms(); ++atom) {
-      if ((*structure_ptr)[atom].coords == bsh.origin) break;
+      if ((*structure_ptr)[atom].coords == shell.origin) break;
     }
     assert_throw(atom < structure_ptr->n_atoms(),
                  ExcInvalidIntegralParameters(
                        "libcint can only be used if each shell corresponds to one atom. "
                        "Ghost shells which correspond to no real atom cannot be used."));
 
-    assert_throw(bsh.l < ANG_MAX,
+    assert_throw(shell.l < ANG_MAX,
                  ExcInvalidIntegralParameters(
                        "libcint only supports angular momentum up to " +
                        std::to_string(ANG_MAX) + ", but an angular momentum of " +
-                       std::to_string(bsh.l) + " was encountered."));
-    shells[ANG_OF + BAS_SLOTS * i] = bsh.l;
+                       std::to_string(shell.l) + " was encountered."));
+    shell_data[ANG_OF + BAS_SLOTS * i] = shell.l;
 
-    shells[ATOM_OF + BAS_SLOTS * i]  = static_cast<FINT>(atom);
-    shells[NPRIM_OF + BAS_SLOTS * i] = static_cast<FINT>(bsh.n_primitives());
+    shell_data[ATOM_OF + BAS_SLOTS * i]  = static_cast<int_type>(atom);
+    shell_data[NPRIM_OF + BAS_SLOTS * i] = static_cast<int_type>(shell.n_primitives());
 
     // TODO
     // Here is some potential for optimisation.
@@ -232,20 +269,29 @@ System::System(krims::SubscriptionPointer<const Structure> structure_ptr, Basis 
     // for multiple basis functions. This way we can make this
     // more clear by specifying nctr_of == 2 whilst still having the
     // same number primitives (saves time on evaluation)
-    shells[NCTR_OF + BAS_SLOTS * i] = 1;
+    //
+    // Similarly if we have the same *type* of at atom at multiple places in the
+    // molecule. If we point to the same data section, we might enable some optimisation
+    // tricks inside libcint and furthermore can save some storage.
+    shell_data[NCTR_OF + BAS_SLOTS * i] = 1;
 
-    shells[PTR_EXP + BAS_SLOTS * i] = static_cast<FINT>(env_back_off());
-    env_back = std::copy(bsh.exponents.begin(), bsh.exponents.end(), env_back);
+    assert_internal(shell.exponents.size() == shell.coefficients.size());
+    shell_data[PTR_EXP + BAS_SLOTS * i] = static_cast<int_type>(env_back_off());
+    env_back = std::copy(shell.exponents.begin(), shell.exponents.end(), env_back);
 
     // Libcint wants the coefficients to contain the normalisation coefficients of the
     // primitives, so we add this during the copying via a std::transform
-    shells[PTR_COEFF + BAS_SLOTS * i] = static_cast<FINT>(env_back_off());
-    env_back = std::transform(bsh.coefficients.begin(), bsh.coefficients.end(),
-                              bsh.exponents.begin(), env_back,
-                              [&bsh](double& coeff, double& exp) {
-                                return coeff * CINTgto_norm(bsh.l, exp);
+    shell_data[PTR_COEFF + BAS_SLOTS * i] = static_cast<int_type>(env_back_off());
+    env_back = std::transform(shell.coefficients.begin(), shell.coefficients.end(),
+                              shell.exponents.begin(), env_back,
+                              [&shell](double coeff, double exp) {
+                                return coeff * CINTgto_norm(shell.l, exp);
                               });
-  }  // shells
+  }  // shell_data
+
+  // Cache the number of basis functions
+  m_n_bas = static_cast<size_t>(
+        CINTtot_cgto_spheric(shell_data.data(), static_cast<int_type>(basis.n_shells())));
 }
 
 //
@@ -256,15 +302,15 @@ void ERITensor::compute_kernel(const std::array<krims::Range<size_t>, 4>& block,
   const System& system = *m_system_ptr;
 
   //
-  // TODO Parallelise here!
   // TODO Code duplication with the ERICores
+  // TODO Parallelise here!
   //
 
   // Initialise the optimiser
   CINTOpt* opt = nullptr;
-  cint2e_sph_optimizer(&opt, system.atoms.data(), static_cast<FINT>(system.atoms.size()),
-                       system.shells.data(), static_cast<FINT>(system.shells.size()),
-                       system.env.data());
+  cint2e_sph_optimizer(&opt, system.atom_data.data(),
+                       static_cast<int_type>(system.n_atoms()), system.shell_data.data(),
+                       static_cast<int_type>(system.n_shells()), system.env.data());
 
   const BasisShellData data{system};  // Cache some shell data
   const krims::Range<size_t> a_shells = data.containing_shell_range(block[0]);
@@ -272,29 +318,58 @@ void ERITensor::compute_kernel(const std::array<krims::Range<size_t>, 4>& block,
   const krims::Range<size_t> c_shells = data.containing_shell_range(block[2]);
   const krims::Range<size_t> d_shells = data.containing_shell_range(block[3]);
 
-  // Allocate a temporary buffer which can hold the maximum number
+  // Allocate a temporary buffer which can hold the maximum number of elements
+  //
+  // Note: libcint uses the column-major, i.e. Fortran ordering, convention.
+  // Therefore we need to be a little careful when using the values in
+  // the values array returned.
   std::vector<double> values(data.max_n_bfct() * data.max_n_bfct() * data.max_n_bfct() *
                              data.max_n_bfct());
+
+  // And another one which will be filled with a copy of the above values
+  // but in row-major format.
+  std::vector<double> values_rowmajor(values.size());
 
   for (size_t sa : a_shells) {
     for (size_t sb : b_shells) {
       for (size_t sc : c_shells) {
         for (size_t sd : d_shells) {
           // Call the function to get the integral values
-          FINT shls[4] = {static_cast<FINT>(sa), static_cast<FINT>(sb),
-                          static_cast<FINT>(sc), static_cast<FINT>(sd)};
+          int_type shls[4] = {static_cast<int_type>(sa), static_cast<int_type>(sb),
+                              static_cast<int_type>(sc), static_cast<int_type>(sd)};
 
-          FINT all_zero = cint2e_sph(
-                values.data(), shls, system.atoms.data(),
-                static_cast<FINT>(system.atoms.size()), system.shells.data(),
-                static_cast<FINT>(system.shells.size()), system.env.data(), opt);
+          int_type all_zero = cint2e_sph(
+                values.data(), shls, system.atom_data.data(),
+                static_cast<int_type>(system.n_atoms()), system.shell_data.data(),
+                static_cast<int_type>(system.n_shells()), system.env.data(), opt);
 
           // If all_zero is zero than we can skip calling the kernel.
           if (all_zero == 0) continue;
 
+          // Copy them all into row-major:
+          for (size_t a = 0; a < data.n_bfct(sa); ++a) {
+            for (size_t b = 0; b < data.n_bfct(sb); ++b) {
+              for (size_t c = 0; c < data.n_bfct(sc); ++c) {
+                for (size_t d = 0; d < data.n_bfct(sd); ++d) {
+                  const size_t i_ab = a * data.n_bfct(sb) + b;
+                  const size_t i_abcd =
+                        (i_ab * data.n_bfct(sc) + c) * data.n_bfct(sd) + d;
+
+                  const size_t c_cd = c + data.n_bfct(sc) * d;
+                  const size_t c_abcd =
+                        a + data.n_bfct(sa) * (b + data.n_bfct(sb) * c_cd);
+
+                  assert_internal(i_abcd < values_rowmajor.size());
+                  assert_internal(c_abcd < values.size());
+                  values_rowmajor[i_abcd] = values[c_abcd];
+                }  // d
+              }    // c
+            }      // b
+          }        // a
+
           kernel({{data.range_bfct(sa), data.range_bfct(sb), data.range_bfct(sc),
                    data.range_bfct(sd)}},
-                 values.data());
+                 values_rowmajor.data());
 
         }  // sd
       }    // sc
@@ -554,11 +629,15 @@ void OneElecIntegralCore::compute(const krims::Range<size_t>& rows,
     for (size_t sb : col_shells) {
       // Compute the integral for a shell pair and call the kernel function with the
       // location where the computed integrals are stored.
-      FINT shls[2] = {static_cast<FINT>(sa), static_cast<FINT>(sb)};
-      FINT all_zero =
-            m_cint1e_kernel(values.data(), shls, system.atoms.data(),
-                            static_cast<FINT>(system.atoms.size()), system.shells.data(),
-                            static_cast<FINT>(system.shells.size()), system.env.data());
+      //
+      // Note: libcint uses the column-major, i.e. Fortran ordering, convention
+      // Since the one-electron integrals are all symmetric, we do not have to
+      // care about this here, though
+      int_type shls[2]  = {static_cast<int_type>(sa), static_cast<int_type>(sb)};
+      int_type all_zero = m_cint1e_kernel(
+            values.data(), shls, system.atom_data.data(),
+            static_cast<int_type>(system.n_atoms()), system.shell_data.data(),
+            static_cast<int_type>(system.n_shells()), system.env.data());
 
       // If all_zero == 0, then the values are all zero, hence we pass a nullptr
       kernel(sa, sb, all_zero == 0 ? nullptr : values.data());
@@ -575,9 +654,9 @@ void ERICore::compute(const krims::Range<size_t>& rows, const krims::Range<size_
 
   // Initialise the optimiser
   CINTOpt* opt = nullptr;
-  cint2e_sph_optimizer(&opt, system.atoms.data(), static_cast<FINT>(system.atoms.size()),
-                       system.shells.data(), static_cast<FINT>(system.shells.size()),
-                       system.env.data());
+  cint2e_sph_optimizer(&opt, system.atom_data.data(),
+                       static_cast<int_type>(system.n_atoms()), system.shell_data.data(),
+                       static_cast<int_type>(system.n_shells()), system.env.data());
 
   //
   // TODO Parallelise here!
@@ -613,12 +692,16 @@ void ERICore::compute(const krims::Range<size_t>& rows, const krims::Range<size_
           size_t sC           = exchange ? sa : sc;
 
           // Call the function to get the integral values
-          FINT shls[4] = {static_cast<FINT>(sA), static_cast<FINT>(sb),
-                          static_cast<FINT>(sC), static_cast<FINT>(sd)};
-          FINT all_zero = cint2e_sph(
-                values.data(), shls, system.atoms.data(),
-                static_cast<FINT>(system.atoms.size()), system.shells.data(),
-                static_cast<FINT>(system.shells.size()), system.env.data(), opt);
+          //
+          // Note: libcint uses the column-major, i.e. Fortran ordering, convention.
+          // Therefore we need to be a little careful when using the values in
+          // the values array returned.
+          int_type shls[4] = {static_cast<int_type>(sA), static_cast<int_type>(sb),
+                              static_cast<int_type>(sC), static_cast<int_type>(sd)};
+          int_type all_zero = cint2e_sph(
+                values.data(), shls, system.atom_data.data(),
+                static_cast<int_type>(system.n_atoms()), system.shell_data.data(),
+                static_cast<int_type>(system.n_shells()), system.env.data(), opt);
 
           // If all_zero is zero than we can skip calling the kernel.
           if (all_zero == 0) continue;
@@ -626,31 +709,35 @@ void ERICore::compute(const krims::Range<size_t>& rows, const krims::Range<size_
           all_shellpairs_zero = false;
           for (size_t a = 0; a < data.n_bfct(sa); ++a) {
             for (size_t b = 0; b < data.n_bfct(sb); ++b) {
+              // row-major index into buffer
               const size_t i_ab = a * data.n_bfct(sb) + b;
 
               for (size_t c = 0; c < data.n_bfct(sc); ++c) {
                 // Swap shell indices a and c for exchange
-                size_t A = exchange ? c : a;
-                size_t C = exchange ? a : c;
+                const size_t A = exchange ? c : a;
+                const size_t C = exchange ? a : c;
 
-                // Compute partial offsets
-                size_t i_Ab  = A * data.n_bfct(sb) + b;
-                size_t i_AbC = i_Ab * data.n_bfct(sC) + C;
+                // Compute partial offsets (in column major form,
+                // since values is a column-major, Fortran-like array)
+                const size_t c_bC  = b + data.n_bfct(sb) * C;
+                const size_t c_AbC = A + data.n_bfct(sA) * c_bC;
+                const size_t d_stride =
+                      data.n_bfct(sA) * data.n_bfct(sb) * data.n_bfct(sC);
 
                 for (size_t d = 0; d < data.n_bfct(sd); ++d) {
                   // Indices to access element dens(c,d) of the density matrix
                   const size_t idens_c = data.first_bfct(sc) + c;
                   const size_t idens_d = data.first_bfct(sd) + d;
 
-                  // Compute index into integral values:
-                  const size_t i_AbCd = i_AbC * data.n_bfct(sd) + d;
+                  // Compute index into integral values (column-major!)
+                  const size_t c_AbCd = c_AbC + d_stride * d;
 
                   // Perform explicit bound checks:
                   assert_internal(i_ab < buffer.size());
-                  assert_internal(i_AbCd < data.n_bfct(sa) * data.n_bfct(sb) *
+                  assert_internal(c_AbCd < data.n_bfct(sa) * data.n_bfct(sb) *
                                                  data.n_bfct(sc) * data.n_bfct(sd));
 
-                  buffer[i_ab] += dens(idens_c, idens_d) * values[i_AbCd];
+                  buffer[i_ab] += dens(idens_c, idens_d) * values[c_AbCd];
                 }  // d
               }    // c
             }      // b

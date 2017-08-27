@@ -61,7 +61,7 @@ TEST_CASE("Small test gaussian/libcint", "[libcint][small]") {
 
   // TODO This is bad, but to get going ....
   auto highertol = krims::NumCompConstants::change_temporary(
-        1e6 * krims::NumCompConstants::default_tolerance_factor);
+        7e6 * krims::NumCompConstants::default_tolerance_factor);
 
   gaussian_small_test::execute("gaussian/libcint");
 }

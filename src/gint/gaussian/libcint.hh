@@ -21,7 +21,6 @@
 #include "gint/config.hh"
 #ifdef GINT_HAVE_LIBCINT
 
-#include <cint.h>
 #include <krims/SubscriptionPointer.hh>
 
 #include "Basis.hh"
@@ -38,13 +37,19 @@ namespace libcint {
 // In this namespace all things are real:
 using namespace real_valued;
 
+// The integer type used by libcint
+typedef int int_type;
+
 /** Object representing a molecular structure and basis in a way usable to libcint.
  *
  * In a way this is the system (physical and model) we want to compute integrals for.
+ *
+ * \note  Modifying this object after construction is not supported since many of
+ *        the returned properties are cached values which are never invalidated.
  **/
 class System : public krims::Subscribable {
  public:
-  System() : shells{}, atoms{} {}
+  System() : shell_data{}, atom_data{}, m_n_bas(0), m_n_shells(0), m_n_atoms(0) {}
   System(krims::SubscriptionPointer<const Structure> structure_ptr, Basis basis);
 
   static constexpr size_t env_size = 10000;
@@ -54,23 +59,29 @@ class System : public krims::Subscribable {
   std::array<double, env_size> env{};
 
   /** Container holding the basis information more precisely the
-   *  shells of the basis.
+   *  information about the shells of the basis.
    *
    *  \note This thing is called "bas" inside libint.
    */
-  std::vector<FINT> shells;
+  std::vector<int_type> shell_data;
 
   //! Container holding the atom information
-  std::vector<FINT> atoms;
+  std::vector<int_type> atom_data;
 
   /** Access to the total number of basis functions */
-  size_t n_bas() const {
-    return static_cast<size_t>(
-          CINTtot_cgto_spheric(shells.data(), static_cast<FINT>(shells.size())));
-  }
+  size_t n_bas() const { return m_n_bas; }
 
-  /** Return the number of shells */
-  size_t n_shells() const { return shells.size(); }
+  /** Return the number of shells
+   *
+   * \note This is *not* the size of the shell_data array!
+   * */
+  size_t n_shells() const { return m_n_shells; }
+
+  /** Return the number of atoms
+   *
+   * \note This is *not* the size of the atom_data array!
+   */
+  size_t n_atoms() const { return m_n_atoms; }
 
  private:
   static_assert(env_size < std::numeric_limits<int>::max() - 5,
@@ -79,8 +90,17 @@ class System : public krims::Subscribable {
   //! The index offset to the next free slot in the env array
   size_t env_back_off() const { return static_cast<size_t>(env_back - env.begin()); }
 
+  /** The number of basis functions */
+  size_t m_n_bas;
+
+  /** The number of shells for which information is stored in the shells array */
+  size_t m_n_shells;
+
+  /** The number of atoms for which information is stored in the atoms array */
+  size_t m_n_atoms;
+
   //! Pointer to the next free slot in the env array.
-  typename std::array<double, 0>::iterator env_back = env.begin();
+  typename std::array<double, env_size>::iterator env_back = env.begin();
 };
 
 /** Repulsion integral tensor object for libcint. */
@@ -144,7 +164,7 @@ class IntegralCollection final : public IntegralCollectionBase<stored_matrix_typ
   }
 
  private:
-  System m_system;
+  const System m_system;
   ERITensor m_eri_tensor;
 };
 
@@ -253,8 +273,8 @@ class OneElecIntegralCore final : public LibCintIntegralCoreBase {
                        typename base_type::kernel_type&& kernel) const override;
 
  private:
-  FINT(*m_cint1e_kernel)
-  (double*, const FINT*, const FINT*, const FINT, const FINT*, const FINT, const double*);
+  int_type (*m_cint1e_kernel)(double*, const int_type*, const int_type*, const int_type,
+                              const int_type*, const int_type, const double*);
 
   // Integral operator this core computes.
   const IntegralType m_type;
