@@ -75,7 +75,7 @@ class Basis:
                           sh.exponents().copy(), sh.origin().copy())
                     for sh in shells_raw ]
 
-    if backend == "auto":
+    if backend == "auto" or backend is None:
       # List the priority of the backends
       __backend_priority = ["libint"]
 
@@ -84,7 +84,7 @@ class Basis:
           self.backend = b
           break
     else:
-      if not backend in available_backends:
+      if backend not in available_backends:
         raise ValueError("The gaussian inegral backend " + backend + " is not available. "
                          "The following basis types are implemented: " +
                          ",".join(available_basis_types))

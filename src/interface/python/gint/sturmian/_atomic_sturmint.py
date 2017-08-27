@@ -31,7 +31,7 @@ available_backends = [t[16:] for t in available_basis_types
 
 class Basis(sturmint.atomic.cs.Basis):
     def __init__(self, structure, k_exp, n_max, l_max=None, m_max=None, backend="auto"):
-        if backend == "auto":
+        if backend == "auto" or backend is  None:
             # List the priority of the backends
             __backend_priority = ["cs_reference_pc", "cs_dummy", "cs_static14"]
 

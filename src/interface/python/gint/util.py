@@ -24,6 +24,7 @@
 import numpy as np
 import gint.gaussian
 import gint.sturmian.atomic
+from ._available_basis_types import available_basis_types
 
 
 def cartesian_to_spherical(x, y, z):
@@ -46,18 +47,29 @@ def cartesian_to_spherical(x, y, z):
     return r, theta, phi
 
 
-def basis_class_from_name(name):
+def split_basis_type(basis_type):
     """
-    Return the basis object corresponding to this
-    basis function name or basis type.
+    Split the basis type into the type of the
+    basis class and the backend specification,
+    i.e. returns a tuple (type, string) or
+    (type, None) if no backend is specified.
 
-    E.g. "gaussian" would return gint.gaussian.Basis
+    For example "gaussian" would return (gint.gaussian.Basis, None)
     and "sturmian/atomic/cs_dummy" would return
-    sturmian.atomic.Basis
+    (sturmian.atomic.atomic.Basis, "cs_dummy")
     """
-    if name.startswith("gaussian"):
-        return gint.gaussian.Basis
-    if name.startswith("sturmian/atomic"):
-        return gint.sturmian.atomic.Basis
-    else:
-        raise ValueError("Unknown basis function name: " + name)
+    mapping = {
+        "gaussian": gint.gaussian.Basis,
+        "sturmian/atomic": gint.sturmian.atomic.Basis,
+    }
+
+    for key in mapping:
+        if basis_type.startswith(key):
+            backend = None
+            if basis_type[len(key) + 1:]:
+                if basis_type not in available_basis_types:
+                    raise ValueError("Basis type not available: " + basis_type)
+                # Remove the key as well as the trailling "/"
+                backend = basis_type[len(key) + 1:]
+            return (mapping[key], backend)
+    raise ValueError("Unknown basis type of basis function type: " + basis_type)
