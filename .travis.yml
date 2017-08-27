@@ -82,7 +82,7 @@ matrix:
     # Clang 4.0 (has c++14) with libc++-1
     - install:
       - travis_retry sudo apt-get install -y clang-4.0 libc++-dev
-      - export EXTRA_OPTS="-DDGINT_ENABLE_LIBCINT=ON"
+      - export EXTRA_OPTS="-DGINT_ENABLE_LIBCINT=ON"
       - export GCOV="llvm-cov-4.0 gcov"
       compiler: clang
       env: CC_COMP="clang-4.0" CXX_COMP="clang++-4.0"
