@@ -55,20 +55,37 @@ function(SETUP_LIBCINT_FOR_EXTERNAL_BUILD TARGET)
 		set(LIBCINT_TAG "v${LIBCINT_VERSION}")
 	endif()
 
+	# Special compiler flags:
+	set(LIBCINT_C_FLAGS "${CMAKE_C_FLAGS}")
+	enable_if_cc_compiles(LIBCINT_C_FLAGS "-Wno-unused-variable")
+	enable_if_cc_compiles(LIBCINT_C_FLAGS "-Wno-unused-function")
+	enable_if_cc_compiles(LIBCINT_C_FLAGS "-Wno-extra-semi")
+
 	ExternalProject_Add(libcint
 		PREFIX "${PROJECT_BINARY_DIR}/external/libcint"
 		GIT_REPOSITORY "https://github.com/sunqm/libcint"
 		GIT_TAG "${LIBCINT_TAG}"
 		#
 		CMAKE_ARGS
+			# Setup compiler and compiler options
+			-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
+			-DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
+			-DCMAKE_C_FLAGS=${LIBCINT_C_FLAGS}
+			-DCMAKE_C_FLAGS_RELEASE=${CMAKE_C_FLAGS_RELEASE}
+			-DCMAKE_BUILD_TYPE=RELEASE
+			#
 			# Set the place to install the library in the end
 			-DCMAKE_INSTALL_PREFIX=${PROJECT_BINARY_DIR}/external/libcint
+			#
 			# Build but static and with PIC enabled
 			# This way we can link a single gint library shared object
 			# with all the code from the dependent libraries, too.
 			-DENABLE_STATIC=ON -DBUILD_SHARED_LIBS=OFF
 			-DCMAKE_POSITION_INDEPENDENT_CODE=ON
 	)
+	# TODO Right now libcint insists on building itself under the CMAKE_BUILD_TYPE
+	#      RELWITHDEBINFO. Even with an explicit -DCMAKE_BUILD_TYPE=RELEASE this
+	#      cannot be changed.
 
 	ExternalProject_Get_Property(libcint install_dir)
 	set(LINKFILE "${install_dir}/lib/libcint.a")

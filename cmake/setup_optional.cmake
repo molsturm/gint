@@ -98,7 +98,8 @@ option(GINT_ENABLE_LIBCINT "Enable the libcint library to compute Gaussian integ
 
 if (GINT_ENABLE_LIBCINT)
 	# Forward parameters to included module
-	set(LIBCINT_VERSION 2.8.7) # We need at least this version
+	#set(LIBCINT_VERSION 2.8.16) # We need at least this version
+	message(WARNING "Due to an upstream bug, we need to track libcint master")
 
 	include(cmake/findLibcint.cmake)
 	unset(LIBINT_VERSION)
