@@ -73,6 +73,10 @@ function(SETUP_LIBCINT_FOR_EXTERNAL_BUILD TARGET)
 		set(BUILD_BYPRODUCT_OPTIONS "BUILD_BYPRODUCTS" ${LINKFILE})
 	endif()
 
+	# TODO Force-disable quadmath for now
+	set(LIBCINT_QUADMATH OFF)
+	message(WARNING "Quadmath is force-disabled inside libcint.")
+
 	ExternalProject_Add(libcint
 		GIT_REPOSITORY "https://github.com/sunqm/libcint"
 		GIT_TAG "${LIBCINT_TAG}"
@@ -97,6 +101,11 @@ function(SETUP_LIBCINT_FOR_EXTERNAL_BUILD TARGET)
 			-DENABLE_STATIC=ON -DBUILD_SHARED_LIBS=OFF
 			-DCMAKE_POSITION_INDEPENDENT_CODE=ON
 			-DENABLE_TESTS=ON
+		CMAKE_CACHE_ARGS
+			#
+			# force-disable quadmath for now.
+			-DHAVE_QUADMATH_H:string=${LIBCINT_QUADMATH}
+			-DQUADMATH_FOUND:string=${LIBCINT_QUADMATH}
 	)
 
 	# Setup target as an external imported library and set the include dir.
@@ -109,6 +118,10 @@ function(SETUP_LIBCINT_FOR_EXTERNAL_BUILD TARGET)
 	# Make sure that linking to ${TARGET} causes
 	# a build of the libint library as well
 	add_dependencies(${TARGET} libcint)
+
+	if(LIBCINT_QUADMATH)
+		add_dependencies(${TARGET} quadmath)
+	endif()
 endfunction()
 
 
