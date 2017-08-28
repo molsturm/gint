@@ -56,7 +56,7 @@ class System : public krims::Subscribable {
 
   /** Environment which stores the coordinates, atom positions and contraction
    *  coefficients and exponents **/
-  std::array<double, env_size> env{};
+  std::array<double, env_size> env;
 
   /** Container holding the basis information more precisely the
    *  information about the shells of the basis.
