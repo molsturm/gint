@@ -58,8 +58,10 @@ function(SETUP_LIBCINT_FOR_EXTERNAL_BUILD TARGET)
 		set(LIBCINT_TAG "v${LIBCINT_VERSION}")
 	endif()
 
-	# Special compiler flags:
-	set(LIBCINT_C_FLAGS "${CMAKE_C_FLAGS}")
+	# Remove -Werror and -pedantic from our set of compiler flags
+	# for the inner compilation.
+	string(REGEX REPLACE "(-Werror|-pedantic)" "" TMP ${CMAKE_C_FLAGS})
+	string(REGEX REPLACE "  *"  " "  LIBCINT_C_FLAGS ${TMP})
 	enable_if_cc_compiles(LIBCINT_C_FLAGS "-Wno-unused-variable")
 	enable_if_cc_compiles(LIBCINT_C_FLAGS "-Wno-unused-function")
 	enable_if_cc_compiles(LIBCINT_C_FLAGS "-Wno-extra-semi")
