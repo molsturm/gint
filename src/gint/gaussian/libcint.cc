@@ -133,13 +133,12 @@ BasisShellData::BasisShellData(const System& system)
         m_max_n_bfct(0) {
   // Only this function is special to libcint!
   // If we abstract this we have the BasisShellData object be more general.
-  size_t accu = 0;
-  for (size_t i = 0; i <= system.n_shells(); ++i) {
-    m_bfct_range_idcs[i] = accu;
+  m_bfct_range_idcs[0] = 0;
+  for (size_t i = 0; i < system.n_shells(); ++i) {
     int_type n_bfct =
           CINTcgtos_spheric(static_cast<int_type>(i), system.shell_data.data());
-    m_max_n_bfct = std::max(m_max_n_bfct, static_cast<size_t>(n_bfct));
-    accu += static_cast<size_t>(n_bfct);
+    m_max_n_bfct             = std::max(m_max_n_bfct, static_cast<size_t>(n_bfct));
+    m_bfct_range_idcs[i + 1] = m_bfct_range_idcs[i] + static_cast<size_t>(n_bfct);
   }
   assert_internal(m_bfct_range_idcs[system.n_shells()] == system.n_bas());
 }
