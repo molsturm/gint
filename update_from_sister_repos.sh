@@ -22,23 +22,23 @@
 
 . update_from_sisters.lib.sh || exit 1
 
-update_file "krims"    "external/get.lib.sh" || exit 1
+update_file "krims"    "external/get.lib.sh"        || exit 1
 update_file "krims"    "external/get_rapidcheck.sh" || exit 1
-update_file "lazyten"  "external/get_krims.sh" || exit 1
-update_file "gscf"     "external/get_lazyten.sh" || exit 1
+update_file "lazyten"  "external/get_krims.sh"      || exit 1
+update_file "gscf"     "external/get_lazyten.sh"    || exit 1
 
 update_file "krims"    "cmake/findRapidcheck.cmake" || exit 1
-update_file "krims"    "cmake/findCatch.cmake" || exit 1
+update_file "krims"    "cmake/findCatch.cmake"      || exit 1
 update_file "krims"    "cmake/IncludeKrimsCmakeModule.cmake" || exit 1
 
 update_file "krims"    "doc/Doxyfile.in" || exit 1
 
-update_file "lazyten"  "templates/cc.template" "keep_header" || exit 1
-update_file "lazyten"  "templates/py.template" "keep_header" || exit 1
+update_file "lazyten"  "templates/cc.template"    "keep_header" || exit 1
+update_file "lazyten"  "templates/py.template"    "keep_header" || exit 1
 update_file "lazyten"  "templates/cmake.template" "keep_header" || exit 1
-update_file "lazyten"  "templates/hh.template" "keep_header" || exit 1
+update_file "lazyten"  "templates/hh.template"    "keep_header" || exit 1
 update_file "lazyten"  "templates/README.md" || exit 1
 
 update_file "krims"    ".clang-format" || exit 1
-update_file "krims"    ".clang-tidy" || exit 1
+update_file "krims"    ".clang-tidy"   || exit 1
 update_file "lazyten"  "update_from_sisters.lib.sh" || exit 1

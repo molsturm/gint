@@ -57,6 +57,10 @@ struct IntegralDummyTests {
     integral_type J_bb  = integrals.lookup_integral(IntegralTypeKeys::coulomb);
     integral_type K_bb  = integrals.lookup_integral(IntegralTypeKeys::exchange);
 
+    // Check the promised number of basis functions agrees
+    // with what is actually obtained.
+    CHECK(S_bb.n_rows() == integrals.n_bas());
+
     // The update key we need to update the lazy coulomb and exchange matrices
     const std::string update_key = IntegralUpdateKeys::coefficients_occupied;
 

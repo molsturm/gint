@@ -21,7 +21,7 @@
 ##
 ## ---------------------------------------------------------------------
 
-from .. import element
+from .._available_basis_types import available_basis_types
 from . import _gaussian_shells as _expr
 from .. import _iface
 from ..interface import Structure
@@ -33,29 +33,29 @@ class Shell(collections.namedtuple("Shell", [ "l", "pure", "contraction_coeffici
   @property
   def n_bas(self):
     return 2 * self.l + 1 if self.pure else (self.l + 1)*(self.l + 2) // 2
+
   def __len__(self):
     return self.n_bas()
 
 
+"""The list of available gaussian backends"""
+available_backends = [t[9:] for t in available_basis_types if t.startswith("gaussian/")]
+
+
 class Basis:
-  def __init__(self, structure, basis_set, basis_type=None,
-               cartesian_ordering="standard"):
+  def __init__(self, structure, basis_set_name, backend="auto"):
     """
     structure    Either a gint.Structure object or a tuple (atoms, coords)
                  or just a single atom.
                  which gives the list of atoms and the list of their coordinates
-    basis_set    String describing the gaussian basis set to use
-    ordering     The ordering of the basis functions to use if cartesian
-                 angular functions are used.
-                 For pure shells (i.e. with cartesian spherical harmonics)
-                 the ordering is from m=-2 (The terms with more sines) to
-                 m=+2 (The terms with more coses)
-
-                 The currently implemented orderings are
-                   - standard:  The ordering of the Common Component Architecture.
-                                This is just (xxx, xxy, xxz, xyy, xyz, xzz, yyy, ...)
-    basis_type   Specify a basis type as well (optional)
+    basis_set_name   String describing the gaussian basis set to use
+    backend      Specify the precise backend to use.
+                 Should be available. Otherwise an error is produced.
     """
+    if len(available_backends) == 0:
+      raise RuntimeError("No gaussian backend is available in gint. The list of "
+                         "available basis types is: " + ",".join(available_basis_types))
+
     if not isinstance(structure, Structure):
       if isinstance(structure, (str,int)):
         structure = Structure(atoms=structure)
@@ -63,8 +63,9 @@ class Basis:
         structure = Structure(*structure)
 
     basis_raw = _iface.construct_gaussian_basis(structure.atom_numbers, structure.coords,
-                                                basis_set)
-    shells_raw = ( basis_raw.shell(i) for i in range(basis_raw.n_shells()) )
+                                                basis_set_name)
+    shells_raw = (basis_raw.shell(i) for i in range(basis_raw.n_shells()))
+    self.basis_set_name = basis_set_name
 
     # Setup the shells.
     # Note the explicit copy! This is needed, since the basis_raw.shell
@@ -74,11 +75,47 @@ class Basis:
                           sh.exponents().copy(), sh.origin().copy())
                     for sh in shells_raw ]
 
-    self.cartesian_ordering = cartesian_ordering
-    if cartesian_ordering != "standard":
-      raise ValueError("Currently only standard cartesian_ordering is implemented.")
+    if backend == "auto" or backend is None:
+      # List the priority of the backends
+      __backend_priority = ["libint"]
 
-    self.basis_type = basis_type
+      for b in __backend_priority + available_backends:
+        if b in available_backends:
+          self.backend = b
+          break
+    else:
+      if backend not in available_backends:
+        raise ValueError("The gaussian inegral backend " + backend + " is not available. "
+                         "The following basis types are implemented: " +
+                         ",".join(available_basis_types))
+      self.backend = backend
+
+    if self.backend == "libint":
+      # Libint as we configure it uses standard ordering,
+      # i.e. the ordering of the Common Component Architecture.
+      # (xxx, xxy, xxz, xyy, xyz, xzz, yyy, ...)
+      self.cartesian_ordering = "standard"
+
+  @property
+  def basis_type(self):
+    return "gaussian/" + self.backend
+
+  def __len__(self):
+    return sum(s.n_bas for s in self.shells)
+
+  @property
+  def size(self):
+    """Return the number of basis functions in this basis"""
+    return self.__len__()
+
+  @property
+  def has_real_harmonics():
+    """
+    Does this basis have real functions to describe the angular part. This impies that
+    the repulsion integrals satisfy the extra symmetry (ab|cd) = (ba|cd) in shell
+    pair notation, which would not be true otherwise
+    """
+    return True
 
   def evaluate_at(self, x, y, z, mask=None):
     if mask:

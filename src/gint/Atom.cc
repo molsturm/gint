@@ -37,7 +37,7 @@ std::ostream& operator<<(std::ostream& o, const Atom& atom) {
   }
 
   // If significantly different charge, print too
-  if (std::abs(atom.nuclear_charge - atom.atomic_number) > 1e-14) {
+  if (atom.has_deviating_charge()) {
     o << " (Z=" << atom.nuclear_charge << ")";
   }
 

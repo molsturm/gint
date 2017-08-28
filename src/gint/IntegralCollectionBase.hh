@@ -59,7 +59,11 @@ class IntegralCollectionBase {
   /** Lookup an integral in this collection by its integral type */
   virtual integral_matrix_type lookup_integral(IntegralType type) const = 0;
 
+  /** Get the object representing the repulsion tensor */
   virtual const ERITensor_i<typename StoredMatrix::scalar_type>& eri_tensor() const = 0;
+
+  /** Get the number of basis functions of all integrals returned by this collection. */
+  virtual size_t n_bas() const { return lookup_integral(IntegralType::overlap).n_rows(); }
 
   /** Obtain the id string of the collection / basis type */
   virtual const std::string& basis_id() const = 0;

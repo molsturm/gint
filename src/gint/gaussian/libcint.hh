@@ -19,11 +19,9 @@
 
 #pragma once
 #include "gint/config.hh"
-#ifdef GINT_HAVE_LIBINT
+#ifdef GINT_HAVE_LIBCINT
 
-#include <functional>
 #include <krims/SubscriptionPointer.hh>
-#include <libint2.hpp>
 
 #include "Basis.hh"
 #include "gint/CoefficientContainer.hh"
@@ -34,84 +32,86 @@
 
 namespace gint {
 namespace gaussian {
-namespace libint {
+namespace libcint {
 
 // In this namespace all things are real:
 using namespace real_valued;
 
-/** Initialises the global libint state and manages it */
-class LibintGlobalInit : public krims::Subscribable {
- public:
-  LibintGlobalInit() { libint2::initialize(); }
-  ~LibintGlobalInit() { libint2::finalize(); }
-  LibintGlobalInit(LibintGlobalInit&&) = default;
-  LibintGlobalInit& operator=(LibintGlobalInit&&) = default;
-};
+// The integer type used by libcint
+typedef int int_type;
 
-/** Object representing a molecular structure and basis in a way usable to libint.
+/** Object representing a molecular structure and basis in a way usable to libcint.
  *
  * In a way this is the system (physical and model) we want to compute integrals for.
+ *
+ * \note  Modifying this object after construction is not supported since many of
+ *        the returned properties are cached values which are never invalidated.
  **/
-class LibintSystem : public krims::Subscribable {
+class System : public krims::Subscribable {
  public:
-  LibintSystem() : m_structure_ptr("LibintSystem") {}
-  LibintSystem(krims::SubscriptionPointer<const Structure> structure_ptr, Basis basis);
+  System() : shell_data{}, atom_data{}, m_n_bas(0), m_n_shells(0), m_n_atoms(0) {}
+  System(krims::SubscriptionPointer<const Structure> structure_ptr, Basis basis);
 
-  /** Access to the libint basis structure */
-  const std::vector<libint2::Shell>& basis() const { return m_basis; }
+  static constexpr size_t env_size = 10000;
 
-  /** Access the molecular structure, which was used to build this basis */
-  const Structure& structure() const { return *m_structure_ptr; }
+  /** Environment which stores the coordinates, atom positions and contraction
+   *  coefficients and exponents **/
+  std::array<double, env_size> env;
 
-  /** Access the list of point charges used by libint */
-  const std::vector<std::pair<double, std::array<double, 3>>>& point_charges() const {
-    return m_point_charges;
-  }
+  /** Container holding the basis information more precisely the
+   *  information about the shells of the basis.
+   *
+   *  \note This thing is called "bas" inside libint.
+   */
+  std::vector<int_type> shell_data;
 
-  /** Access to the number of shells (1s, 2s, 2p, ...)*/
-  size_t n_shells() const { return m_basis.size(); }
+  //! Container holding the atom information
+  std::vector<int_type> atom_data;
 
   /** Access to the total number of basis functions */
   size_t n_bas() const { return m_n_bas; }
 
-  /** The maximal number of primitives for this system */
-  size_t max_nprim() const { return m_max_nprim; }
+  /** Return the number of shells
+   *
+   * \note This is *not* the size of the shell_data array!
+   * */
+  size_t n_shells() const { return m_n_shells; }
 
-  /** The maximal angular momentum */
-  int max_l() const { return m_max_l; }
+  /** Return the number of atoms
+   *
+   * \note This is *not* the size of the atom_data array!
+   */
+  size_t n_atoms() const { return m_n_atoms; }
 
  private:
+  static_assert(env_size < std::numeric_limits<int>::max() - 5,
+                "The number of elements in env needs to be representable by an int.");
+
+  //! The index offset to the next free slot in the env array
+  size_t env_back_off() const { return static_cast<size_t>(env_back - env.begin()); }
+
+  /** The number of basis functions */
   size_t m_n_bas;
-  std::vector<libint2::Shell> m_basis;
-  size_t m_max_nprim;
-  int m_max_l;
-  krims::SubscriptionPointer<const Structure> m_structure_ptr;
-  std::vector<std::pair<double, std::array<double, 3>>> m_point_charges;
+
+  /** The number of shells for which information is stored in the shells array */
+  size_t m_n_shells;
+
+  /** The number of atoms for which information is stored in the atoms array */
+  size_t m_n_atoms;
+
+  //! Pointer to the next free slot in the env array.
+  typename std::array<double, env_size>::iterator env_back = env.begin();
 };
 
-/** Information about a particular shell */
-struct LibintShell {
-  //! Shell index
-  size_t index;
-
-  //! Number of basis functions in this shell
-  size_t n_bfct;
-
-  //! Index of the first basis function of this shell
-  size_t first_bfct;
-};
-
+/** Repulsion integral tensor object for libcint. */
 class ERITensor final : public ERITensor_i<scalar_type> {
  public:
   /** Constructor
    * \param system  The molecular system and basis this core deals with
-   * \param global  The global libint resources to acquire
    */
-  ERITensor(const LibintSystem& system, const LibintGlobalInit& global)
-        : m_system_ptr("LibIntERITensor", system),
-          m_global_ptr("LibIntERITensor", global) {}
+  ERITensor(const System& system) : m_system_ptr("Libcint::ERITensor", system) {}
 
-  /** Number of basis functions in this basis */
+  /** Number of basis functions in this bases */
   size_t n_bas() const override { return m_system_ptr->n_bas(); }
 
  protected:
@@ -122,13 +122,10 @@ class ERITensor final : public ERITensor_i<scalar_type> {
 
  private:
   // Pointer to the molecular system info we use:
-  krims::SubscriptionPointer<const LibintSystem> m_system_ptr;
-
-  // Pointer to the global libint2 state we need
-  krims::SubscriptionPointer<const LibintGlobalInit> m_global_ptr;
+  krims::SubscriptionPointer<const System> m_system_ptr;
 };
 
-/** IntegralCollection for the libint integral objects */
+/** IntegralCollection for the libcint integral objects */
 class IntegralCollection final : public IntegralCollectionBase<stored_matrix_type> {
  public:
   typedef IntegralCollectionBase<stored_matrix_type> base_type;
@@ -159,7 +156,7 @@ class IntegralCollection final : public IntegralCollectionBase<stored_matrix_typ
   size_t n_bas() const override { return m_system.n_bas(); }
 
   /** Obtain the friendly name of the collection / basis type */
-  std::string basis_name() const override { return "Gaussian integrals from libint2"; }
+  std::string basis_name() const override { return "Gaussian integrals from libcint"; }
 
   /** Create an integral collection for a particular basis set defined by parameters */
   static std::unique_ptr<base_type> create(const krims::GenMap& parameters) {
@@ -167,8 +164,7 @@ class IntegralCollection final : public IntegralCollectionBase<stored_matrix_typ
   }
 
  private:
-  LibintSystem m_system;
-  LibintGlobalInit m_global;
+  const System m_system;
   ERITensor m_eri_tensor;
 };
 
@@ -177,7 +173,7 @@ class IntegralCollection final : public IntegralCollectionBase<stored_matrix_typ
 //
 
 /** Base class for libint integral cores */
-class LibintIntegralCoreBase : public IntegralCoreBase<stored_matrix_type> {
+class LibCintIntegralCoreBase : public IntegralCoreBase<stored_matrix_type> {
  public:
   typedef IntegralCoreBase<stored_matrix_type> base_type;
   typedef typename base_type::scalar_type scalar_type;
@@ -187,9 +183,8 @@ class LibintIntegralCoreBase : public IntegralCoreBase<stored_matrix_type> {
    * \param system  The molecular system and basis this core deals with
    * \param global  The global libint resources to acquire
    */
-  LibintIntegralCoreBase(const LibintSystem& system, const LibintGlobalInit& global)
-        : m_system_ptr("LibIntOneElectronIntegralCore", system),
-          m_global_ptr("LibIntOneElectronIntegralCore", global) {}
+  LibCintIntegralCoreBase(const System& system)
+        : m_system_ptr("LibIntOneElectronIntegralCore", system) {}
 
   size_t n_rows() const override { return m_system_ptr->n_bas(); }
   size_t n_cols() const override { return m_system_ptr->n_bas(); }
@@ -208,14 +203,14 @@ class LibintIntegralCoreBase : public IntegralCoreBase<stored_matrix_type> {
 
  protected:
   /** Return the system object */
-  const LibintSystem& system() const { return *m_system_ptr; }
+  const System& system() const { return *m_system_ptr; }
 
   /** Type of a computational kernel for the compute function below.
    *
    * For each pair of shell indices (e.g. 1s, 2s, 2p, ...) the kernel function
    * is called once.
    */
-  typedef std::function<void(LibintShell, LibintShell, const scalar_type*)> kernel_type;
+  typedef std::function<void(size_t, size_t, const scalar_type*)> kernel_type;
 
   // TODO Calling a lambda is faster than calling via a std::function object.
   //      Try to think of a way to achieve this.
@@ -250,16 +245,13 @@ class LibintIntegralCoreBase : public IntegralCoreBase<stored_matrix_type> {
 
  private:
   // Pointer to the molecular system info we use:
-  krims::SubscriptionPointer<const LibintSystem> m_system_ptr;
-
-  // Pointer to the global libint2 state we need
-  krims::SubscriptionPointer<const LibintGlobalInit> m_global_ptr;
+  krims::SubscriptionPointer<const System> m_system_ptr;
 };
 
 /** Class for one electron integral cores with libint */
-class OneElecIntegralCore final : public LibintIntegralCoreBase {
+class OneElecIntegralCore final : public LibCintIntegralCoreBase {
  public:
-  typedef LibintIntegralCoreBase base_type;
+  typedef LibCintIntegralCoreBase base_type;
   typedef IntegralCoreBase<stored_matrix_type> core_base_type;
 
   /** Constructor
@@ -268,46 +260,33 @@ class OneElecIntegralCore final : public LibintIntegralCoreBase {
    * \param op      The operator libint should compute in this core
    * \param global  The global libint resources to acquire
    */
-  OneElecIntegralCore(libint2::Operator op, const LibintSystem& system,
-                      const LibintGlobalInit& global)
-        : base_type(system, global), m_operator(op) {}
+  OneElecIntegralCore(IntegralType type, const System& system);
 
   std::unique_ptr<core_base_type> clone() const override {
     return std::unique_ptr<core_base_type>(new OneElecIntegralCore(*this));
   }
 
-  IntegralIdentifier id() const override {
-    switch (m_operator) {
-      case libint2::Operator::overlap:
-        return {IntegralCollection::id, IntegralType::overlap};
-      case libint2::Operator::kinetic:
-        return {IntegralCollection::id, IntegralType::kinetic};
-      case libint2::Operator::nuclear:
-        return {IntegralCollection::id, IntegralType::nuclear_attraction};
-      default:
-        // This is not a one electron integral operator known to us atm.
-        assert_internal(false);
-        return {IntegralCollection::id, IntegralType::overlap};
-    }
-  }
+  IntegralIdentifier id() const override { return {IntegralCollection::id, m_type}; }
 
  protected:
   virtual void compute(const krims::Range<size_t>& rows, const krims::Range<size_t>& cols,
                        typename base_type::kernel_type&& kernel) const override;
 
  private:
+  int_type (*m_cint1e_kernel)(double*, const int_type*, const int_type*, const int_type,
+                              const int_type*, const int_type, const double*);
+
   // Integral operator this core computes.
-  libint2::Operator m_operator;
+  const IntegralType m_type;
 };
 
-class ERICore final : public LibintIntegralCoreBase,
+class ERICore final : public LibCintIntegralCoreBase,
                       public CoefficientContainer<stored_matrix_type> {
  public:
-  typedef LibintIntegralCoreBase base_type;
+  typedef LibCintIntegralCoreBase base_type;
   typedef IntegralCoreBase<stored_matrix_type> core_base_type;
 
-  ERICore(IntegralType type, const LibintSystem& system, const LibintGlobalInit& global)
-        : base_type(system, global), m_type(type) {
+  ERICore(IntegralType type, const System& system) : base_type(system), m_type(type) {
     assert_internal(type == IntegralType::exchange || type == IntegralType::coulomb);
   }
 
@@ -334,7 +313,8 @@ class ERICore final : public LibintIntegralCoreBase,
   IntegralType m_type;
 };
 
-}  // namespace libint
+}  // namespace libcint
 }  // namespace gaussian
 }  // namespace gint
-#endif  // GINT_HAVE_LIBINT
+
+#endif  // GINT_HAVE_LIBCINT

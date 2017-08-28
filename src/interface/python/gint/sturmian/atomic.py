@@ -21,9 +21,13 @@
 ##
 ## ---------------------------------------------------------------------
 
-from . import element
-from .interface import Structure
-from ._available_basis_types import available_basis_types
+# Try to find sturmint module first
+import importlib
+sturmint_spec = importlib.util.find_spec("sturmint")
 
-import gint.gaussian
-import gint.sturmian.atomic
+if sturmint_spec is not None:
+    from ._atomic_sturmint import *
+else:
+    from ._atomic_without_sturmint import *
+
+del sturmint_spec

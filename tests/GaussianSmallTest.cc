@@ -41,6 +41,7 @@ void execute(const std::string& basis_type) {
 
 const bool runonce = [] {
   std::cout << "TODO:  The libint tests are quite inaccurate ... " << std::endl;
+  std::cout << "TODO:  The libcint tests are quite inaccurate ... " << std::endl;
   return true;
 }();
 
@@ -54,6 +55,17 @@ TEST_CASE("Small test gaussian/libint", "[libint][small]") {
   gaussian_small_test::execute("gaussian/libint");
 }
 #endif  // GINT_HAVE_LIBINT
+
+#ifdef GINT_HAVE_LIBCINT
+TEST_CASE("Small test gaussian/libcint", "[libcint][small]") {
+
+  // TODO This is bad, but to get going ....
+  auto highertol = krims::NumCompConstants::change_temporary(
+        7e6 * krims::NumCompConstants::default_tolerance_factor);
+
+  gaussian_small_test::execute("gaussian/libcint");
+}
+#endif  // GINT_HAVE_LIBCINT
 
 }  // namespace tests
 }  // namespace gint

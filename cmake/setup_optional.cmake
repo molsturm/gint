@@ -90,6 +90,26 @@ if (GINT_ENABLE_LIBINT)
 	enable_feature(libint)
 endif()
 
+################
+#--  Libcint --#
+################
+disable_feature(libcint)
+option(GINT_ENABLE_LIBCINT "Enable the libcint library to compute Gaussian integrals." OFF)
+
+if (GINT_ENABLE_LIBCINT)
+	message(WARNING "#--   libcint support is experimental. There are known bugs.")
+
+	# Forward parameters to included module
+	#set(LIBCINT_VERSION 2.8.16) # We need at least this version
+	message(WARNING "Due to an upstream bug, we need to track libcint master")
+
+	include(cmake/findLibcint.cmake)
+	unset(LIBINT_VERSION)
+
+	set(GINT_DEPENDENCIES ${GINT_DEPENDENCIES} ${LIBCINT_TARGET})
+	enable_feature(libcint)
+endif()
+
 ##########################
 #--  Static integrals  --#
 ##########################

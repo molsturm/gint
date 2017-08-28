@@ -100,9 +100,10 @@ constexpr int version_patch { @PROJECT_VERSION_PATCH@ };
 #cmakedefine GINT_HAVE_CXX14
 #cmakedefine GINT_HAVE_CXX17
 
-#cmakedefine GINT_HAVE_STURMINT
+#cmakedefine GINT_HAVE_LIBCINT
 #cmakedefine GINT_HAVE_LIBINT
 #cmakedefine GINT_HAVE_STATIC_INTEGRALS
+#cmakedefine GINT_HAVE_STURMINT
 
   /* clang-format on */
 }  // namespace gint

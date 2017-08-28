@@ -17,18 +17,27 @@
 // along with gint. If not, see <http://www.gnu.org/licenses/>.
 //
 
-#include "construct_gaussian_basis.hh"
-#include <gint/gaussian/BasisSet.hh>
+#include "available_basis_types.hh"
+#include <gint/IntegralLookup.hh>
+#include <gint/config.hh>
 
 namespace gint {
 namespace interface {
 
-gint::gaussian::Basis construct_gaussian_basis(long* atom_numbers, int n_atoms_an,
-                                               double* coords, int n_atoms_c, int three_c,
-                                               const std::string& basis_name) {
-  gint::Structure molecule =
-        construct_structure(atom_numbers, n_atoms_an, coords, n_atoms_c, three_c);
-  return gint::gaussian::Basis(molecule, gaussian::lookup_basisset(basis_name));
+std::vector<std::string> available_basis_types() {
+  using real_type = gint::real_valued::stored_matrix_type;
+  using cpx_type  = gint::complex_valued::stored_matrix_type;
+
+  // Combine complex and real basis function types.
+  std::vector<std::string> ret = gint::IntegralLookup<real_type>::available_basis_types();
+  const std::vector<std::string> cpx =
+        gint::IntegralLookup<cpx_type>::available_basis_types();
+  std::copy(cpx.begin(), cpx.end(), std::back_inserter(ret));
+
+  // Sort and unique
+  std::sort(ret.begin(), ret.end());
+  std::unique(ret.begin(), ret.end());
+  return ret;
 }
 
 }  // namespace interface

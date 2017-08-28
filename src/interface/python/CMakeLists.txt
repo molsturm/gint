@@ -22,6 +22,7 @@
 set(SRC
         construct_structure.cc
         construct_gaussian_basis.cc
+	available_basis_types.cc
 )
 
 # Download the numpy.i module we require from github

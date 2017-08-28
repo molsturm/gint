@@ -92,12 +92,12 @@ matrix:
       compiler: gcc
       env: CC_COMP="gcc" CXX_COMP="g++"
     #
-    # gcc-5 (with tests and c++14)
+    # gcc-7 (with tests and c++14)
     - install:
-      - travis_retry sudo apt-get install -y g++-5
-      - export GCOV="gcov-5"
+      - travis_retry sudo apt-get install -y g++-7
+      - export GCOV="gcov-7"
       compiler: gcc
-      env: CC_COMP="gcc-5" CXX_COMP="g++-5"
+      env: CC_COMP="gcc-7" CXX_COMP="g++-7"
     #
     # Clang-tidy 4.0
     - install:
@@ -134,6 +134,7 @@ script:
            -DKRIMS_ENABLE_TESTS=OFF -DKRIMS_ENABLE_EXAMPLES=OFF
            -DLAZYTEN_ENABLE_TESTS=OFF -DLAZYTEN_ENABLE_EXAMPLES=OFF
            -DGINT_ENABLE_STATIC_INTEGRALS=ON
+           -DGINT_ENABLE_LIBCINT=ON
            -DGINT_ENABLE_LIBINT=ON ${LIBINT_OPTS}
            -GNinja ..
   - cmake --build  . --target ${BUILD_TARGET:-all} -- -j ${CORES}

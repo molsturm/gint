@@ -25,6 +25,7 @@
 #include <gint/gaussian/Shell.hh>
 #include <gint/gaussian/Basis.hh>
 #include "interface/python/construct_gaussian_basis.hh"
+#include "interface/python/available_basis_types.hh"
 
 // Run the %init block (to setup numpy)
 #define SWIG_FILE_WITH_INIT
@@ -45,7 +46,12 @@
 
 %include "numpy.i"
 %include "std_string.i"
-%include "structure_flat.i"
+%include "std_vector.i"
+
+// Instantiate what is needed
+namespace std {
+  %template(StringVector)  vector<string>;
+}
 
 // Setup import of numpy array:
 %init %{
@@ -55,5 +61,6 @@ import_array();
 %include "../../gint/gaussian/Shell.hh"
 %include "../../gint/gaussian/Basis.hh"
 %include "construct_gaussian_basis.hh"
+%include "available_basis_types.hh"
 
 // vi: syntax=c

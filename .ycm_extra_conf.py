@@ -78,6 +78,7 @@ def BuildBaseFlags():
     '-isystem', 'build/external/lazyten/src',
     '-isystem', 'build/external/sturmint/src',
     '-isystem', 'build/external/libint/include',
+    '-isystem', 'build/external/libcint/include',
     '-isystem', '../krims/src',
     '-isystem', '../lazyten/src',
     '-isystem', '../sturmint/src',

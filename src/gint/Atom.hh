@@ -49,6 +49,13 @@ struct Atom {
 
   /** Construct an atom from an atomic symbol string and a set of coordinates */
   Atom(const std::string& symbol, std::array<real_type, 3> coords_);
+
+  /** Return true iff the nuclear charge deviates from the atomic
+   *  number more than a certain tolerance (by default 1e-14)
+   */
+  bool has_deviating_charge(double tolerance = 1e-14) const {
+    return std::abs(nuclear_charge - atomic_number) > tolerance;
+  }
 };
 
 std::ostream& operator<<(std::ostream& o, const Atom& atom);

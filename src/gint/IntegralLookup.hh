@@ -60,6 +60,15 @@ class IntegralLookup {
     return m_integral_collection_ptr->eri_tensor();
   }
 
+  /* Return the number of basis functions which are used to discretise the
+   * operators in this IntegralLookup. In other words this is the number
+   * of rows and columns of (most of) the integrals like the overlap and so on.
+   */
+  size_t n_bas() const {
+    assert_internal(m_integral_collection_ptr != nullptr);
+    return m_integral_collection_ptr->n_bas();
+  }
+
   /** Return the basis type id of the basis type to which this object is i initialised
    *
    * \note Usually this is equivalent to the value supplied as the ``basis_type``

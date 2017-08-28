@@ -27,9 +27,10 @@ namespace gint {
  *  a std::vector of atoms */
 class Structure : public std::vector<Atom>, public krims::Subscribable {
  public:
-  using std::vector<Atom>::vector;
-
   typedef std::vector<Atom> base_type;
+
+  // Use constructors from std::vector
+  using std::vector<Atom>::vector;
 
   /** Return the number of atoms in this molecular structure */
   size_t n_atoms() const { return base_type::size(); }
