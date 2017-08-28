@@ -82,7 +82,6 @@ matrix:
     # Clang 4.0 (has c++14) with libc++-1
     - install:
       - travis_retry sudo apt-get install -y clang-4.0 libc++-dev
-      - export EXTRA_OPTS="-DGINT_ENABLE_LIBCINT=ON"
       - export GCOV="llvm-cov-4.0 gcov"
       compiler: clang
       env: CC_COMP="clang-4.0" CXX_COMP="clang++-4.0"
@@ -135,6 +134,7 @@ script:
            -DKRIMS_ENABLE_TESTS=OFF -DKRIMS_ENABLE_EXAMPLES=OFF
            -DLAZYTEN_ENABLE_TESTS=OFF -DLAZYTEN_ENABLE_EXAMPLES=OFF
            -DGINT_ENABLE_STATIC_INTEGRALS=ON
+           -DGINT_ENABLE_LIBCINT=ON
            -DGINT_ENABLE_LIBINT=ON ${LIBINT_OPTS}
            -GNinja ..
   - cmake --build  . --target ${BUILD_TARGET:-all} -- -j ${CORES}
