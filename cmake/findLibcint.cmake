@@ -49,6 +49,9 @@ endif()
 include(ExternalProject)
 
 function(SETUP_LIBCINT_FOR_EXTERNAL_BUILD TARGET)
+	set(LIBCINT_PREFIX "${PROJECT_BINARY_DIR}/external/libcint")
+	set(LINKFILE "${LIBCINT_PREFIX}/lib/libcint.a")
+
 	if ("${LIBCINT_VERSION}" STREQUAL "")
 		set(LIBCINT_TAG "master")
 	else()
@@ -61,10 +64,19 @@ function(SETUP_LIBCINT_FOR_EXTERNAL_BUILD TARGET)
 	enable_if_cc_compiles(LIBCINT_C_FLAGS "-Wno-unused-function")
 	enable_if_cc_compiles(LIBCINT_C_FLAGS "-Wno-extra-semi")
 
+	# Set byproducts (needed for ninja)
+	set(BUILD_BYPRODUCT_OPTIONS "")
+	if (CMAKE_VERSION VERSION_GREATER 3.2)
+		# The BUILD_BYPRODUCTS flag is only understood from 3.2 on
+		set(BUILD_BYPRODUCT_OPTIONS "BUILD_BYPRODUCTS" ${LINKFILE})
+	endif()
+
 	ExternalProject_Add(libcint
-		PREFIX "${PROJECT_BINARY_DIR}/external/libcint"
 		GIT_REPOSITORY "https://github.com/sunqm/libcint"
 		GIT_TAG "${LIBCINT_TAG}"
+		#
+		PREFIX "${LIBCINT_PREFIX}"
+		${BUILD_BYPRODUCT_OPTIONS}
 		#
 		CMAKE_ARGS
 			# Setup compiler and compiler options
@@ -75,7 +87,7 @@ function(SETUP_LIBCINT_FOR_EXTERNAL_BUILD TARGET)
 			-DCMAKE_BUILD_TYPE=RELEASE
 			#
 			# Set the place to install the library in the end
-			-DCMAKE_INSTALL_PREFIX=${PROJECT_BINARY_DIR}/external/libcint
+			-DCMAKE_INSTALL_PREFIX=${LIBCINT_PREFIX}
 			#
 			# Build but static and with PIC enabled
 			# This way we can link a single gint library shared object
@@ -84,19 +96,13 @@ function(SETUP_LIBCINT_FOR_EXTERNAL_BUILD TARGET)
 			-DCMAKE_POSITION_INDEPENDENT_CODE=ON
 			-DENABLE_TESTS=ON
 	)
-	# TODO Right now libcint insists on building itself under the CMAKE_BUILD_TYPE
-	#      RELWITHDEBINFO. Even with an explicit -DCMAKE_BUILD_TYPE=RELEASE this
-	#      cannot be changed.
-
-	ExternalProject_Get_Property(libcint install_dir)
-	set(LINKFILE "${install_dir}/lib/libcint.a")
 
 	# Setup target as an external imported library and set the include dir.
 	add_library(${TARGET} STATIC IMPORTED GLOBAL)
 	set_target_properties(${TARGET} PROPERTIES
 		IMPORTED_LOCATION "${LINKFILE}"
 	)
-	include_directories(SYSTEM "${install_dir}/include")
+	include_directories(SYSTEM "${LIBCINT_PREFIX}/include")
 
 	# Make sure that linking to ${TARGET} causes
 	# a build of the libint library as well
@@ -113,7 +119,6 @@ endif()
 if(AUTOCHECKOUT_MISSING_REPOS)
 	set(LIBCINT_TARGET "External::libcint")
 	SETUP_LIBCINT_FOR_EXTERNAL_BUILD(${LIBCINT_TARGET})
-
 	message(STATUS "Setting up libcint as an external project")
 	return()
 else()
