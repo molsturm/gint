@@ -109,6 +109,16 @@ class Basis:
     return self.__len__()
 
   @property
+  def n_bas(self):
+    """Return the number of basis functions in this basis"""
+    return self.__len__()
+
+  @property
+  def n_shells(self):
+    """Return the number of shells in this basis"""
+    return len(self.shells)
+
+  @property
   def has_real_harmonics():
     """
     Does this basis have real functions to describe the angular part. This impies that
