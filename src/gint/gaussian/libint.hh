@@ -138,7 +138,7 @@ class IntegralCollection final : public IntegralCollectionBase<stored_matrix_typ
   /** Construct collection object from a set of parameters
    *
    * The following parameters are read:
-   *   - basis_set  (std::string)
+   *   - basis_set_name  (std::string)
    *     Either the name of a Gaussian basis set to use or the
    *     path to a basis set file to read the basis set from.
    *   - basis     (gint::gaussian::Basis)  The basis to use to model the
