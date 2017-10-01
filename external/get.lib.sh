@@ -1,21 +1,21 @@
 #!/bin/sh
 ## ---------------------------------------------------------------------
 ##
-## Copyright (C) 2016 by the gint authors
+## Copyright (C) 2017 by the gint authors
 ##
 ## This file is part of gint.
 ##
 ## gint is free software: you can redistribute it and/or modify
-## it under the terms of the GNU Lesser General Public License as published
+## it under the terms of the GNU General Public License as published
 ## by the Free Software Foundation, either version 3 of the License, or
 ## (at your option) any later version.
 ##
 ## gint is distributed in the hope that it will be useful,
 ## but WITHOUT ANY WARRANTY; without even the implied warranty of
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Lesser General Public License for more details.
+## GNU General Public License for more details.
 ##
-## You should have received a copy of the GNU Lesser General Public License
+## You should have received a copy of the GNU General Public License
 ## along with gint. If not, see <http://www.gnu.org/licenses/>.
 ##
 ## ---------------------------------------------------------------------
@@ -135,10 +135,16 @@ checkout_repo () {
 	I_WHAT="$2"
 	# the file to check after checkout
 	I_CHECKFILE="$3"
-	# which branch to checkout
+	# which branch or commit to checkout
 	I_BRANCH="$4"
 
-	# No branch specified
+	# Check whether the branch is actually a commit
+	if echo "$I_BRANCH" | grep -qE '[0-9a-f]{40}'; then
+		I_COMMIT="$I_BRANCH"
+		I_BRANCH=""
+	fi
+
+	# Branch specified
 	if [ "$I_BRANCH" ]; then
 		I_EXTRA=" (branch: $I_BRANCH)"
 		I_ARGS="--branch $I_BRANCH"
@@ -150,7 +156,15 @@ checkout_repo () {
 		return 1
 	fi
 
+	# Clone and switch to commit if needed
 	git clone $I_ARGS --recursive "$I_FROM" "$I_WHAT" || return 1
+	if [ "$I_COMMIT" ]; then
+		OPWD="$PWD"
+		cd "$I_WHAT"
+		echo "-- Switching to commit $I_COMMIT"
+		git checkout --detach "$I_COMMIT" || return 1
+		cd "$OPWD"
+	fi
 	if [ -f "$I_WHAT/$I_CHECKFILE" ]; then
 		mark_update_done "$I_WHAT" || return 1
 		return 0
