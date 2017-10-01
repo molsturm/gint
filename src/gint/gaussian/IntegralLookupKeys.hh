@@ -33,7 +33,7 @@ struct IntegralLookupKeys : public gint::IntegralLookupKeys {
    *  The actual basis, which is used is constructed from the obtained basis set
    *  using the structure to model.
    */
-  static const std::string basis_set;
+  static const std::string basis_set_name;
 
   /** The basis to use (Type: gint::gaussian::Basis)
    *  Takes preference over the basis_set supplied */

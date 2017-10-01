@@ -74,6 +74,12 @@ function(SETUP_LIBCINT_FOR_EXTERNAL_BUILD TARGET)
 	endif()
 
 	# TODO Force-disable quadmath for now
+	#      find quadmath.h header and quadmath library
+	#      on my system: /usr/lib/gcc/x86_64-linux-gnu/7/include/quadmath.h
+	#      and /usr/lib/gcc/x86_64-linux-gnu/7/libquadmath.so
+	#  best way to solve this is via a compile script similar to what
+	#  libcint is doing itself. Probably best put it into a cmake module
+	#  inside krims.
 	set(LIBCINT_QUADMATH OFF)
 	message(WARNING "Quadmath is force-disabled inside libcint.")
 

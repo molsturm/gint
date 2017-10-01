@@ -393,12 +393,12 @@ Basis construct_basis(const krims::GenMap& parameters) {
 
   // The key: Either a file or the name of a basis set
   const std::string& key =
-        parameters.at<const std::string>(IntegralLookupKeys::basis_set);
+        parameters.at<const std::string>(IntegralLookupKeys::basis_set_name);
 
   const std::string errmsg =
         " Could not construct gaussian basis for the structure (provided via key \"" +
         IntegralLookupKeys::structure + "\") and the gaussian basis set \"" + key +
-        "\" (provided via key \"" + IntegralLookupKeys::basis_set + "\")." +
+        "\" (provided via key \"" + IntegralLookupKeys::basis_set_name + "\")." +
         "\n\nDetails:\n--------\n";
 
   // If key is a valid file => Read it directly,

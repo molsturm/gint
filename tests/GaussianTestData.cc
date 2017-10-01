@@ -40,7 +40,7 @@ const krims::GenMap GaussianTestData::integral_parameters{
                           {"H", {{0, 0, 1.79523981918493678355}}},
                           {"H", {{1.69319460841021406111, 0, -.59904318177013153724}}},
                     })},
-      {"basis_set", "sto-3g"},
+      {"basis_set_name", "sto-3g"},
       {"orbital_type", OrbitalType::REAL_MOLECULAR},
 };
 

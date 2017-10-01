@@ -1,21 +1,21 @@
 #!/bin/sh
 ## ---------------------------------------------------------------------
 ##
-## Copyright (C) 2016 by the gint authors
+## Copyright (C) 2017 by the gint authors
 ##
 ## This file is part of gint.
 ##
 ## gint is free software: you can redistribute it and/or modify
-## it under the terms of the GNU Lesser General Public License as published
+## it under the terms of the GNU General Public License as published
 ## by the Free Software Foundation, either version 3 of the License, or
 ## (at your option) any later version.
 ##
 ## gint is distributed in the hope that it will be useful,
 ## but WITHOUT ANY WARRANTY; without even the implied warranty of
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Lesser General Public License for more details.
+## GNU General Public License for more details.
 ##
-## You should have received a copy of the GNU Lesser General Public License
+## You should have received a copy of the GNU General Public License
 ## along with gint. If not, see <http://www.gnu.org/licenses/>.
 ##
 ## ---------------------------------------------------------------------
@@ -40,7 +40,7 @@ INTERVAL="3600"
 CHECKFILE="CMakeLists.txt"
 
 # Branch to checkout (empty for default)
-BRANCH=""
+BRANCH="9eb1e620cf84aa6bec638ef7bb1ed6e4989f43a2"
 
 if [ ! -f "$PWD/get.lib.sh" ]; then
 	echo "PWD needs to be the location of the get.lib.sh file."

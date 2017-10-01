@@ -22,8 +22,8 @@
 namespace gint {
 namespace gaussian {
 
-const std::string IntegralLookupKeys::basis_set = "basis_set";
-const std::string IntegralLookupKeys::basis     = "basis";
+const std::string IntegralLookupKeys::basis_set_name = "basis_set_name";
+const std::string IntegralLookupKeys::basis          = "basis";
 
 }  // namespace gaussian
 }  // namespace gint
