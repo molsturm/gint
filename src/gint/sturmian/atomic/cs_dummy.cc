@@ -35,15 +35,15 @@ const std::string IntegralCollection::id = "sturmian/atomic/cs_dummy";
 
 IntegralCollection::IntegralCollection(const krims::GenMap& parameters)
       : IntegralCollectionBase(parameters) {
-  if (parameters.exists(IntegralLookupKeys::nlm_basis)) {
-    m_repulsiondata_filename = parameters.at<string>("repulsiondata_filename");
-  } else {
+  if (parameters.exists("n_max") and not parameters.exists("repulsiondata_filename")) {
     const int nmax = parameters.at<int>("n_max");
     const int lmax = parameters.at<int>("l_max");
     const int mmax = parameters.at<int>("m_max");
 
     m_repulsiondata_filename = std::string("repulsiondata-nlm-") + to_string(nmax) + "-" +
                                to_string(lmax) + "-" + to_string(mmax) + ".bin";
+  } else {
+    m_repulsiondata_filename = parameters.at<string>("repulsiondata_filename");
   }
   m_integral_calculator = Atomic(m_system.basis, m_repulsiondata_filename);
   m_eri_tensor_ptr.reset(new ERITensor<Atomic>(m_integral_calculator, m_system));
