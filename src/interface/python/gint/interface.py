@@ -35,7 +35,7 @@ class Structure:
     If there is only a single atom, then coords may be absent and atoms may be just
     a single atom number or atom name/symbol.
     """
-    if not isinstance(atoms, (list, tuple)):
+    if not isinstance(atoms, (list, tuple, np.ndarray)):
       if coords is None:
         atoms = [ atoms ]
       else:
