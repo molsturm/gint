@@ -119,7 +119,7 @@ class Basis:
     return len(self.shells)
 
   @property
-  def has_real_harmonics():
+  def has_real_harmonics(self):
     """
     Does this basis have real functions to describe the angular part. This impies that
     the repulsion integrals satisfy the extra symmetry (ab|cd) = (ba|cd) in shell
