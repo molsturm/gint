@@ -23,6 +23,7 @@
 
 import collections
 import collections.abc
+import numpy as np
 
 Element = collections.namedtuple("Element", [ "atom_number", "symbol", "name" ])
 
@@ -141,7 +142,7 @@ def find(val):
     it is interpreted as an element symbol
   - Else it is interpreted as an element name.
   """
-  if isinstance(val, int):
+  if isinstance(val, tuple(np.sctypes["int"] + np.sctypes["uint"]) + (int,)):
     return by_atomic_number(val)
   elif isinstance(val, str):
     if len(val) > 3 or val == "tin":

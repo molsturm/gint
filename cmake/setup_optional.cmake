@@ -100,8 +100,7 @@ if (GINT_ENABLE_LIBCINT)
 	message(WARNING "#--   libcint support is experimental. There are known bugs.")
 
 	# Forward parameters to included module
-	#set(LIBCINT_VERSION 2.8.16) # We need at least this version
-	message(WARNING "Due to an upstream bug, we need to track libcint master")
+	set(LIBCINT_VERSION 3.0.2) # We need at least this version
 
 	include(cmake/findLibcint.cmake)
 	unset(LIBINT_VERSION)

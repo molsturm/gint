@@ -31,7 +31,7 @@ available_backends = [t[16:] for t in available_basis_types
 
 class Basis(sturmint.atomic.cs.Basis):
     def __init__(self, structure, k_exp, n_max, l_max=None, m_max=None, backend="auto"):
-        if backend == "auto" or backend is  None:
+        if backend == "auto" or backend is None:
             # List the priority of the backends
             __backend_priority = ["cs_reference_pc", "cs_dummy", "cs_static14"]
 
@@ -51,13 +51,16 @@ class Basis(sturmint.atomic.cs.Basis):
         super().__init__(k_exp, n_max, l_max, m_max, order="nlm")
 
     @property
-    def has_real_harmonics():
+    def has_real_harmonics(self):
         """
         Does this basis have real functions to describe the angular part. This impies that
         the repulsion integrals satisfy the extra symmetry (ab|cd) = (ba|cd) in shell
         pair notation, which would not be true otherwise
         """
-        raise NotImplementedError()
+        # Currently all backends use complex spherical harmonics, but for m_max == 0 it
+        # does not matter, since the real and complex harmonics are the same, so we
+        # prefer real in that case.
+        return all(nlm[2] <= 0 for nlm in self.functions)
 
     @property
     def size(self):

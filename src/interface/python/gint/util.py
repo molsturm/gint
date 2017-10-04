@@ -72,4 +72,4 @@ def split_basis_type(basis_type):
                 # Remove the key as well as the trailling "/"
                 backend = basis_type[len(key) + 1:]
             return (mapping[key], backend)
-    raise ValueError("Unknown basis type of basis function type: " + basis_type)
+    raise ValueError("Unknown basis function type: " + basis_type)

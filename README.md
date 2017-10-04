@@ -77,7 +77,7 @@ Next to the dependencies mentioned before, building `libint` requires:
 
 On Debian/Ubuntu the command
 ```
-apt-get install libeigen3-dev libblas-dev autoconf libgmp-dev
+apt-get install libeigen3-dev libopenblas-dev autoconf libgmp-dev
 ```
 should install all of these.
 
