@@ -47,10 +47,6 @@ enable_testing()
 ##########################################################################
 # Global options
 
-# setup global options
-# TODO until the python interface of gint is ready, disable by default:
-option(GINT_INTERFACE_PYTHON "Build and install python interface module (gint)" OFF)
-
 include_krims_cmake_module(GlobalOption)
 global_option(ENABLE_DOCUMENTATION "Build documentation"                       OFF )
 global_option(ENABLE_EXAMPLES      "Build example executables"                 ON  )
