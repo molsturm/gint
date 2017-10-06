@@ -22,8 +22,7 @@
 ## ---------------------------------------------------------------------
 
 from . import element
-from .interface import Structure
-from ._available_basis_types import available_basis_types
-
+from .Structure import Structure
+from .Basis import Basis, available_basis_types
 import gint.gaussian
 import gint.sturmian.atomic
