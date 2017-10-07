@@ -21,7 +21,7 @@
 ##
 ## ---------------------------------------------------------------------
 
-from .._available_basis_types import available_basis_types
+from ..BasisBase import BasisBase, available_basis_types
 import sturmint.atomic.cs
 
 """The list of available sturmian backends"""
@@ -29,7 +29,7 @@ available_backends = [t[16:] for t in available_basis_types
                       if t.startswith("sturmian/atomic")]
 
 
-class Basis(sturmint.atomic.cs.Basis):
+class Basis(sturmint.atomic.cs.Basis, BasisBase):
     def __init__(self, structure, k_exp, n_max, l_max=None, m_max=None, backend="auto"):
         if backend == "auto" or backend is None:
             # List the priority of the backends
@@ -41,7 +41,7 @@ class Basis(sturmint.atomic.cs.Basis):
                     break
         else:
             if backend not in available_backends:
-                raise ValueError("The gaussian inegral backend " + backend +
+                raise ValueError("The Coulomb-Sturmian integral backend " + backend +
                                  " is not available. The following basis types "
                                  "are implemented: " +
                                  ",".join(available_basis_types))
