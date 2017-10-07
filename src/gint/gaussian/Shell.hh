@@ -33,6 +33,11 @@
 namespace gint {
 namespace gaussian {
 
+#ifndef SWIG
+static_assert(std::is_same<double, real_type>::value,
+              "Currently real_type needs to be double for SWIG interoperability.");
+#endif
+
 /** Structure to represent a Gaussian shell,
  *  i.e. a set of basis functions with the same value for
  *  the azimuthal quantum number l.
@@ -80,9 +85,6 @@ struct Shell {
 #if SWIG
 /* clang-format off */
 %extend Shell {
-  static_assert(std::is_same<double, real_type>::value,
-                "Currenltly for swig real_type needs to be double");
-
   void coefficients(int* n_coeff, double** coeff) {
     *n_coeff = $self->coefficients.size();
     *coeff   = $self->coefficients.data();
