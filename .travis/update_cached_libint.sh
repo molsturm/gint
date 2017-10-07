@@ -33,12 +33,12 @@ SUBDIRS="include lib share"
 # ----------------------------------------------------------------------
 
 # Go to the top build directory
-cd ${TRAVIS_BUILD_DIR}
+cd "${TRAVIS_BUILD_DIR}"
 
 # Check all folders exist
 [ ! -d "$LIBINT_INSTALL_DIR" ] && exit 0
 for subdir in $SUBDIRS; do
-	[ ! -d "$subdir" ] && exit 0
+	[ ! -d "$LIBINT_INSTALL_DIR/$subdir" ] && exit 0
 done
 
 echo "Updating libint cache at $LIBINT_CACHE_DIR"
