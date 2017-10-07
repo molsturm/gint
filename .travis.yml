@@ -68,6 +68,9 @@ addons:
       #
       # Packages for libint
       - libeigen3-dev
+      #
+      # Packages for python interface
+      - swig
 
 matrix:
   include:
