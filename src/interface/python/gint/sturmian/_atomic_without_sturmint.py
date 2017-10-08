@@ -21,14 +21,14 @@
 ##
 ## ---------------------------------------------------------------------
 
-from .._available_basis_types import available_basis_types
+from ..BasisBase import BasisBase, available_basis_types
 
 
 """The list of available sturmian backends"""
-available_backends = [t[9:] for t in available_basis_types if t.startswith("sturmian/")]
+available_backends = []
 
 
-class Basis:
+class Basis(BasisBase):
     def __init__(self, *args, **kwars):
         raise RuntimeError("No sturmian backend is available in gint. The list of "
                            "available basis types is: " +

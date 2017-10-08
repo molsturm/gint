@@ -38,6 +38,25 @@ void NlmBasis::add_shell(int n, int l_max, int m_max) {
   }
 }
 
+int NlmBasis::n_max() const {
+  auto compare_n = [](const Nlm& lhs, const Nlm& rhs) { return lhs.n < rhs.n; };
+  return std::max_element(begin(), end(), std::move(compare_n))->n;
+}
+
+/** Determine the maximal absolute value for m in the full basis */
+int NlmBasis::m_max() const {
+  auto compare_absm = [](const Nlm& lhs, const Nlm& rhs) {
+    return std::abs(lhs.m) < std::abs(rhs.m);
+  };
+  return std::abs(std::max_element(begin(), end(), std::move(compare_absm))->m);
+}
+
+/** Determine the maximal value for l in the full basis */
+int NlmBasis::l_max() const {
+  auto compare_l = [](const Nlm& lhs, const Nlm& rhs) { return lhs.l < rhs.l; };
+  return std::max_element(begin(), end(), std::move(compare_l))->l;
+}
+
 std::ostream& operator<<(std::ostream& o, const NlmBasis& basis) {
   o << krims::join(std::begin(basis), std::end(basis), ", ");
   return o;

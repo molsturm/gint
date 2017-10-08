@@ -21,12 +21,9 @@
 ##
 ## ---------------------------------------------------------------------
 
-from . import _iface as iface
+from .BasisBase import available_basis_types
 import gint.gaussian
 import gint.sturmian.atomic
-
-""" The list of available basis types """
-available_basis_types = tuple(iface.available_basis_types())
 
 
 def split_basis_type(basis_type):

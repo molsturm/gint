@@ -34,13 +34,23 @@ struct Nlm {
   int m;
 };
 
+//@{
+/** Comparators for Nlm objects */
+inline bool operator==(const Nlm& lhs, const Nlm& rhs) {
+  return lhs.n == rhs.n && lhs.l == rhs.l && lhs.m == rhs.m;
+}
+
+inline bool operator!=(const Nlm& lhs, const Nlm& rhs) {
+  return lhs.n != rhs.n || lhs.l != rhs.l || lhs.m != rhs.m;
+}
+//@}
+
 /** Print an Nlm triple to an output stream */
 std::ostream& operator<<(std::ostream& o, const Nlm& nlm);
 
 /** Structure representing a collection of n,l,m triples */
 struct NlmBasis : public std::vector<Nlm>, public krims::Subscribable {
   static constexpr int all = std::numeric_limits<int>::max();
-  int n_max;
 
   /** Construct an nlm basis from a maximal value for the quantum
    * numbers n (principle quantum number), l (azimuthal quantum number)
@@ -54,20 +64,32 @@ struct NlmBasis : public std::vector<Nlm>, public krims::Subscribable {
   }
 
   /** Construct an empty collection */
-  NlmBasis() : n_max(0) {}
+  NlmBasis() : m_n_max_shell(0) {}
 
   /** Add a shell to the basis, i.e. start the next
    *  principle quantum number and go up to a certain
    *  lmax and mmax
    */
   void add_shell(int l_max = all, int m_max = all) {
-    add_shell(n_max + 1, l_max, m_max);
-    ++n_max;
+    add_shell(m_n_max_shell + 1, l_max, m_max);
+    ++m_n_max_shell;
   }
 
   /** Add a shell to the basis and specify the principle
    *  quantum number to use */
   void add_shell(int n, int l_max, int m_max);
+
+  /** Determine the maximal value for n in the full basis */
+  int n_max() const;
+
+  /** Determine the maximal absolute value for m in the full basis */
+  int m_max() const;
+
+  /** Determine the maximal value for l in the full basis */
+  int l_max() const;
+
+ private:
+  int m_n_max_shell;
 };
 
 /** Print an NlmBasis structure to an output stream */

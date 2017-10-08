@@ -23,6 +23,7 @@
 #include "gint/IntegralLookupKeys.hh"
 #include "gint/IntegralUpdateKeys.hh"
 #include "gint/Structure.hh"
+#include "gint/sturmian/atomic/NlmBasis.hh"
 
 namespace gint {
 namespace sturmian {
@@ -52,7 +53,36 @@ double atom_charge(const krims::GenMap& parameters) {
 IntegralCollection::IntegralCollection(const krims::GenMap& parameters)
       : k_exponent{parameters.at<double>("k_exponent")},
         Z_charge{atom_charge(parameters)},
-        m_eri_tensor(k_exponent) {}
+        m_eri_tensor(k_exponent) {
+
+  if (parameters.exists("nlm_basis")) {
+    const auto& nlmbasis = parameters.at<const NlmBasis>("nlm_basis");
+
+    // Construct an NlmBasis in normal, dense form with nlm order
+    const int n_max = nlmbasis.n_max();
+    const int l_max = nlmbasis.l_max();
+    const int m_max = nlmbasis.m_max();
+    const NlmBasis nlmbasis_compare(n_max, l_max, m_max);
+
+    // Assert its the same
+    assert_throw(nlmbasis_compare == nlmbasis,
+                 ExcInvalidIntegralParameters("cs_static14 only works with an nlm_basis "
+                                              "which is in nlm order and has no gaps up "
+                                              "to (n_max,l_max,m_max) == (3,2,2)"));
+
+  } else {
+    const int n_max = parameters.at<int>("n_max");
+    const int l_max = parameters.at<int>("l_max");
+    const int m_max = parameters.at<int>("m_max");
+
+    assert_throw(
+          n_max == 3 && l_max == 2 && m_max == 2,
+          ExcInvalidIntegralParameters(
+                "cs_static14 only works with (n_max,l_max,m_max) == (3,2,2) and not (" +
+                std::to_string(n_max) + "," + std::to_string(l_max) + "," +
+                std::to_string(m_max) + ")"));
+  }
+}
 
 Integral<stored_matrix_type> IntegralCollection::lookup_integral(
       IntegralType type) const {
