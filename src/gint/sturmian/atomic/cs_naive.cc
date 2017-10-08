@@ -35,9 +35,19 @@ const std::string IntegralCollection::id = "sturmian/atomic/cs_naive";
 
 IntegralCollection::IntegralCollection(const krims::GenMap& parameters)
       : IntegralCollectionBase{parameters}, m_integral_calculator{m_system.basis} {
+  if (parameters.exists(IntegralLookupKeys::nlm_basis)) {
+    const auto& nlmbasis = parameters.at<const NlmBasis>("nlm_basis");
 
-  // Implement some day. Most importantly think about the required range checks.
-  assert_implemented(!parameters.exists(IntegralLookupKeys::nlm_basis));
+    // Construct an NlmBasis in normal, dense form with nlm order
+    const int n_max = nlmbasis.n_max();
+    const int l_max = nlmbasis.l_max();
+    const int m_max = nlmbasis.m_max();
+    const NlmBasis nlmbasis_compare(n_max, l_max, m_max);
+
+    // Implement the general case some day. Most importantly think about the required
+    // range checks.
+    assert_implemented(nlmbasis_compare == nlmbasis);
+  }
 
   // Check range of n,l,m values
   const int n_max = parameters.at<int>("n_max");
