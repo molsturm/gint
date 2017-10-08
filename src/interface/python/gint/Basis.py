@@ -75,6 +75,6 @@ class Basis:
         """
         Basis, backend = split_basis_type(basis_type)
         try:
-            return Basis(structure, **kwargs, backend=backend)
+            return Basis(structure, backend=backend, **kwargs)
         except (TypeError, ValueError) as e:
             raise ValueError("Invalid argument for basis construction: " + str(e))
