@@ -1,4 +1,3 @@
-
 //
 // Copyright (C) 2017 by the gint authors
 //
