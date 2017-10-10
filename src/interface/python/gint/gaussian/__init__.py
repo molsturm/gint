@@ -147,3 +147,20 @@ class Basis(BasisBase):
                                             self.cartesian_ordering)
             evaluated.append(res)
         return np.concatenate(evaluated)
+
+    def obtain_projection_to(self, other_basis):
+        """Build a projection matrix, which interpolates this basis
+        to another gaussian.Basis object.
+
+        I.e. if P is the result of this function, than
+        np.matmul(P, old_orbcoeff_bf) computes the orbital
+        coefficients in the new basis (== other_basis) from the
+        ones in the old basis (== self)
+        """
+
+        if other_basis.basis_set_name != self.basis_set_name:
+            raise NotImplementedError("Can only obtain projection if the basis "
+                                      "set is identical.")
+
+        assert len(self) == len(other_basis)
+        return np.eye(len(self))
