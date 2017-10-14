@@ -23,6 +23,64 @@
 
 from . import element
 from .Structure import Structure
-from .Basis import Basis, available_basis_types
+from .BasisBase import available_basis_types
 import gint.gaussian
 import gint.sturmian.atomic
+
+
+def split_basis_type(basis_type):
+    """
+    Split the basis type into the type of the
+    basis class and the backend specification,
+    i.e. returns a tuple (type, string) or
+    (type, None) if no backend is specified.
+
+    For example "gaussian" would return (gint.gaussian.Basis, None)
+    and "sturmian/atomic/cs_dummy" would return
+    (sturmian.atomic.atomic.Basis, "cs_dummy")
+    """
+    mapping = {
+        "gaussian": gint.gaussian.Basis,
+        "sturmian/atomic": gint.sturmian.atomic.Basis,
+    }
+
+    for key in mapping:
+        if basis_type.startswith(key):
+            backend = None
+            if basis_type[len(key) + 1:]:
+                if basis_type not in available_basis_types:
+                    raise ValueError("Basis type not available: " + basis_type)
+                # Remove the key as well as the trailling "/"
+                backend = basis_type[len(key) + 1:]
+            return (mapping[key], backend)
+    raise ValueError("Unknown basis function type: " + basis_type)
+
+
+def construct_basis(basis_type, structure, **kwargs):
+    """
+    Construct any of the available gint basis objects using
+    the basis type string and the arguments needed to construct
+    the basis object.
+
+    basis_type:   String identifying the basis type
+    structure:    The gint.Structure object of the structure to model
+
+    Example:
+        struct = gint.Structure("Be")
+        construct_basis("gaussian/libint", struct, basis_set_name="sto-3g")
+    """
+    Basis, backend = split_basis_type(basis_type)
+    try:
+        kwargs.setdefault("backend", backend)
+        return Basis(structure, **kwargs)
+    except (TypeError, ValueError) as e:
+        raise ValueError("Invalid argument for basis construction: " + str(e))
+
+
+class Basis:
+    @classmethod
+    def construct(cls, basis_type, structure, **kwargs):
+        import warnings
+        warnings.warn("Basis.construct is deprecated use construct_basis instead.",
+                      DeprecationWarning, stacklevel=2)
+        return construct_basis(basis_type, structure, **kwargs)
