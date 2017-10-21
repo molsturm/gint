@@ -279,7 +279,17 @@ LibintSystem make_system(const krims::GenMap& parameters) {
 }
 
 IntegralCollection::IntegralCollection(const krims::GenMap& parameters)
-      : m_system{make_system(parameters)}, m_global{}, m_eri_tensor{m_system, m_global} {}
+      : m_system{make_system(parameters)}, m_global{}, m_eri_tensor{m_system, m_global} {
+  assert_throw(
+        m_system.max_l() <= LIBINT_MAX_AM,
+        ExcInvalidIntegralParameters(
+              "Angular momentum limit exceeded for using libint. Angular momentum "
+              "requested == " +
+              std::to_string(m_system.max_l()) +
+              " vs. max. angular momentum supported == " + std::to_string(LIBINT_MAX_AM) +
+              ". Choose a smaller basis set or recompilie libint with a larger angular "
+              "momentum limit."));
+}
 
 Integral<stored_matrix_type> IntegralCollection::lookup_integral(
       IntegralType type) const {
