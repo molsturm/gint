@@ -88,7 +88,7 @@ class Basis(BasisBase):
                     break
         else:
             if backend not in available_backends:
-                raise ValueError("The gaussian inegral backend " + backend + " is not "
+                raise ValueError("The gaussian integral backend " + backend + " is not "
                                  "available. The following gaussian backends are "
                                  "implemented: " + ",".join(available_backends))
             self.backend = backend
