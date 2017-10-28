@@ -75,12 +75,3 @@ def construct_basis(basis_type, structure, **kwargs):
         return Basis(structure, **kwargs)
     except (TypeError, ValueError) as e:
         raise ValueError("Invalid argument for basis construction: " + str(e))
-
-
-class Basis:
-    @classmethod
-    def construct(cls, basis_type, structure, **kwargs):
-        import warnings
-        warnings.warn("Basis.construct is deprecated use construct_basis instead.",
-                      DeprecationWarning, stacklevel=2)
-        return construct_basis(basis_type, structure, **kwargs)
