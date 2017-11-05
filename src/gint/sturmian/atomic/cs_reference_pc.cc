@@ -24,6 +24,8 @@
 #include "nlm_order/ERICoreHighPrecision.hh"
 #include "nlm_order/ERITensor.hh"
 #include "nlm_order/OneElectronIntegralCores.hh"
+#include <gint/OrbitalType.hh>
+#include <sturmint/atomic/cs/CpxToRealRepulsionCalculator.hh>
 
 namespace gint {
 namespace sturmian {
@@ -33,8 +35,23 @@ namespace cs_reference_pc {
 const std::string IntegralCollection::id = "sturmian/atomic/cs_reference_pc";
 
 IntegralCollection::IntegralCollection(const krims::GenMap& parameters)
-      : IntegralCollectionBase(parameters), m_integral_calculator(m_system.basis) {
-  m_eri_tensor_ptr.reset(new ERITensor<Atomic>(m_integral_calculator, m_system));
+      : IntegralCollectionBase(parameters) {
+  const OrbitalType otype = parameters.at<OrbitalType>(IntegralLookupKeys::orbital_type,
+                                                       OrbitalType::REAL_MOLECULAR);
+
+  if (otype == OrbitalType::REAL_ATOMIC) {
+    Atomic cpx_calculator{m_system.basis};
+
+    m_integral_calculator_ptr.reset(
+          new sturmint::CpxToRealRepulsionCalculator<Atomic>{std::move(cpx_calculator)});
+  } else if (otype == OrbitalType::COMPLEX_ATOMIC) {
+    m_integral_calculator_ptr.reset(new Atomic(m_system.basis));
+  } else {
+    assert_throw(false, ExcInvalidIntegralParameters(
+                              "OrbitalType may only be REAL_ATOMIC or COMPLEX_ATOMIC"));
+  }
+
+  m_eri_tensor_ptr.reset(new ERITensor<Atomic>(*m_integral_calculator_ptr, m_system));
 }
 
 Integral<stored_matrix_type> IntegralCollection::lookup_integral(
@@ -52,7 +69,7 @@ Integral<stored_matrix_type> IntegralCollection::lookup_integral(
 
     case IntegralType::coulomb: /* nobreak */
     case IntegralType::exchange:
-      return make_integral<eri_type>(m_integral_calculator, m_system,
+      return make_integral<eri_type>(*m_integral_calculator_ptr, m_system,
                                      IntegralIdentifier{id, type});
 
     default:

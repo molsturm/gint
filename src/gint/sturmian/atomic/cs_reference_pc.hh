@@ -68,7 +68,7 @@ class IntegralCollection final : public IntegralCollectionBase {
 
  private:
   /** The integral calculator object */
-  Atomic m_integral_calculator;
+  std::unique_ptr<Atomic> m_integral_calculator_ptr;
 
   /** Pointer to the repulsion tensor object */
   std::unique_ptr<ERITensor_i<scalar_type>> m_eri_tensor_ptr;
