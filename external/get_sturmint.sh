@@ -27,7 +27,7 @@
 # Settings
 #
 # The git repo to checkout
-FROM="ssh://gitte@ccsvn.iwr.uni-heidelberg.de:42022/sturmint.git"
+FROM="ssh://git@github.com:mfherbst/sturmint.git"
 
 # Branch to checkout (empty for default)
 BRANCH="v0.0.1"
