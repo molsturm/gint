@@ -27,10 +27,10 @@
 # Settings
 #
 # The git repo to checkout
-FROM="ssh://git@github.com:mfherbst/sturmint.git"
+FROM="ssh://git@github.com/mfherbst/sturmint.git"
 
 # Branch to checkout (empty for default)
-BRANCH="v0.0.1"
+BRANCH="v0.0.2"
 
 # Folder to check it out to
 WHAT="sturmint"
