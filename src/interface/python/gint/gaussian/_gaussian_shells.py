@@ -122,7 +122,7 @@ def cartesian_shell(x, y, z, l, centre, coefficient, zeta, ordering):
   # _shell_expressions.py
   norm = expr.normalisation_cartesian_gaussians(l, zeta)
 
-  if np.all(centre != np.zeros(3)):
+  if np.any(centre != np.zeros(3)):
     xs = x - centre[0]
     ys = y - centre[1]
     zs = z - centre[2]
@@ -194,7 +194,7 @@ def pure_shell(x, y, z, l, centre, coefficient, zeta):
   if np.min(zeta) <= 0:
     raise ValueError("All exponents (zeta) need to be larger than zero")
 
-  if np.all(centre != np.zeros(3)):
+  if np.any(centre != np.zeros(3)):
     xs = x - centre[0]
     ys = y - centre[1]
     zs = z - centre[2]
