@@ -26,23 +26,22 @@ import numpy as np
 
 
 class Structure:
-    def __init__(self, atoms, coords=None):
-        """Setup a structure object.
+    def __init__(self, atoms=[], coords=[]):
+        """Setup a structure object representing the structure of a chemical system.
 
         atoms:   List of all atoms of the structure. Either symbol or atomic numbers
-                 or names are accepted.
+                 or names of the elements are accepted.
         coords:  List of the coordinates of the involved atoms.
 
         If there is only a single atom, then coords may be absent and atoms may be just
         a single atom number or atom name/symbol.
         """
-        if not isinstance(atoms, (list, tuple, np.ndarray)):
-            if coords is None:
-                atoms = [atoms]
-            else:
-                raise TypeError("atoms needs to be a list or tuple")
+        if isinstance(atoms, (int, str)):
+            atoms = [atoms]
+        elif not isinstance(atoms, (list, tuple, np.ndarray)):
+            raise TypeError("atoms needs to be a list or tuple")
 
-        if coords is None:
+        if atoms and not coords:
             if len(atoms) == 1:
                 coords = [[0, 0, 0]]
             else:
@@ -54,7 +53,8 @@ class Structure:
 
         self.atom_numbers = np.array(element.to_atom_numbers(atoms))
         self.coords = np.array(coords)
-        if self.coords.shape[1] != 3:
+
+        if coords and self.coords.shape[1] != 3:
             raise ValueError("The coords list needs to have exactly 3 items per "
                              "coordinate.")
 
@@ -70,4 +70,8 @@ class Structure:
     @property
     def total_charge(self):
         """Compute the total charge of the atoms in the structure"""
-        return sum(self.atom_numbers)
+        return self.atom_numbers.sum()
+
+    @property
+    def empty(self):
+        return self.n_atoms == 0
