@@ -41,7 +41,7 @@ class Structure:
         elif not isinstance(atoms, (list, tuple, np.ndarray)):
             raise TypeError("atoms needs to be a list or tuple")
 
-        if atoms and not coords:
+        if len(atoms) > 0 and len(coords) == 0:
             if len(atoms) == 1:
                 coords = [[0, 0, 0]]
             else:
@@ -54,7 +54,7 @@ class Structure:
         self.atom_numbers = np.array(element.to_atom_numbers(atoms))
         self.coords = np.array(coords)
 
-        if coords and self.coords.shape[1] != 3:
+        if len(coords) > 0 and self.coords.shape[1] != 3:
             raise ValueError("The coords list needs to have exactly 3 items per "
                              "coordinate.")
 
