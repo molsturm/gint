@@ -90,5 +90,6 @@ Further external dependencies required by `libcint`:
 - BLAS
 
 ### Sturmians: sturmint
-Sturmint is currently not released (but this is planned for the near future).
+[`sturmint`](https://molsturm.org/sturmint)
+is currently not released (but this is planned for the near future).
 It can be enabled using the option `-DGINT_ENABLE_STURMINT=ON`.
