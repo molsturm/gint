@@ -51,7 +51,7 @@ option(GINT_ENABLE_STURMINT "Enable the sturmint library to compute Sturmian int
 
 if (GINT_ENABLE_STURMINT)
 	include_krims_cmake_module(FindPackageAutocheckoutFallback)
-	find_package_autocheckout_fallback(sturmint 0.0.0)
+	find_package_autocheckout_fallback(sturmint 0.0.2)
 
 	foreach (build ${DRB_BUILD_TYPES})
 		set(GINT_DEPENDENCIES_${build} ${GINT_DEPENDENCIES_${build}} ${sturmint_${build}_TARGET})
