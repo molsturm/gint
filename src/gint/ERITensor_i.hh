@@ -81,7 +81,17 @@ class ERITensor_i {
    *  of the basis used by the IntegralCollection
    */
   virtual void extract_block(const std::array<krims::Range<size_t>, 4>& block,
-                             std::vector<Scalar>& out) const;
+                             std::vector<Scalar>& out) const {
+    assert_size(out.size(), block[0].length() * block[1].length() * block[2].length() *
+                                  block[3].length());
+    extract_block(block, out.data());
+  }
+
+  /** Extract a block of the untransformed tensor, i.e. in terms
+   *  of the basis used by the IntegralCollection as raw memory.
+   */
+  virtual void extract_block(const std::array<krims::Range<size_t>, 4>& block,
+                             Scalar* out) const;
 
   virtual ~ERITensor_i()          = default;
   ERITensor_i()                   = default;
