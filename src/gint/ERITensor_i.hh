@@ -28,7 +28,7 @@ namespace gint {
  *
  * Throughout this class we use chemists/Mullikan notation for the
  * integrals, i.e. element (a,b,c,d) is the integral (a b | c d)
- * with a and b being basis functions of electron 1 and c and being
+ * with a and b being basis functions of electron 1 and c and d being
  * basis functions of electron 2.
  *
  * For the tensor elements in linearised storage a C-like convention
