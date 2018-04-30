@@ -91,8 +91,7 @@ matrix:
       compiler: clang
       env: CC_COMP="clang" CXX_COMP="clang++"
     #
-    # Clang 5.0 (has c++17) with libc++-1
-    #    Note that c++17 is disabled due to cmake < 3.8 where c++17 is not yet ready
+    # Clang 5.0 with libc++-1 and disabled c++17 support
     - addons:
         apt:
           sources: *def_sources
@@ -100,6 +99,7 @@ matrix:
             - *def_packages
             - &clang_newest [ clang-5.0, libc++-dev, llvm-5.0, clang-tidy-5.0 ]
       install:
+        - export EXTRA_OPTS="-DDRB_MAXIMUM_CXX_STANDARD=14"
         - export GCOV="llvm-cov-5.0 gcov"
       compiler: clang
       env: CC_COMP="clang-5.0" CXX_COMP="clang++-5.0"
@@ -111,7 +111,6 @@ matrix:
       env: CC_COMP="gcc" CXX_COMP="g++"
     #
     # gcc-7 (with tests and c++17)
-    #    Note that c++17 is disabled due to cmake < 3.8 where c++17 is not yet ready
     - addons:
         apt:
           sources: *def_sources
@@ -124,7 +123,6 @@ matrix:
       env: CC_COMP="gcc-7" CXX_COMP="g++-7"
     #
     # Clang-tidy 5.0
-    #    Note that c++17 is disabled due to cmake < 3.8 where c++17 is not yet ready
     - addons:
         apt:
           sources: *def_sources
