@@ -165,7 +165,7 @@ script:
            -DGINT_ENABLE_LIBCINT=ON
            -DGINT_ENABLE_LIBINT=ON ${LIBINT_OPTS}
            -GNinja ..
-  - cmake --build  . --target ${BUILD_TARGET:-all} -- -j ${CORES}
+  - travis_wait 20 cmake --build  . --target ${BUILD_TARGET:-all} -- -j ${CORES}
   - if [ "${TESTS}" != "0" ]; then
         ctest -j ${CORES} --output-on-failure -R "${TESTS_REGEX}"
     ;else true; fi
