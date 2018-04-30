@@ -79,7 +79,7 @@ if (GINT_ENABLE_LIBINT)
 	endif()
 
 	# Forward parameters to included module
-	set(LIBINT_VERSION 2.4.2) # We need at least this version
+	set(LIBINT_VERSION 2.4.3) # We need at least this version
 	set(LIBINT_SEARCH_SYSTEM ${GINT_LIBINT_USE_SYSTEM})
 	set(LIBINT_MAX_AM ${GINT_LIBINT_MAX_AM})
 	set(LIBINT_MAX_MULTIPOLE_ORDER ${GINT_LIBINT_MAX_MULTIPOLE})
