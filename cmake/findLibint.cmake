@@ -47,7 +47,7 @@ message(WARNING "AUTOCHECKOUT_FORCED should be worked into this.")
 # -------
 #
 
-function(SETUP_LIBINT2_FOR_EXTERNAL_BUILD TARGET LIBINT_MAX_AM)
+function(SETUP_LIBINT2_FOR_EXTERNAL_BUILD TARGET LIBINT_MAX_AM LIBINT_MAX_MULTIPOLE_ORDER)
 	# Determine compiler flags which are in use in outer project
 	# and remove all -W and -f flags
 	string(REGEX REPLACE "(-(W|f)[^ ]+|-pedantic)" "" TMP
@@ -93,6 +93,9 @@ function(SETUP_LIBINT2_FOR_EXTERNAL_BUILD TARGET LIBINT_MAX_AM)
 		#
 		# Optimise maximally up to angular momentum 4
 		"--with-opt-am=${LIBINT_OPT_AM}"
+		#
+		# Limit max multipole order
+		"--with-multipole-max-order=${LIBINT_MAX_MULTIPOLE_ORDER}"
 		#
 		# Disable unrolling shell sets into integrals
 		"--disable-unrolling"
@@ -203,7 +206,8 @@ if (LIBINT_SEARCH_SYSTEM STREQUAL "" OR LIBINT_SEARCH_SYSTEM)
 endif()
 if(AUTOCHECKOUT_MISSING_REPOS)
 	set(LIBINT_TARGET "External::libint")
-	SETUP_LIBINT2_FOR_EXTERNAL_BUILD(${LIBINT_TARGET} ${LIBINT_MAX_AM})
+	SETUP_LIBINT2_FOR_EXTERNAL_BUILD(${LIBINT_TARGET} ${LIBINT_MAX_AM}
+		${LIBINT_MAX_MULTIPOLE_ORDER})
 	target_link_libraries(${LIBINT_TARGET} INTERFACE ${EIGEN_TARGET})
 
 	message(STATUS "Setting up libint2 as an external project")

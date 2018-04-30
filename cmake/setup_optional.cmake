@@ -70,6 +70,7 @@ set(GINT_LIBINT_MAX_AM 6 CACHE STRING
 "Maximal angular momentum libint can perform integrals over. \
 Choose a smaller value to get a faster build."
 )   # Note: ORCA uses a value of 7 (up to K) in the setting above.
+set(GINT_LIBINT_MAX_MULTIPOLE 10 CACHE STRING "Maximal multipole order to use for builds.")
 
 if (GINT_ENABLE_LIBINT)
 	# Check options:
@@ -81,10 +82,13 @@ if (GINT_ENABLE_LIBINT)
 	set(LIBINT_VERSION 2.4.2) # We need at least this version
 	set(LIBINT_SEARCH_SYSTEM ${GINT_LIBINT_USE_SYSTEM})
 	set(LIBINT_MAX_AM ${GINT_LIBINT_MAX_AM})
+	set(LIBINT_MAX_MULTIPOLE_ORDER ${GINT_LIBINT_MAX_MULTIPOLE})
 
 	include(cmake/findLibint.cmake)
 	unset(LIBINT_VERSION)
+	unset(LIBINT_MAX_AM)
 	unset(LIBINT_SEARCH_SYSTEM)
+	unset(LIBINT_MAX_MULTIPOLE_ORDER)
 
 	set(GINT_DEPENDENCIES ${GINT_DEPENDENCIES} ${LIBINT_TARGET})
 	enable_feature(libint)
