@@ -1,5 +1,5 @@
 //
-// Copyright (C) 2017 by the gint authors
+// Copyright (C) 2018 by the gint authors
 //
 // This file is part of gint.
 //

@@ -81,7 +81,7 @@ elements = (
   Element( 99, "Es", "einsteinium"),    Element(100, "Fm", "fermium"),
   Element(101, "Md", "mendelevium"),    Element(102, "No", "nobelium"),
   Element(103, "Lr", "lawrencium"),     Element(104, "Rf", "rutherfordium"),
-  Element(105, "Ha", "hahnium"),        Element(106, "Sg", "seaborgium"),
+  Element(105, "Db", "dubnium"),        Element(106, "Sg", "seaborgium"),
   Element(107, "Bh", "bohrium"),        Element(108, "Hs", "hassium"),
   Element(109, "Mt", "meitnerium"),     Element(110, "Ds", "darmstadtium"),
   Element(111, "Rg", "roentgenium"),    Element(112, "Cn", "copernicium"),
