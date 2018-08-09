@@ -27,8 +27,8 @@ import sys
 
 
 # Amend path to make sure that the element.py file is actually found.
-sys.path = ["../gint_iface/"] + sys.path
-from gint.element import elements
+sys.path = ["../interface/python/gint/"] + sys.path
+from element import elements
 
 
 OUTPUT_FILE = "elements.cc"

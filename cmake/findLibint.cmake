@@ -47,7 +47,7 @@ message(WARNING "AUTOCHECKOUT_FORCED should be worked into this.")
 # -------
 #
 
-function(SETUP_LIBINT2_FOR_EXTERNAL_BUILD TARGET LIBINT_MAX_AM)
+function(SETUP_LIBINT2_FOR_EXTERNAL_BUILD TARGET LIBINT_MAX_AM LIBINT_MAX_MULTIPOLE_ORDER)
 	# Determine compiler flags which are in use in outer project
 	# and remove all -W and -f flags
 	string(REGEX REPLACE "(-(W|f)[^ ]+|-pedantic)" "" TMP
@@ -81,7 +81,9 @@ function(SETUP_LIBINT2_FOR_EXTERNAL_BUILD TARGET LIBINT_MAX_AM)
 		"CXX=${CMAKE_CXX_COMPILER}"
 		#
 		# Optimisation flags for all compilation processes inside libint
-		"CXXFLAGS=${CXX_STANDARD_FLAG} ${CLANG_CXX_FLAGS}"
+		# TODO Note that -DBOOST_PP_VARIADICS=1 was added to work around
+		#      a common bug in boost
+		"CXXFLAGS=${CXX_STANDARD_FLAG} ${CLANG_CXX_FLAGS} -DBOOST_PP_VARIADICS=1"
 		"LDFLAGS=${CLANG_LD_FLAGS}"
 		#
 		# Optimisation flags for the inner compiler
@@ -93,6 +95,9 @@ function(SETUP_LIBINT2_FOR_EXTERNAL_BUILD TARGET LIBINT_MAX_AM)
 		#
 		# Optimise maximally up to angular momentum 4
 		"--with-opt-am=${LIBINT_OPT_AM}"
+		#
+		# Limit max multipole order
+		"--with-multipole-max-order=${LIBINT_MAX_MULTIPOLE_ORDER}"
 		#
 		# Disable unrolling shell sets into integrals
 		"--disable-unrolling"
@@ -140,6 +145,10 @@ function(SETUP_LIBINT2_FOR_EXTERNAL_BUILD TARGET LIBINT_MAX_AM)
 endfunction()
 
 function(SETUP_SYSTEM_LIBINT TARGET VERSION)
+	string(REGEX REPLACE "^([0-9.]+).*" "\\1"
+		LIBINT_VERSION "${VERSION}")
+	set(VERSION "${LIBINT_VERSION}")
+
 	find_package(Libint2 ${VERSION} QUIET MODULE)
 	if (NOT LIBINT_FOUND)
 		return()
@@ -191,6 +200,8 @@ Try setting Eigen3_DIR to the location.")
 	message(STATUS "Found eigen3 include directory at ${Eigen3_DIR}")
 endif()
 
+# TODO Only do this if libint autocheckout is not forced.
+# i.e. read AUTOCHECKOUT_FORCED
 if (LIBINT_SEARCH_SYSTEM STREQUAL "" OR LIBINT_SEARCH_SYSTEM)
 	set(LIBINT_TARGET "System::libint")
 	SETUP_SYSTEM_LIBINT(${LIBINT_TARGET} ${LIBINT_VERSION})
@@ -203,7 +214,8 @@ if (LIBINT_SEARCH_SYSTEM STREQUAL "" OR LIBINT_SEARCH_SYSTEM)
 endif()
 if(AUTOCHECKOUT_MISSING_REPOS)
 	set(LIBINT_TARGET "External::libint")
-	SETUP_LIBINT2_FOR_EXTERNAL_BUILD(${LIBINT_TARGET} ${LIBINT_MAX_AM})
+	SETUP_LIBINT2_FOR_EXTERNAL_BUILD(${LIBINT_TARGET} ${LIBINT_MAX_AM}
+		${LIBINT_MAX_MULTIPOLE_ORDER})
 	target_link_libraries(${LIBINT_TARGET} INTERFACE ${EIGEN_TARGET})
 
 	message(STATUS "Setting up libint2 as an external project")

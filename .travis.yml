@@ -40,6 +40,7 @@ env:
     # The regex for tests to run (disable running tests by TESTS=0)
     - TESTS=1  TESTS_REGEX="gint_tests_"
 
+
 # Cache the directory cache_libint, such that libint does not need
 # to be rebuild each time.
 cache:
@@ -78,7 +79,7 @@ before_install:
 
 matrix:
   include:
-    # Clang 3.5 with disabled c++14 support with libstdc++-4.9
+    # System clang with disabled c++14 support with libstdc++-4.9
     - addons:
         apt:
           sources: *def_sources
@@ -91,27 +92,33 @@ matrix:
       compiler: clang
       env: CC_COMP="clang" CXX_COMP="clang++"
     #
-    # Clang 5.0 (has c++17) with libc++-1
-    #    Note that c++17 is disabled due to cmake < 3.8 where c++17 is not yet ready
+    # TODO Here we used to test with libc++1 by installing libc++-dev,
+    #      but this does not go well with libint any more
+    # Clang 5.0 with disabled c++17 support
     - addons:
         apt:
           sources: *def_sources
           packages:
             - *def_packages
-            - &clang_newest [ clang-5.0, libc++-dev, llvm-5.0, clang-tidy-5.0 ]
+            - &clang_newest [ clang-5.0, llvm-5.0, clang-tidy-5.0 ]
+            - libstdc++-5-dev
       install:
+        - export EXTRA_OPTS="-DDRB_MAXIMUM_CXX_STANDARD=14"
         - export GCOV="llvm-cov-5.0 gcov"
       compiler: clang
       env: CC_COMP="clang-5.0" CXX_COMP="clang++-5.0"
     #
-    # gcc-4.8 (c++11 and without tests, since rapidcheck does not compile like this)
-    - install:
-        - export TESTS=0 EXTRA_OPTS="-DGINT_ENABLE_TESTS=OFF"
+    # gcc-5
+    - addons:
+        apt:
+          sources: *def_sources
+          packages:
+            - *def_packages
+            - g++-5
       compiler: gcc
-      env: CC_COMP="gcc" CXX_COMP="g++"
+      env: CC_COMP="gcc-5" CXX_COMP="g++-5"
     #
     # gcc-7 (with tests and c++17)
-    #    Note that c++17 is disabled due to cmake < 3.8 where c++17 is not yet ready
     - addons:
         apt:
           sources: *def_sources
@@ -124,7 +131,6 @@ matrix:
       env: CC_COMP="gcc-7" CXX_COMP="g++-7"
     #
     # Clang-tidy 5.0
-    #    Note that c++17 is disabled due to cmake < 3.8 where c++17 is not yet ready
     - addons:
         apt:
           sources: *def_sources
@@ -151,7 +157,8 @@ script:
            -DLIBINT_INCLUDE_DIR=$HOME/cache_libint/include
            -DLIBINT_LIBRARY=$HOME/cache_libint/lib/libint2.a"
     ;else
-        LIBINT_OPTS="-DGINT_LIBINT_MAX_AM=3 -DDEP_BUILD_libint_NJOBS=2"
+        LIBINT_OPTS="-DGINT_LIBINT_MAX_AM=3 -DDEP_BUILD_libint_NJOBS=2
+           -DGINT_LIBINT_MAX_MULTIPOLE=2"
     ;fi
   #
   # Configure build and test
@@ -167,7 +174,7 @@ script:
            -DGINT_ENABLE_LIBCINT=ON
            -DGINT_ENABLE_LIBINT=ON ${LIBINT_OPTS}
            -GNinja ..
-  - cmake --build  . --target ${BUILD_TARGET:-all} -- -j ${CORES}
+  - travis_wait 20 cmake --build  . --target ${BUILD_TARGET:-all} -- -j ${CORES}
   - if [ "${TESTS}" != "0" ]; then
         ctest -j ${CORES} --output-on-failure -R "${TESTS_REGEX}"
     ;else true; fi

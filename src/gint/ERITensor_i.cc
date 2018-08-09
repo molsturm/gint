@@ -85,7 +85,8 @@ void ERITensor_i<Scalar>::contract_with(const iface_multivector_type& c_wa,
   std::vector<Scalar> i1_wbcd(n_w * n_bas() * n_bas() * n_bas());
 
   auto contract_kernel = [&i1_wbcd, &c_wa, &absidx_wbcd](
-        const std::array<krims::Range<size_t>, 4>& batch, const Scalar* values) {
+                               const std::array<krims::Range<size_t>, 4>& batch,
+                               const Scalar* values) {
 #ifdef DEBUG
     const size_t values_size =
           batch[0].length() * batch[1].length() * batch[2].length() * batch[3].length();
@@ -197,10 +198,9 @@ void ERITensor_i<Scalar>::contract_with(const iface_multivector_type& c_wa,
 
 template <typename Scalar>
 void ERITensor_i<Scalar>::extract_block(const std::array<krims::Range<size_t>, 4>& block,
-                                        std::vector<Scalar>& out) const {
+                                        Scalar* out) const {
   using krims::intersection;
-  assert_size(out.size(), block[0].length() * block[1].length() * block[2].length() *
-                                block[3].length());
+
   assert_greater(block[0].back(), n_bas());
   assert_greater(block[1].back(), n_bas());
   assert_greater(block[2].back(), n_bas());
@@ -211,6 +211,8 @@ void ERITensor_i<Scalar>::extract_block(const std::array<krims::Range<size_t>, 4
 #ifdef DEBUG
     const size_t values_size =
           batch[0].length() * batch[1].length() * batch[2].length() * batch[3].length();
+    const size_t block_size =
+          block[0].length() * block[1].length() * block[2].length() * block[3].length();
 #endif
 
     // Get the intersection of the range we have in the current batch
@@ -250,7 +252,7 @@ void ERITensor_i<Scalar>::extract_block(const std::array<krims::Range<size_t>, 4
             const size_t idx_bch = absidx_bch({{a_bch, b_bch, c_bch, d_bch}});
 
             assert_internal(idx_bch < values_size);
-            assert_internal(idx_blk < out.size());
+            assert_internal(idx_blk < block_size);
             out[idx_blk] = it[idx_bch];
           }  // d
         }    // c

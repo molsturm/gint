@@ -53,3 +53,4 @@ function(setup_example_target TARGET)
 endfunction()
 
 add_subdirectory(laplace)
+add_subdirectory(rhf)

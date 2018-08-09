@@ -51,7 +51,7 @@ option(GINT_ENABLE_STURMINT "Enable the sturmint library to compute Sturmian int
 
 if (GINT_ENABLE_STURMINT)
 	include_krims_cmake_module(FindPackageAutocheckoutFallback)
-	find_package_autocheckout_fallback(sturmint 0.0.0)
+	find_package_autocheckout_fallback(sturmint 0.0.2)
 
 	foreach (build ${DRB_BUILD_TYPES})
 		set(GINT_DEPENDENCIES_${build} ${GINT_DEPENDENCIES_${build}} ${sturmint_${build}_TARGET})
@@ -70,6 +70,7 @@ set(GINT_LIBINT_MAX_AM 6 CACHE STRING
 "Maximal angular momentum libint can perform integrals over. \
 Choose a smaller value to get a faster build."
 )   # Note: ORCA uses a value of 7 (up to K) in the setting above.
+set(GINT_LIBINT_MAX_MULTIPOLE 10 CACHE STRING "Maximal multipole order to use for builds.")
 
 if (GINT_ENABLE_LIBINT)
 	# Check options:
@@ -78,13 +79,16 @@ if (GINT_ENABLE_LIBINT)
 	endif()
 
 	# Forward parameters to included module
-	set(LIBINT_VERSION 2.3.1) # We need at least this version
+	set(LIBINT_VERSION 2.5.0-beta.1) # We need at least this version
 	set(LIBINT_SEARCH_SYSTEM ${GINT_LIBINT_USE_SYSTEM})
 	set(LIBINT_MAX_AM ${GINT_LIBINT_MAX_AM})
+	set(LIBINT_MAX_MULTIPOLE_ORDER ${GINT_LIBINT_MAX_MULTIPOLE})
 
 	include(cmake/findLibint.cmake)
 	unset(LIBINT_VERSION)
+	unset(LIBINT_MAX_AM)
 	unset(LIBINT_SEARCH_SYSTEM)
+	unset(LIBINT_MAX_MULTIPOLE_ORDER)
 
 	set(GINT_DEPENDENCIES ${GINT_DEPENDENCIES} ${LIBINT_TARGET})
 	enable_feature(libint)

@@ -1,5 +1,5 @@
 //
-// Copyright (C) 2017 by the gint authors
+// Copyright (C) 2018 by the gint authors
 //
 // This file is part of gint.
 //
@@ -133,7 +133,7 @@ const std::vector<Element>& elements() {
         {102, "No" , "nobelium"     },
         {103, "Lr" , "lawrencium"   },
         {104, "Rf" , "rutherfordium"},
-        {105, "Ha" , "hahnium"      },
+        {105, "Db" , "dubnium"      },
         {106, "Sg" , "seaborgium"   },
         {107, "Bh" , "bohrium"      },
         {108, "Hs" , "hassium"      },
