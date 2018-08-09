@@ -90,7 +90,7 @@ matrix:
         - export EXTRA_OPTS="-DDRB_MAXIMUM_CXX_STANDARD=11"
         - export GCOV="llvm-cov gcov"
       compiler: clang
-      env: CC_COMP="clang" CXX_COMP="clang++" CXXFLAGS="-DBOOST_PP_VARIADICS=1"
+      env: CC_COMP="clang" CXX_COMP="clang++"
     #
     # TODO Here we used to test with libc++1 by installing libc++-dev,
     #      but this does not go well with libint any more
@@ -105,9 +105,7 @@ matrix:
         - export EXTRA_OPTS="-DDRB_MAXIMUM_CXX_STANDARD=14"
         - export GCOV="llvm-cov-5.0 gcov"
       compiler: clang
-      # CXXFLAGS="-DBOOST_PP_VARIADICS=1" is required because the
-      # variadic macro check built into the current version of boost is not working
-      env: CC_COMP="clang-5.0" CXX_COMP="clang++-5.0" CXXFLAGS="-DBOOST_PP_VARIADICS=1"
+      env: CC_COMP="clang-5.0" CXX_COMP="clang++-5.0"
     #
     # gcc-5
     - addons:
