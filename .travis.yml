@@ -60,7 +60,7 @@ addons:
       #
       # Packages for lazyten
       - libarmadillo-dev
-      - libboost-dev
+      - libboost1.55-dev
       - liblapack-dev
       - libblas-dev
       #
@@ -86,7 +86,9 @@ matrix:
             - *def_packages
             - libstdc++-4.9-dev
       install:
-        - export EXTRA_OPTS="-DDRB_MAXIMUM_CXX_STANDARD=11"
+        # CMAKE_CXX_FLAGS="-DBOOST_PP_VARIADICS=1" is required because the
+        # variadic macro check built into the current version of boost is not working
+        - export EXTRA_OPTS="-DDRB_MAXIMUM_CXX_STANDARD=11 -DCMAKE_CXX_FLAGS='-DBOOST_PP_VARIADICS=1'"
         - export GCOV="llvm-cov gcov"
       compiler: clang
       env: CC_COMP="clang" CXX_COMP="clang++"
@@ -99,7 +101,9 @@ matrix:
             - *def_packages
             - &clang_newest [ clang-5.0, libc++-dev, llvm-5.0, clang-tidy-5.0 ]
       install:
-        - export EXTRA_OPTS="-DDRB_MAXIMUM_CXX_STANDARD=14"
+        # CMAKE_CXX_FLAGS="-DBOOST_PP_VARIADICS=1" is required because the
+        # variadic macro check built into the current version of boost is not working
+        - export EXTRA_OPTS="-DDRB_MAXIMUM_CXX_STANDARD=14 -DCMAKE_CXX_FLAGS='-DBOOST_PP_VARIADICS=1'"
         - export GCOV="llvm-cov-5.0 gcov"
       compiler: clang
       env: CC_COMP="clang-5.0" CXX_COMP="clang++-5.0"
