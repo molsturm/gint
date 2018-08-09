@@ -51,7 +51,7 @@ function(SETUP_LIBINT2_FOR_EXTERNAL_BUILD TARGET LIBINT_MAX_AM LIBINT_MAX_MULTIP
 	# Determine compiler flags which are in use in outer project
 	# and remove all -W and -f flags
 	string(REGEX REPLACE "(-(W|f)[^ ]+|-pedantic)" "" TMP
-		${CMAKE_CXX_FLAGS_RELEASE}" "${CMAKE_CXX_FLAGS})
+		${CMAKE_CXX_FLAGS_RELEASE} ${CMAKE_CXX_FLAGS})
 	string(REGEX REPLACE "  *"  " "  INNER_COMPILE_OPTS ${TMP})
 
 	set(LIBINT_OPT_AM 4)
@@ -81,7 +81,7 @@ function(SETUP_LIBINT2_FOR_EXTERNAL_BUILD TARGET LIBINT_MAX_AM LIBINT_MAX_MULTIP
 		"CXX=${CMAKE_CXX_COMPILER}"
 		#
 		# Optimisation flags for all compilation processes inside libint
-		"CXXFLAGS=${CXX_STANDARD_FLAG} ${CLANG_CXX_FLAGS}"
+		"CXXFLAGS=${CXX_STANDARD_FLAG} ${CLANG_CXX_FLAGS} ${CMAKE_CXX_FLAGS}"
 		"LDFLAGS=${CLANG_LD_FLAGS}"
 		#
 		# Optimisation flags for the inner compiler
