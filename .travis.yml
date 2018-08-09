@@ -40,6 +40,7 @@ env:
     # The regex for tests to run (disable running tests by TESTS=0)
     - TESTS=1  TESTS_REGEX="gint_tests_"
 
+
 # Cache the directory cache_libint, such that libint does not need
 # to be rebuild each time.
 cache:
@@ -60,7 +61,7 @@ addons:
       #
       # Packages for lazyten
       - libarmadillo-dev
-      - libboost1.55-dev
+      - libboost-dev
       - liblapack-dev
       - libblas-dev
       #
@@ -91,7 +92,9 @@ matrix:
         - export EXTRA_OPTS="-DDRB_MAXIMUM_CXX_STANDARD=11 -DCMAKE_CXX_FLAGS='-DBOOST_PP_VARIADICS=1'"
         - export GCOV="llvm-cov gcov"
       compiler: clang
-      env: CC_COMP="clang" CXX_COMP="clang++"
+      # CXXFLAGS="-DBOOST_PP_VARIADICS=1" is required because the
+      # variadic macro check built into the current version of boost is not working
+      env: CC_COMP="clang" CXX_COMP="clang++" CXXFLAGS="-DBOOST_PP_VARIADICS=1"
     #
     # Clang 5.0 with libc++-1 and disabled c++17 support
     - addons:
@@ -106,13 +109,19 @@ matrix:
         - export EXTRA_OPTS="-DDRB_MAXIMUM_CXX_STANDARD=14 -DCMAKE_CXX_FLAGS='-DBOOST_PP_VARIADICS=1'"
         - export GCOV="llvm-cov-5.0 gcov"
       compiler: clang
-      env: CC_COMP="clang-5.0" CXX_COMP="clang++-5.0"
+      # CXXFLAGS="-DBOOST_PP_VARIADICS=1" is required because the
+      # variadic macro check built into the current version of boost is not working
+      env: CC_COMP="clang-5.0" CXX_COMP="clang++-5.0" CXXFLAGS="-DBOOST_PP_VARIADICS=1"
     #
-    # gcc-4.8 (c++11 and without tests, since rapidcheck does not compile like this)
-    - install:
-        - export TESTS=0 EXTRA_OPTS="-DGINT_ENABLE_TESTS=OFF"
+    # gcc-5
+    - addons:
+        apt:
+          sources: *def_sources
+          packages:
+            - *def_packages
+            - g++-5
       compiler: gcc
-      env: CC_COMP="gcc" CXX_COMP="g++"
+      env: CC_COMP="gcc-5" CXX_COMP="g++-5"
     #
     # gcc-7 (with tests and c++17)
     - addons:
