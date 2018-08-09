@@ -21,6 +21,10 @@
 #include "gint/config.hh"
 #ifdef GINT_HAVE_LIBINT
 
+// This is needed to work around a bug in libint 2.5.0
+// and can be removed in the future
+#define LIBINT2_CENTER_DEPENDENT_MAX_AM_3eri 1
+
 #include <functional>
 #include <krims/SubscriptionPointer.hh>
 #include <libint2.hpp>
