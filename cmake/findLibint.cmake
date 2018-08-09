@@ -51,7 +51,7 @@ function(SETUP_LIBINT2_FOR_EXTERNAL_BUILD TARGET LIBINT_MAX_AM LIBINT_MAX_MULTIP
 	# Determine compiler flags which are in use in outer project
 	# and remove all -W and -f flags
 	string(REGEX REPLACE "(-(W|f)[^ ]+|-pedantic)" "" TMP
-		${CMAKE_CXX_FLAGS_RELEASE} ${CMAKE_CXX_FLAGS})
+		${CMAKE_CXX_FLAGS_RELEASE}" "${CMAKE_CXX_FLAGS})
 	string(REGEX REPLACE "  *"  " "  INNER_COMPILE_OPTS ${TMP})
 
 	set(LIBINT_OPT_AM 4)
@@ -194,6 +194,8 @@ Try setting Eigen3_DIR to the location.")
 	message(STATUS "Found eigen3 include directory at ${Eigen3_DIR}")
 endif()
 
+# TODO Only do this if libint autocheckout is not forced.
+# i.e. read AUTOCHECKOUT_FORCED
 if (LIBINT_SEARCH_SYSTEM STREQUAL "" OR LIBINT_SEARCH_SYSTEM)
 	set(LIBINT_TARGET "System::libint")
 	SETUP_SYSTEM_LIBINT(${LIBINT_TARGET} ${LIBINT_VERSION})
