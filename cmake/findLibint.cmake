@@ -81,7 +81,9 @@ function(SETUP_LIBINT2_FOR_EXTERNAL_BUILD TARGET LIBINT_MAX_AM LIBINT_MAX_MULTIP
 		"CXX=${CMAKE_CXX_COMPILER}"
 		#
 		# Optimisation flags for all compilation processes inside libint
-		"CXXFLAGS=${CXX_STANDARD_FLAG} ${CLANG_CXX_FLAGS} ${CMAKE_CXX_FLAGS}"
+		# TODO Note that -DBOOST_PP_VARIADICS=1 was added to work around
+		#      a common bug in boost
+		"CXXFLAGS=${CXX_STANDARD_FLAG} ${CLANG_CXX_FLAGS} -DBOOST_PP_VARIADICS=1"
 		"LDFLAGS=${CLANG_LD_FLAGS}"
 		#
 		# Optimisation flags for the inner compiler
