@@ -101,6 +101,7 @@ matrix:
           packages:
             - *def_packages
             - &clang_newest [ clang-5.0, llvm-5.0, clang-tidy-5.0 ]
+            - libstdc++-5-dev
       install:
         - export EXTRA_OPTS="-DDRB_MAXIMUM_CXX_STANDARD=14"
         - export GCOV="llvm-cov-5.0 gcov"
