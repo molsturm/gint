@@ -25,6 +25,7 @@
 #include "Shell.hh"
 #include "gint/IntegralUpdateKeys.hh"
 #include "read_basisset.hh"
+#include <iterator>
 #include <krims/DataFiles/FindDataFile.hh>
 #include <krims/FileSystem.hh>
 
@@ -45,7 +46,13 @@ std::vector<std::pair<double, std::array<double, 3>>> inline make_libint_point_c
   return ret;
 }
 
-/** Convert a gint::gaussian::Basis to a libint basis */
+// If boost has the container::small_vector available libint uses this datastructure.
+//  Unfortunately a std::vector cannot be directly converted to this datastructure
+//  and we need to distinguish between two codepaths, namely one with explict conversion
+//  and one without
+/** Convert a gint::gaussian::Basis to a libint basis if the vector types agree */
+template <bool vectors_types_agree =
+                std::is_same<libint2::svector<real_type>, std::vector<real_type>>::value>
 std::vector<libint2::Shell> make_libint_basis(Basis basis) {
   std::vector<libint2::Shell> ret;
   ret.reserve(basis.size());
@@ -55,7 +62,26 @@ std::vector<libint2::Shell> make_libint_basis(Basis basis) {
     libint2::Shell tosh{std::move(sh.exponents), {std::move(cntr)}, std::move(sh.origin)};
     ret.push_back(std::move(tosh));
   }
+  return ret;
+}
 
+/** Convert a gint::gaussian::Basis to a libint basis if the vector types do not agree */
+template <>
+std::vector<libint2::Shell> make_libint_basis<false>(Basis basis) {
+  std::vector<libint2::Shell> ret;
+  ret.reserve(basis.size());
+
+  for (const Shell& sh : basis) {
+    libint2::svector<real_type> l_coefficients{
+          std::make_move_iterator(sh.coefficients.begin()),
+          std::make_move_iterator(sh.coefficients.end())};
+    libint2::svector<real_type> l_exponents{std::make_move_iterator(sh.exponents.begin()),
+                                            std::make_move_iterator(sh.exponents.end())};
+
+    libint2::Shell::Contraction cntr{sh.l, sh.pure, std::move(l_coefficients)};
+    libint2::Shell tosh{std::move(l_exponents), {std::move(cntr)}, std::move(sh.origin)};
+    ret.push_back(std::move(tosh));
+  }
   return ret;
 }
 
